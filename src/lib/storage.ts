@@ -23,14 +23,14 @@ const INITIAL_CONVERSATIONS: Conversation[] = [
 ];
 
 export const StorageService = {
-  // --- AUDIT LOGGING (For Developer Dashboard) ---
+  // --- AUDIT LOGGING ---
   logAction: (action: string, details: string, targetId: string) => {
       const logs = JSON.parse(localStorage.getItem(KEYS.AUDIT_LOG) || '[]');
       const entry: AuditLogEntry = {
           id: Date.now().toString(),
           action,
           details,
-          targetIdHash: CryptoJS.SHA256(targetId).toString().substring(0, 10), // Anonymized
+          targetIdHash: CryptoJS.SHA256(targetId).toString().substring(0, 10), 
           timestamp: new Date().toISOString()
       };
       localStorage.setItem(KEYS.AUDIT_LOG, JSON.stringify([entry, ...logs]));
@@ -100,7 +100,7 @@ export const StorageService = {
       window.location.href = '/'; 
   },
 
-  // --- CMS (Content Management) ---
+  // --- CMS ---
   getArticles: (): Article[] => {
       const stored = localStorage.getItem(KEYS.CONTENT_ARTICLES);
       return stored ? JSON.parse(stored) : INITIAL_ARTICLES;
@@ -116,11 +116,10 @@ export const StorageService = {
       StorageService.logAction('CMS_DELETE', 'Article deleted', id);
   },
 
-  // --- VOLUNTEERS (With Telegram) ---
+  // --- VOLUNTEERS ---
   getVolunteers: (): Volunteer[] => {
     const data = localStorage.getItem(KEYS.VOLUNTEERS);
     if (!data) {
-        // Inject Telegram into seed data
         const seeded = SEED_VOLUNTEERS.map(v => ({ ...v, telegram: v.id === '1' ? 'DrAminaHelp' : undefined }));
         localStorage.setItem(KEYS.VOLUNTEERS, JSON.stringify(seeded));
         return seeded;
@@ -165,7 +164,7 @@ export const StorageService = {
   markConversationAsRead: (cid: string, uid: string) => {},
   joinGroupChat: (gid: string, uid: string) => {},
 
-  // --- JOURNAL / SAFETY PLAN ---
+  // --- JOURNAL ---
   getJournalEntries: (pass: string) => {
       const entries = JSON.parse(localStorage.getItem(KEYS.JOURNAL) || '[]');
       return entries.map((e: any) => ({ ...e, entry: decrypt(e.entry, pass) })).filter((e: any) => e.entry !== "");
@@ -240,11 +239,12 @@ export const StorageService = {
       return updated;
   },
 
+  // --- DATA ---
   getPoll: () => DAILY_POLL,
   votePoll: (id: string) => DAILY_POLL,
   getCommunityGroups: () => COMMUNITY_GROUPS,
   getEvents: () => INITIAL_EVENTS,
-  getOrganizations: () => INITIAL_GROUPS,
+  getOrganizations: () => COMMUNITY_GROUPS, // Use COMMUNITY_GROUPS as fallback for INITIAL_GROUPS
   getBooks: () => INITIAL_BOOKS,
   getVideos: () => INITIAL_VIDEOS,
   getQuotes: () => INITIAL_QUOTES,

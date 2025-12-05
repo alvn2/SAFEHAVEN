@@ -29,9 +29,7 @@ export const DeveloperDashboard = () => {
     return (
         <div className="space-y-8">
             <div className="flex justify-between items-center">
-                <h1 className="text-3xl font-bold font-serif dark:text-white flex items-center gap-2">
-                    <Server className="text-primary-500" /> Developer Console
-                </h1>
+                <h1 className="text-3xl font-bold font-serif dark:text-white flex items-center gap-2"><Server className="text-primary-500" /> Developer Console</h1>
                 <Badge color="blue">System Admin Mode</Badge>
             </div>
 
@@ -53,7 +51,7 @@ export const DeveloperDashboard = () => {
                         </div>
                     </Card>
                     <div className="md:col-span-2 space-y-4">
-                        {articles.map(a => (
+                        {articles.map((a: any) => (
                             <Card key={a.id} className="p-4 flex justify-between items-center">
                                 <div><h4 className="font-bold dark:text-white">{a.title}</h4><Badge color="green" className="mt-1">{a.category}</Badge></div>
                                 <button onClick={() => handleDeleteArticle(a.id)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg"><Trash2 className="w-5 h-5" /></button>
@@ -66,8 +64,8 @@ export const DeveloperDashboard = () => {
             {tab === 'users' && (
                 <Card className="p-0 overflow-hidden">
                     <div className="p-6 border-b border-gray-200 dark:border-gray-800"><h3 className="font-bold text-lg dark:text-white">Pending Applications</h3></div>
-                    {apps.filter(a => a.status === 'pending').length === 0 ? <div className="p-8 text-center text-gray-500">No pending applications.</div> : 
-                    apps.filter(a => a.status === 'pending').map(app => (
+                    {apps.filter((a: any) => a.status === 'pending').length === 0 ? <div className="p-8 text-center text-gray-500">No pending applications.</div> : 
+                    apps.filter((a: any) => a.status === 'pending').map((app: any) => (
                         <div key={app.id} className="p-6 border-b border-gray-200 dark:border-gray-800 flex justify-between items-start">
                             <div><h4 className="font-bold text-lg dark:text-white">{app.name}</h4><div className="flex gap-2 text-sm text-gray-500 mt-1"><span>{app.email}</span> • <span>{app.phone}</span></div><div className="mt-3 p-3 bg-gray-100 dark:bg-gray-800 rounded-lg text-sm dark:text-gray-300"><span className="font-bold">Qual:</span> {app.qualification}</div></div>
                             <div className="flex gap-2"><Button size="sm" variant="danger">Reject</Button><Button size="sm" onClick={() => handleApprove(app.id)}>Approve</Button></div>
@@ -76,7 +74,8 @@ export const DeveloperDashboard = () => {
                 </Card>
             )}
 
-            {tab === 'system' && (
+            {/* System & Audit Tabs remain same */}
+             {tab === 'system' && (
                 <div className="grid md:grid-cols-4 gap-6">
                     <Card className="p-6 text-center"><Activity className="w-8 h-8 mx-auto text-green-500 mb-2" /><h3 className="text-2xl font-bold dark:text-white">Healthy</h3><p className="text-xs text-gray-500">System Status</p></Card>
                     <Card className="p-6 text-center"><Users className="w-8 h-8 mx-auto text-blue-500 mb-2" /><h3 className="text-2xl font-bold dark:text-white">{StorageService.getVolunteers().length}</h3><p className="text-xs text-gray-500">Volunteers</p></Card>
@@ -88,7 +87,7 @@ export const DeveloperDashboard = () => {
                 <Card className="p-0 overflow-hidden">
                     <div className="p-6 border-b border-gray-200 dark:border-gray-800"><h3 className="font-bold text-lg dark:text-white flex gap-2"><ScrollText/> Audit Log</h3></div>
                     <div className="divide-y divide-gray-200 dark:divide-gray-700">
-                        {logs.map(log => (
+                        {logs.map((log: any) => (
                             <div key={log.id} className="p-4 text-sm flex justify-between">
                                 <div><span className="font-mono font-bold text-blue-600">{log.action}</span> <span className="text-gray-600 dark:text-gray-300 ml-2">{log.details}</span></div>
                                 <div className="text-right text-gray-400 text-xs"><div>{new Date(log.timestamp).toLocaleString()}</div><div className="font-mono">Ref: {log.targetIdHash}</div></div>
