@@ -1,0 +1,165 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+  VOLUNTEER_PENDING
+  VOLUNTEER_APPROVED
+}
+
+enum VolunteerRole {
+  licensed
+  intern
+  listener
+}
+
+model User {
+  id             String   @id @default(uuid())
+  username       String   @unique
+  passphraseHash String   // Hashed password (never plain)
+  recoveryKey    String?  // Encrypted blob of the recovery phrase
+  role           Role     @default(USER)
+  createdAt      DateTime @default(now())
+  
+  // Relations
+  journalEntries JournalEntry[]
+  safetyPlan     SafetyPlan?
+  volunteer      VolunteerProfile?
+  sentMessages   Message[]
+  conversations  ConversationParticipant[]
+}
+
+model VolunteerProfile {
+  id            String        @id @default(uuid())
+  userId        String        @unique
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name          String
+  photo         String?
+  role          VolunteerRole
+  qualification String
+  topics        String[]      // Stored as JSON array in Postgres
+  location      String
+  whatsapp      String
+  telegram      String?
+  languages     String[]
+  isOnline      Boolean       @default(false)
+  verified      Boolean       @default(false)
+  bio           String
+  views         Int           @default(0)
+  chats         Int           @default(0)
+}
+
+model JournalEntry {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date      DateTime
+  mood      Int
+  energy    Int
+  sleep     Int
+  entry     String   // ENCRYPTED BLOB (Ciphertext)
+  tags      String[]
+  isDraft   Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model SafetyPlan {
+  id                   String @id @default(uuid())
+  userId               String @unique
+  user                 User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  warningSigns         String // ENCRYPTED
+  copingStrategies     String // ENCRYPTED
+  safeContacts         String // ENCRYPTED
+  professionalContacts String // ENCRYPTED
+  environmentChanges   String // ENCRYPTED
+}
+
+model ForumPost {
+  id           String   @id @default(uuid())
+  author       String   // Anonymous Display Name
+  title        String
+  body         String
+  category     String
+  hugs         Int      @default(0)
+  isTriggering Boolean  @default(false)
+  isFlagged    Boolean  @default(false)
+  createdAt    DateTime @default(now())
+}
+
+// --- Chat System ---
+
+model Conversation {
+  id              String    @id @default(uuid())
+  type            String    // 'dm' or 'group'
+  name            String?
+  avatar          String?
+  lastMessage     String?   // Encrypted snippet or system message
+  lastMessageAt   DateTime  @default(now())
+  
+  participants    ConversationParticipant[]
+  messages        Message[]
+}
+
+model ConversationParticipant {
+  id             String       @id @default(uuid())
+  userId         String
+  user           User         @relation(fields: [userId], references: [id])
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id])
+  hasUnread      Boolean      @default(false)
+  joinedAt       DateTime     @default(now())
+
+  @@unique([userId, conversationId])
+}
+
+model Message {
+  id             String       @id @default(uuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  senderId       String
+  sender         User         @relation(fields: [senderId], references: [id])
+  senderName     String       // Snapshot of anonymous name
+  content        String       // ENCRYPTED BLOB
+  createdAt      DateTime     @default(now())
+}
+
+// --- Admin / Content ---
+
+model Article {
+  id        String   @id @default(uuid())
+  title     String
+  content   String
+  category  String
+  image     String
+  readTime  Int
+  createdAt DateTime @default(now())
+}
+
+model VolunteerApplication {
+  id            String   @id @default(uuid())
+  name          String
+  email         String
+  phone         String
+  role          String
+  qualification String
+  experience    String
+  licenseNumber String?
+  status        String   @default("pending") // pending, approved, rejected
+  submittedAt   DateTime @default(now())
+}
+
+model AuditLog {
+  id           String   @id @default(uuid())
+  action       String
+  targetIdHash String
+  details      String
+  timestamp    DateTime @default(now())
+}
