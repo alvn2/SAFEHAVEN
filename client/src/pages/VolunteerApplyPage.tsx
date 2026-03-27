@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { StorageService } from '../lib/storage';
+import { volunteerApi } from '../lib/api';
 import { Card, Input, Button } from '../components/ui';
 
 export const VolunteerApplyPage = () => {
@@ -13,7 +13,7 @@ export const VolunteerApplyPage = () => {
         setIsSubmitting(true);
         
         try {
-            await StorageService.submitVolunteerApplication(formData);
+            await volunteerApi.apply(formData);
             alert("Application Submitted!");
             navigate('/');
         } catch {

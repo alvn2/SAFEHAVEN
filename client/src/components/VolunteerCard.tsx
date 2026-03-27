@@ -5,7 +5,6 @@ import { Card, Badge, Button } from './ui';
 import { CheckCircle, MessageCircle, MessageSquare, Send } from 'lucide-react';
 import { VOLUNTEER_ROLES } from '../utils/constants';
 import { AuthContext } from '../context/AuthContext';
-import { StorageService } from '../lib/storage';
 
 interface VolunteerCardProps {
   volunteer: Volunteer;
@@ -21,8 +20,8 @@ export const VolunteerCard: React.FC<VolunteerCardProps> = ({ volunteer, onExter
         navigate('/auth');
         return;
     }
-    const conversation = StorageService.createConversation([user.id, volunteer.userId], 'dm', volunteer.name, volunteer.photo);
-    navigate(`/chat?id=${conversation.id}`);
+    // Navigate to chat — backend handles conversation creation
+    navigate(`/chat?volunteer=${volunteer.userId}`);
   };
 
   return (

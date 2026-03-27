@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StorageService } from '../lib/storage';
+import { adminApi, volunteerApi } from '../lib/api';
 import { Card, Button, Badge, Input } from '../components/ui';
 import { ShieldCheck, FileText, Activity, Server, Users, Trash2, Plus, ScrollText } from 'lucide-react';
 import { Article, VolunteerApplication, AuditLogEntry } from '../types';
@@ -15,10 +15,10 @@ export const DeveloperDashboard = () => {
     useEffect(() => {
         const loadData = async () => {
             const [a, ap, l, v] = await Promise.all([
-                StorageService.getArticles(),
-                StorageService.getVolunteerApps(),
-                StorageService.getAuditLogs(),
-                StorageService.getVolunteers()
+                adminApi.getArticles().catch(() => []),
+                adminApi.getApplications().catch(() => []),
+                adminApi.getAuditLogs().catch(() => []),
+                volunteerApi.getAll().catch(() => [])
             ]);
             setArticles(a);
             setApps(ap);
@@ -30,20 +30,21 @@ export const DeveloperDashboard = () => {
     
     const handleAddArticle = async () => {
         if(!newArticle.title) return;
-        await StorageService.saveArticle({ id: Date.now().toString(), ...newArticle, readTime: 5, image: 'https://placehold.co/600x400', type: 'article' });
-        const updated = await StorageService.getArticles();
+        await adminApi.createArticle({ ...newArticle, readTime: 5, image: 'https://placehold.co/600x400', type: 'article' });
+        const updated = await adminApi.getArticles().catch(() => []);
         setArticles(updated);
         setNewArticle({ title: '', content: '', category: '' });
     };
 
     const handleDeleteArticle = async (id: string) => {
-        await StorageService.deleteArticle(id);
-        const updated = await StorageService.getArticles();
+        await adminApi.deleteArticle(id);
+        const updated = await adminApi.getArticles().catch(() => []);
         setArticles(updated);
     };
 
     const handleApprove = async (id: string) => {
-        const updated = await StorageService.approveVolunteer(id);
+        await adminApi.approveApp(id);
+        const updated = await adminApi.getApplications().catch(() => []);
         setApps(updated);
     };
 

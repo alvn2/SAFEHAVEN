@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StorageService } from '../lib/storage';
+import { communityApi } from '../lib/api';
 import { Article, Book, Video, Quote } from '../types';
 import { Card, Badge, Input } from '../components/ui';
 import { BookOpen, Video as VideoIcon, ArrowRight, Quote as QuoteIcon, Search, Book as BookIcon, PlayCircle } from 'lucide-react';
@@ -14,10 +14,12 @@ export const ResourcesPage = () => {
     const [quotes, setQuotes] = useState<Quote[]>([]);
 
     useEffect(() => {
-        StorageService.getArticles().then(setArticles);
-        StorageService.getBooks().then(setBooks);
-        StorageService.getVideos().then(setVideos);
-        StorageService.getQuotes().then(setQuotes);
+        communityApi.getResources().then(resources => {
+            setArticles(resources.filter((r: any) => r.type === 'article'));
+            setBooks(resources.filter((r: any) => r.type === 'book'));
+            setVideos(resources.filter((r: any) => r.type === 'video'));
+        }).catch(() => {});
+        communityApi.getQuotes().then(setQuotes).catch(() => setQuotes([]));
     }, []);
 
     const allResources = [

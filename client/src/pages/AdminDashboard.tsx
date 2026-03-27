@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StorageService } from '../lib/storage';
-import { adminApi } from '../lib/api';
+import { adminApi, forumApi } from '../lib/api';
 import { VolunteerApplication, ForumPost } from '../types';
 import { Card, Badge, Button } from '../components/ui';
 import { ShieldCheck, Flag, Check, Trash2, Eye, LayoutList, UserCheck, ToggleLeft, ToggleRight } from 'lucide-react';
@@ -16,8 +15,8 @@ export const AdminDashboard = () => {
 
     const loadData = async () => {
         const [a, p, u, ma, ss] = await Promise.all([
-            StorageService.getVolunteerApps(),
-            StorageService.getForumPosts(),
+            adminApi.getApplications().catch(() => []),
+            adminApi.getFlaggedPosts().catch(() => []),
             adminApi.getPendingUGC().catch(() => ({ groups: [], events: [], orgs: [], quotes: [] })),
             adminApi.getModApplications().catch(() => []),
             adminApi.getSystemSettings().catch(() => ({ modApplicationsOpen: false }))
@@ -38,21 +37,21 @@ export const AdminDashboard = () => {
 
     const handleApprove = async (id: string) => {
         setApprovingId(id);
-        const updated = await StorageService.approveVolunteer(id);
-        setApps(updated);
+        await adminApi.approveApp(id).catch(() => {});
+        loadData();
         setApprovingId(null);
     };
 
     const handleDeletePost = async (id: string) => {
         if (confirm("Are you sure you want to permanently delete this post?")) {
-            const updated = await StorageService.deleteForumPost(id);
-            setPosts(updated);
+            await forumApi.delete(id).catch(() => {});
+            loadData();
         }
     };
 
     const handleDismissFlag = async (id: string) => {
-        const updated = await StorageService.dismissFlag(id);
-        setPosts(updated);
+        await forumApi.dismiss(id).catch(() => {});
+        loadData();
     };
 
     const handleModerateUGC = async (type: 'group'|'event'|'org'|'quote', id: string, action: 'approve'|'reject') => {

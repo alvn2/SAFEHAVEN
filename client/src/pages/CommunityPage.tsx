@@ -1,6 +1,6 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { StorageService } from '../lib/storage';
+import { communityApi } from '../lib/api';
 import { AuthContext } from '../context/AuthContext';
 import { Card, Badge, Button } from '../components/ui';
 import { ExternalLinkWarning } from '../components/ExternalLinkWarning';
@@ -11,7 +11,7 @@ export const CommunityPage = () => {
     const navigate = useNavigate();
     const { user } = useContext(AuthContext);
     const [activeTab, setActiveTab] = useState<'groups' | 'events' | 'orgs'>('groups');
-    const [poll, setPoll] = useState(StorageService.getPoll());
+    const [poll, setPoll] = useState<any>(null);
     const [hasVoted, setHasVoted] = useState(false);
     const [externalLink, setExternalLink] = useState<string | null>(null);
     const [showSubmitModal, setShowSubmitModal] = useState(false);
@@ -22,21 +22,19 @@ export const CommunityPage = () => {
     const [dailyQuote, setDailyQuote] = useState<any>(null);
 
     useEffect(() => {
-        StorageService.getCommunityGroups().then(setGroups);
-        StorageService.getEvents().then(setEvents);
-        StorageService.getOrganizations().then(setOrgs);
-        StorageService.getQuotes().then(q => setDailyQuote(q[0]));
+        communityApi.getGroups().then(setGroups).catch(() => setGroups([]));
+        communityApi.getEvents().then(setEvents).catch(() => setEvents([]));
+        communityApi.getOrganizations().then(setOrgs).catch(() => setOrgs([]));
+        communityApi.getQuotes().then(q => setDailyQuote(q[0])).catch(() => {});
     }, []);
 
     const handleVote = (optionId: string) => {
         if (hasVoted) return;
-        setPoll(StorageService.votePoll(optionId));
         setHasVoted(true);
     };
 
     const handleJoinGroup = (groupId: string) => {
         if (!user) { navigate('/auth'); return; }
-        StorageService.joinGroupChat(groupId, user.id);
         navigate(`/chat?id=${groupId}`);
     };
 

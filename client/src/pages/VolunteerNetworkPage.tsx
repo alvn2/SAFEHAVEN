@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { StorageService } from '../lib/storage';
+import { volunteerApi } from '../lib/api';
 import { AuthContext } from '../context/AuthContext';
 import { Volunteer } from '../types';
 import { VolunteerCard } from '../components/VolunteerCard';
@@ -19,7 +19,14 @@ export const VolunteerNetworkPage = () => {
     const [externalLink, setExternalLink] = useState<string | null>(null);
 
     useEffect(() => {
-        StorageService.getVolunteers().then(setVolunteers);
+        volunteerApi.getAll().then(data => {
+            // Map API response to Volunteer type (impact is nested differently)
+            const mapped = data.map((v: any) => ({
+                ...v,
+                impact: { views: v.views ?? v.impact?.views ?? 0, chats: v.chats ?? v.impact?.chats ?? 0 }
+            }));
+            setVolunteers(mapped);
+        }).catch(() => setVolunteers([]));
     }, []);
 
     const filtered = volunteers.filter(v => {

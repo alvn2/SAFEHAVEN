@@ -1,7 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Shield, LogOut } from 'lucide-react';
-import { StorageService } from '../lib/storage';
 
 export const QuickExitButton = () => (
   <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 flex flex-col gap-3 items-end pointer-events-none">
@@ -15,8 +14,7 @@ export const QuickExitButton = () => (
 
     <button
       onClick={() => {
-        try {
-            StorageService.logout(); 
+        try { 
             // 1. Wipe DOM completely to prevent back-forward cache viewing
             document.body.innerHTML = '<div style="background:white;width:100vw;height:100vh;"></div>';
             

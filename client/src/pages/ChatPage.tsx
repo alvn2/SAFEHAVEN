@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
-import { StorageService } from '../lib/storage';
+import { chatApi } from '../lib/api';
 import { Conversation, Message } from '../types';
 import { CRISIS_KEYWORDS } from '../utils/constants';
 import { Card, Button, Modal } from '../components/ui';
@@ -30,8 +30,10 @@ export const ChatPage = () => {
     useEffect(() => {
         if (!user) return;
         const loadChats = async () => {
-            const convs = await StorageService.getConversations(user.id);
-            setConversations(convs);
+            try {
+                const convs = await chatApi.getConversations();
+                setConversations(convs);
+            } catch { setConversations([]); }
         };
         loadChats();
         const interval = setInterval(loadChats, 5000); 
@@ -46,11 +48,13 @@ export const ChatPage = () => {
     useEffect(() => {
         if (!selectedChatId || !user) return;
         
-        StorageService.markConversationAsRead(selectedChatId, user.id);
+
         
         const loadMessages = async () => {
-            const msgs = await StorageService.getMessages(selectedChatId);
-            setMessages(msgs);
+            try {
+                const msgs = await chatApi.getMessages(selectedChatId);
+                setMessages(msgs);
+            } catch { setMessages([]); }
         };
         loadMessages();
 
@@ -62,7 +66,7 @@ export const ChatPage = () => {
                 if (prev.find(m => m.id === msg.id)) return prev;
                 return [...prev, msg];
             });
-            StorageService.markConversationAsRead(selectedChatId, user.id);
+
         };
 
         const handleTyping = (username: string) => {
@@ -115,8 +119,10 @@ export const ChatPage = () => {
             return;
         }
 
-        const msg = await StorageService.sendMessage(selectedChatId, user, newMessage);
-        socket.emit('send_message', { conversationId: selectedChatId, message: msg });
+        try {
+            const msg = await chatApi.sendMessage(selectedChatId, newMessage, user.username || 'Anonymous');
+            socket.emit('send_message', { conversationId: selectedChatId, message: msg });
+        } catch { /* ignore */ }
         
         setNewMessage('');
     };
@@ -134,7 +140,7 @@ export const ChatPage = () => {
                     </div>
                     <div className="flex flex-col gap-3">
                         <Button className="w-full bg-red-600 hover:bg-red-700">Get Immediate Help</Button>
-                        <Button variant="secondary" onClick={async () => { setShowCrisisAlert(false); await StorageService.sendMessage(selectedChatId!, user!, newMessage); setNewMessage(''); }}>Send Anyway</Button>
+                        <Button variant="secondary" onClick={async () => { setShowCrisisAlert(false); try { await chatApi.sendMessage(selectedChatId!, newMessage, user!.username || 'Anonymous'); } catch {} setNewMessage(''); }}>Send Anyway</Button>
                     </div>
                 </div>
             </Modal>

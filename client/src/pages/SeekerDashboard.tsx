@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
-import { StorageService } from '../lib/storage';
+import { journalApi, safetyApi, authApi } from '../lib/api';
 import { JournalEntry, SafetyPlan } from '../types';
 import { Button, Card, Input, Modal } from '../components/ui';
 import { Trash2, Edit2, X, Lock, Shield, AlertTriangle, Cloud, Check, Mic, Square } from 'lucide-react';
@@ -82,10 +82,14 @@ export const SeekerDashboard = () => {
     useEffect(() => {
         if (!user || !passphrase) return;
         const loadData = async () => {
-            const journalEntries = await StorageService.getJournalEntries(passphrase);
-            setEntries(journalEntries);
-            const plan = await StorageService.getSafetyPlan(user.id, passphrase);
-            if (plan) setSafetyPlan(plan);
+            try {
+                const journalEntries = await journalApi.getAll();
+                setEntries(journalEntries);
+            } catch { setEntries([]); }
+            try {
+                const plan = await safetyApi.get();
+                if (plan) setSafetyPlan(plan);
+            } catch { /* no plan yet */ }
         };
         loadData();
     }, [user, passphrase]);
@@ -109,8 +113,10 @@ export const SeekerDashboard = () => {
                     isDraft: true,
                     audioData: audioBase64 || undefined
                 };
-                const updated = await StorageService.upsertJournalEntry(newEntry, passphrase);
-                setEntries(updated);
+                const updated = await journalApi.upsert(newEntry);
+                // Reload entries
+                const all = await journalApi.getAll();
+                setEntries(all);
                 setSaveStatus('saved');
             } catch { /* ignore */ }
             isSavingRef.current = false;
@@ -159,7 +165,8 @@ export const SeekerDashboard = () => {
             isDraft,
             audioData: audioBase64 || undefined
         };
-        const updated = await StorageService.upsertJournalEntry(newEntry, passphrase);
+        await journalApi.upsert(newEntry);
+        const updated = await journalApi.getAll();
         setEntries(updated);
         
         isSavingRef.current = false;
@@ -181,7 +188,8 @@ export const SeekerDashboard = () => {
         e.stopPropagation();
         if (!confirm('Are you sure you want to permanently delete this entry?')) return;
         if (passphrase) {
-            const updated = await StorageService.deleteJournalEntry(id, passphrase);
+            await journalApi.delete(id);
+            const updated = await journalApi.getAll();
             setEntries(updated);
         }
     };
@@ -189,7 +197,13 @@ export const SeekerDashboard = () => {
     const handleSavePlan = async () => {
         setIsSavingPlan(true);
         try {
-            if (user) await StorageService.saveSafetyPlan({ ...safetyPlan, userId: user.id }, passphrase);
+            if (user) await safetyApi.save({
+                warningSigns: safetyPlan.warningSigns,
+                copingStrategies: safetyPlan.copingStrategies,
+                safeContacts: safetyPlan.safeContacts,
+                professionalContacts: safetyPlan.professionalContacts,
+                environmentChanges: safetyPlan.environmentChanges
+            });
         } catch { /* ignore */ }
         setIsSavingPlan(false);
         setIsEditingPlan(false);
@@ -202,7 +216,7 @@ export const SeekerDashboard = () => {
     const handleNukeData = async () => {
         if (nukeConfirmation !== 'DELETE') return;
         if (user) {
-            await StorageService.deleteAccount(user.id);
+            await authApi.nuke();
             logout();
             window.location.href = '/';
         }

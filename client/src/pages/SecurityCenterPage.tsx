@@ -2,7 +2,6 @@ import React, { useContext, useState, useEffect } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import { Card, Button, Badge, Input } from '../components/ui';
 import { Shield, Lock, Key, Smartphone, Trash2, Clock, UserCheck } from 'lucide-react';
-import { StorageService } from '../lib/storage';
 import { authApi } from '../lib/api';
 
 export const SecurityCenterPage = () => {
@@ -46,7 +45,11 @@ export const SecurityCenterPage = () => {
 
     const handleNuke = async () => {
         if(confirm("PERMANENTLY DELETE ACCOUNT? This cannot be undone.")) {
-            if(user) await StorageService.deleteAccount(user.id);
+            if(user) {
+                await authApi.nuke();
+                logout();
+                window.location.href = '/';
+            }
         }
     };
 
