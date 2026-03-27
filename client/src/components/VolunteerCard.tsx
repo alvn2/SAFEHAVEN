@@ -6,12 +6,15 @@ import { CheckCircle, MessageCircle, MessageSquare, Send } from 'lucide-react';
 import { VOLUNTEER_ROLES } from '../utils/constants';
 import { AuthContext } from '../context/AuthContext';
 import { StorageService } from '../lib/storage';
-import { ExternalLinkWarning } from './ExternalLinkWarning';
 
-export const VolunteerCard: React.FC<{ volunteer: Volunteer }> = ({ volunteer }) => {
+interface VolunteerCardProps {
+  volunteer: Volunteer;
+  onExternalLink: (url: string) => void;
+}
+
+export const VolunteerCard: React.FC<VolunteerCardProps> = ({ volunteer, onExternalLink }) => {
   const navigate = useNavigate();
   const { user } = useContext(AuthContext);
-  const [showExternalWarning, setShowExternalWarning] = useState<string | null>(null);
 
   const handleChat = () => {
     if (!user) {
@@ -23,13 +26,7 @@ export const VolunteerCard: React.FC<{ volunteer: Volunteer }> = ({ volunteer })
   };
 
   return (
-    <Card hoverable className="flex flex-col h-full">
-      <ExternalLinkWarning 
-        isOpen={!!showExternalWarning} 
-        onClose={() => setShowExternalWarning(null)} 
-        url={showExternalWarning || ''} 
-      />
-      
+    <Card hoverable className="flex flex-col h-full relative">
       <div className="p-6 flex-1">
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center gap-3">
@@ -42,7 +39,7 @@ export const VolunteerCard: React.FC<{ volunteer: Volunteer }> = ({ volunteer })
           {volunteer.verified && (
             <div className="group relative">
               <CheckCircle className="w-5 h-5 text-blue-500" />
-              <span className="absolute right-0 top-6 w-32 bg-gray-900 text-white text-xs p-2 rounded opacity-0 group-hover:opacity-100 transition-opacity z-50">Verified Identity</span>
+              <span className="absolute right-0 top-6 w-32 bg-gray-900 text-white text-xs p-2 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">Verified Identity</span>
             </div>
           )}
         </div>
@@ -72,14 +69,14 @@ export const VolunteerCard: React.FC<{ volunteer: Volunteer }> = ({ volunteer })
         </Button>
         <div className="flex gap-2">
             <button 
-                onClick={() => setShowExternalWarning(`https://wa.me/${volunteer.whatsapp}`)}
+                onClick={() => onExternalLink(`https://wa.me/${volunteer.whatsapp}`)}
                 className="flex-1 flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white font-bold py-2 rounded-xl transition-colors text-sm"
             >
                 <MessageCircle className="w-4 h-4" /> WhatsApp
             </button>
             {volunteer.telegram && (
                 <button 
-                    onClick={() => setShowExternalWarning(`https://t.me/${volunteer.telegram}`)}
+                    onClick={() => onExternalLink(`https://t.me/${volunteer.telegram}`)}
                     className="flex-1 flex items-center justify-center gap-2 bg-sky-500 hover:bg-sky-600 text-white font-bold py-2 rounded-xl transition-colors text-sm"
                 >
                     <Send className="w-4 h-4" /> Telegram

@@ -9,12 +9,15 @@ export const ResourcesPage = () => {
     const [search, setSearch] = useState('');
     const [articles, setArticles] = useState<Article[]>([]);
 
-    const books = StorageService.getBooks();
-    const videos = StorageService.getVideos();
-    const quotes = StorageService.getQuotes();
+    const [books, setBooks] = useState<Book[]>([]);
+    const [videos, setVideos] = useState<Video[]>([]);
+    const [quotes, setQuotes] = useState<Quote[]>([]);
 
     useEffect(() => {
         StorageService.getArticles().then(setArticles);
+        StorageService.getBooks().then(setBooks);
+        StorageService.getVideos().then(setVideos);
+        StorageService.getQuotes().then(setQuotes);
     }, []);
 
     const allResources = [

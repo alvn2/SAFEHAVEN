@@ -9,11 +9,11 @@
  * remain client-side constants since they don't have backend models.
  */
 
-import { JournalEntry, ForumPost, User, Volunteer, Article, SafetyPlan, VolunteerApplication, AuditLogEntry } from '../types';
+import { JournalEntry, ForumPost, User, Volunteer, Article, SafetyPlan, VolunteerApplication, AuditLogEntry, CommunityGroup, Event as AppEvent, Quote, Book, Video } from '../types';
 import { INITIAL_FORUM_POSTS, ARTICLES as INITIAL_ARTICLES, BOOKS as INITIAL_BOOKS, VIDEOS as INITIAL_VIDEOS, QUOTES as INITIAL_QUOTES, COMMUNITY_GROUPS, EVENTS as INITIAL_EVENTS, DAILY_POLL } from '../utils/constants';
 import CryptoJS from 'crypto-js';
 import { encrypt, decrypt } from './encryption';
-import { journalApi, forumApi, chatApi, volunteerApi, safetyApi, adminApi, authApi, setToken } from './api';
+import { journalApi, forumApi, chatApi, volunteerApi, safetyApi, adminApi, authApi, communityApi, setToken } from './api';
 
 export const StorageService = {
   // --- AUDIT LOGGING (now via admin API) ---
@@ -107,7 +107,13 @@ export const StorageService = {
 
   upsertJournalEntry: async (entry: JournalEntry, pass: string): Promise<JournalEntry[]> => {
     const encryptedEntry = { ...entry, entry: encrypt(entry.entry, pass) };
+    if (entry.audioData) encryptedEntry.audioData = encrypt(entry.audioData, pass);
     await journalApi.upsert(encryptedEntry);
+    return StorageService.getJournalEntries(pass);
+  },
+
+  deleteJournalEntry: async (id: string, pass: string): Promise<JournalEntry[]> => {
+    await journalApi.delete(id);
     return StorageService.getJournalEntries(pass);
   },
 
@@ -176,13 +182,26 @@ export const StorageService = {
     return StorageService.getForumPosts();
   },
 
-  // --- STATIC DATA (no backend models, stay as constants) ---
+  // --- DYNAMIC CONTENT (falling back to constants if unseeded) ---
   getPoll: () => DAILY_POLL,
   votePoll: (_id: string) => DAILY_POLL,
-  getCommunityGroups: () => COMMUNITY_GROUPS,
-  getEvents: () => INITIAL_EVENTS,
-  getOrganizations: () => COMMUNITY_GROUPS,
-  getBooks: () => INITIAL_BOOKS,
-  getVideos: () => INITIAL_VIDEOS,
-  getQuotes: () => INITIAL_QUOTES,
+
+  getCommunityGroups: async (): Promise<CommunityGroup[]> => {
+    try { const groups = await communityApi.getGroups(); return groups.length ? groups : COMMUNITY_GROUPS; } catch { return COMMUNITY_GROUPS; }
+  },
+  getEvents: async (): Promise<AppEvent[]> => {
+    try { const events = await communityApi.getEvents(); return events.length ? events : INITIAL_EVENTS; } catch { return INITIAL_EVENTS; }
+  },
+  getOrganizations: async (): Promise<any[]> => {
+    try { const orgs = await communityApi.getOrganizations(); return orgs.length ? orgs : COMMUNITY_GROUPS; } catch { return COMMUNITY_GROUPS; }
+  },
+  getQuotes: async (): Promise<Quote[]> => {
+    try { const quotes = await communityApi.getQuotes(); return quotes.length ? quotes.map((q: any) => ({ ...q, type: 'quote' })) : INITIAL_QUOTES; } catch { return INITIAL_QUOTES; }
+  },
+  getBooks: async (): Promise<Book[]> => {
+    try { const resources = await communityApi.getResources(); const books = resources.filter(r => r.type === 'BOOK'); return books.length ? books.map(r => ({ ...r, type: 'book', cover: r.imageUrl })) : INITIAL_BOOKS; } catch { return INITIAL_BOOKS; }
+  },
+  getVideos: async (): Promise<Video[]> => {
+    try { const resources = await communityApi.getResources(); const vids = resources.filter(r => r.type === 'VIDEO'); return vids.length ? vids.map(r => ({ ...r, type: 'video', thumbnail: r.imageUrl, presenter: r.author })) : INITIAL_VIDEOS; } catch { return INITIAL_VIDEOS; }
+  },
 };

@@ -8,11 +8,13 @@ interface ModalProps {
     children: React.ReactNode;
 }
 
+import { createPortal } from 'react-dom';
+
 export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
     if (!isOpen) return null;
 
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    const modalContent = (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-gray-900/60 dark:bg-black/80 backdrop-blur-sm transition-opacity" onClick={onClose}></div>
             <div className="relative bg-white dark:bg-gray-800 rounded-3xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto animate-in fade-in zoom-in duration-200 ring-1 ring-black/5">
                 <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
@@ -27,4 +29,6 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }
             </div>
         </div>
     );
+
+    return createPortal(modalContent, document.body);
 };

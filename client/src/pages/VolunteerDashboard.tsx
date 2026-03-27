@@ -1,42 +1,36 @@
 import React, { useState, useEffect } from 'react';
-import { StorageService } from '../lib/storage';
-import { Volunteer } from '../types';
+import { volunteerApi } from '../lib/api';
 import { Card, Button } from '../components/ui';
-import { WifiOff, Moon, TrendingUp } from 'lucide-react';
+import { WifiOff, Moon, TrendingUp, Award, UserCheck } from 'lucide-react';
 
 export const VolunteerDashboard = () => {
-    const [volunteers, setVolunteers] = useState<Volunteer[]>([]);
+    const [myProfile, setMyProfile] = useState<any>(null);
     const [isOnline, setIsOnline] = useState(false);
     const [bio, setBio] = useState('');
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        StorageService.getVolunteers().then(vols => {
-            setVolunteers(vols);
-            if (vols[0]) {
-                setIsOnline(vols[0].isOnline);
-                setBio(vols[0].bio);
-            }
-            setIsLoading(false);
-        });
+        volunteerApi.getMe()
+            .then(profile => {
+                setMyProfile(profile);
+                setIsOnline(profile.isOnline);
+                setBio(profile.bio);
+            })
+            .catch(err => console.error(err))
+            .finally(() => setIsLoading(false));
     }, []);
 
-    const myProfile = volunteers[0];
-
     if (isLoading) return <div className="text-center py-20 text-gray-500">Loading profile...</div>;
-    if (!myProfile) return <div className="text-center py-20 text-gray-500">No volunteer profile found.</div>;
+    if (!myProfile) return <div className="text-center py-20 text-gray-500">No volunteer profile found. Please contact support.</div>;
 
     const handleUpdate = () => {
-        const updated = { ...myProfile, isOnline, bio };
-        StorageService.updateVolunteer(updated);
-        alert("Profile Updated!");
+        // TO-DO: wire up update endpoint
+        alert("Profile update feature coming soon.");
     };
 
     const handleStatusChange = async (status: boolean) => {
         setIsOnline(status);
-        const updated = { ...myProfile, isOnline: status };
-        StorageService.updateVolunteer(updated);
-        setVolunteers(prev => prev.map(v => v.id === updated.id ? updated : v));
+        // TO-DO: wire up status change endpoint
     };
 
     return (
@@ -89,6 +83,33 @@ export const VolunteerDashboard = () => {
                     </Card>
                 </div>
             </div>
+
+            {myProfile.track === 'PROFESSIONAL' && (
+                <Card className="p-6">
+                    <h2 className="text-xl font-bold dark:text-white mb-4 flex items-center gap-2"><Award className="text-primary-500" /> Professional Credentials</h2>
+                    <div className="grid md:grid-cols-2 gap-4">
+                        <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-100 dark:border-blue-800">
+                            <p className="font-bold text-blue-900 dark:text-blue-100">License Verification</p>
+                            <p className="text-blue-700 dark:text-blue-300 text-sm mt-1">{myProfile.verified ? 'Verified & Active' : 'Pending Review'}</p>
+                        </div>
+                        <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700">
+                            <p className="font-bold text-gray-900 dark:text-gray-100">Specialty</p>
+                            <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">{myProfile.qualification}</p>
+                        </div>
+                    </div>
+                </Card>
+            )}
+
+            {myProfile.track === 'PEER_LISTENER' && (
+                <Card className="p-6">
+                    <h2 className="text-xl font-bold dark:text-white mb-4 flex items-center gap-2"><UserCheck className="text-primary-500" /> Peer Support Guidelines</h2>
+                    <ul className="text-gray-600 dark:text-gray-400 space-y-2 list-disc ml-5">
+                        <li>Always listen actively and without judgment.</li>
+                        <li>Do not offer medical or professional advice.</li>
+                        <li>If a user is in immediate crisis, guide them to the Emergency Resources.</li>
+                    </ul>
+                </Card>
+            )}
         </div>
     );
 };

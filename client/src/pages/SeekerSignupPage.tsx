@@ -10,9 +10,18 @@ export const SeekerSignupPage = () => {
     const [step, setStep] = useState(1);
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
+    const [agreedToTerms, setAgreedToTerms] = useState(false);
+    const [becomePeerListener, setBecomePeerListener] = useState(false);
     const [recoveryKey, setRecoveryKey] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
+
+    // Auto-generate Reddit-style username on load
+    React.useEffect(() => {
+        const adjs = ["Quiet", "Brave", "Calm", "Gentle", "Swift", "Silent", "Noble", "Bright", "Warm", "Safe"];
+        const nouns = ["River", "Mountain", "Forest", "Ocean", "Sky", "Star", "Eagle", "Wolf", "Breeze", "Dawn"];
+        setUsername(`${adjs[Math.floor(Math.random()*adjs.length)]}${nouns[Math.floor(Math.random()*nouns.length)]}${Math.floor(Math.random()*1000)}`);
+    }, []);
 
     // Verification Challenge State
     const [challengeIndices, setChallengeIndices] = useState<number[]>([]);
@@ -21,10 +30,14 @@ export const SeekerSignupPage = () => {
 
     const handleSignup = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (!agreedToTerms) {
+            alert("You must agree to the Terms and Conditions to proceed.");
+            return;
+        }
         setIsLoading(true);
         
         try {
-            const key = await registerSeeker(username, password);
+            const key = await registerSeeker(username, password, agreedToTerms, becomePeerListener);
             setRecoveryKey(key);
             setStep(2);
         } catch (err: any) {
@@ -73,12 +86,29 @@ export const SeekerSignupPage = () => {
 
                 {step === 1 && (
                     <form onSubmit={handleSignup} className="space-y-4">
-                        <Input label="Username" value={username} onChange={e => setUsername(e.target.value)} required placeholder="Choose a pseudonym" />
-                        <Input label="Password" type="password" value={password} onChange={e => setPassword(e.target.value)} required placeholder="Create a strong password" />
-                        <div className="text-xs text-gray-500 bg-gray-50 dark:bg-gray-800 p-3 rounded-lg">
-                            We do not collect your email. If you forget your password, you will need your Recovery Key to restore access.
+                        <Input label="Anonymous Username" value={username} onChange={e => setUsername(e.target.value)} required placeholder="Choose a pseudonym" />
+                        <p className="text-[10px] text-gray-500 -mt-3 ml-1">We've generated a random secure username for you, but you can change it.</p>
+                        
+                        <Input label="Password" type="password" value={password} onChange={e => setPassword(e.target.value)} required minLength={6} placeholder="Create a strong password" />
+                        
+                        <div className="space-y-3 mt-6 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-100 dark:border-gray-700">
+                            <label className="flex items-start gap-3 cursor-pointer">
+                                <input type="checkbox" className="mt-1 w-4 h-4 text-primary-600 rounded border-gray-300 focus:ring-primary-500" checked={agreedToTerms} onChange={e => setAgreedToTerms(e.target.checked)} required />
+                                <span className="text-sm text-gray-700 dark:text-gray-300">
+                                    I agree to the <a href="#" className="text-primary-600 hover:underline">Terms of Service</a> and <a href="#" className="text-primary-600 hover:underline">Privacy Policy</a>. I understand that SafeHaven does not collect my email.
+                                </span>
+                            </label>
+                            
+                            <label className="flex items-start gap-3 cursor-pointer mt-4">
+                                <input type="checkbox" className="mt-1 w-4 h-4 text-primary-600 rounded border-gray-300 focus:ring-primary-500" checked={becomePeerListener} onChange={e => setBecomePeerListener(e.target.checked)} />
+                                <div>
+                                    <span className="text-sm font-bold text-gray-900 dark:text-gray-100">Become a Peer Listener</span>
+                                    <p className="text-xs text-gray-500 mt-0.5">Opt-in to help others. You can chat anonymously and provide community support.</p>
+                                </div>
+                            </label>
                         </div>
-                        <Button type="submit" className="w-full" isLoading={isLoading}>Create Account</Button>
+
+                        <Button type="submit" className="w-full mt-6" isLoading={isLoading}>Create Account</Button>
                         <div className="text-center mt-4">
                              <Link to="/auth" className="text-sm text-primary-600 hover:underline">Already have an account? Log In</Link>
                         </div>

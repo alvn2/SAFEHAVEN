@@ -5,10 +5,12 @@ import { Card, Input, Button } from '../components/ui';
 import { KeyRound, ArrowLeft, Eye, EyeOff } from 'lucide-react';
 
 export const AuthPage = () => {
-    const { login } = useContext(AuthContext);
+    const AuthContextData = useContext(AuthContext);
+    const { login } = AuthContextData;
     const [view, setView] = useState<'login' | 'recover'>('login');
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
+    const [recoveryKey, setRecoveryKey] = useState('');
     const [showPass, setShowPass] = useState(false);
     
     const [isLoading, setIsLoading] = useState(false);
@@ -51,6 +53,25 @@ export const AuthPage = () => {
         }
     };
 
+    const handleRecover = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setError('');
+        if (!recoveryKey.trim().includes(' ')) {
+            setError('Recovery key should be your 12-word phrase.');
+            return;
+        }
+        setIsLoading(true);
+        try {
+            // we assumed AuthContext exported 'recover'. Let's destructure it above.
+            await AuthContextData.recover(username, recoveryKey, password);
+            navigate('/seeker/dashboard');
+        } catch (err: any) {
+            setError(err.message || 'Invalid username or recovery key.');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     return (
         <div className="max-w-md mx-auto py-16 px-4">
             <Card className="p-8 shadow-xl">
@@ -73,18 +94,30 @@ export const AuthPage = () => {
                         </form>
                         
                         <div className="mt-6 flex justify-between items-center text-sm">
-                            <span className="text-gray-400 cursor-not-allowed">Forgot Password?</span>
+                            <button onClick={() => { setView('recover'); setError(''); setPassword(''); }} className="text-gray-500 hover:text-gray-900 dark:hover:text-gray-300 transition-colors">Forgot Password?</button>
                             <Link to="/auth/signup" className="text-primary-600 font-bold hover:underline">Create Account</Link>
                         </div>
                     </>
                 ) : (
                     <>
-                        <button onClick={() => setView('login')} className="flex items-center gap-2 text-gray-500 mb-6 hover:text-gray-900 dark:text-gray-400"><ArrowLeft size={16}/> Back to Login</button>
+                        <button onClick={() => { setView('login'); setError(''); setPassword(''); }} className="flex items-center gap-2 text-gray-500 mb-6 hover:text-gray-900 dark:text-gray-400"><ArrowLeft size={16}/> Back to Login</button>
                         <h2 className="text-2xl font-bold mb-4 flex items-center gap-2 dark:text-white"><KeyRound className="text-primary-500" /> Account Recovery</h2>
-                        <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl mb-6 text-sm text-blue-800 dark:text-blue-200 border border-blue-100 dark:border-blue-900">
-                            <p className="font-bold mb-1">Coming Soon</p>
-                            Account recovery via the backend is not yet available. Please contact support.
-                        </div>
+                        <p className="text-gray-500 mb-6 text-sm">Enter the 12-word recovery phrase you received during registration to reset your password.</p>
+                        
+                        <form onSubmit={handleRecover} className="space-y-5">
+                            <Input label="Username" value={username} onChange={(e) => setUsername(e.target.value)} placeholder="Your account name" required />
+                            <Input label="12-Word Recovery Phrase" value={recoveryKey} onChange={(e) => setRecoveryKey(e.target.value)} placeholder="word1 word2 word3..." required />
+                            <div className="relative">
+                                <Input label="New Password" type={showPass ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} />
+                                <button type="button" onClick={() => setShowPass(!showPass)} className="absolute right-3 top-[34px] text-gray-400 hover:text-gray-600">
+                                    {showPass ? <EyeOff size={20} /> : <Eye size={20} />}
+                                </button>
+                            </div>
+                            
+                            {error && <div className="p-3 bg-red-50 dark:bg-red-900/30 text-red-600 rounded-lg text-sm text-center">{error}</div>}
+                            
+                            <Button type="submit" className="w-full h-12 text-lg" isLoading={isLoading}>Reset Password & Log In</Button>
+                        </form>
                     </>
                 )}
             </Card>

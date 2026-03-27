@@ -44,10 +44,10 @@ export class ApiError extends Error {
 //  AUTH
 // ============================================================
 export const authApi = {
-  register: (username: string, password: string, recoveryKey?: string) =>
+  register: (username: string, password: string, recoveryKey?: string, agreedToTerms?: boolean, becomePeerListener?: boolean) =>
     request<{ token: string; user: any }>('/auth/register', {
       method: 'POST',
-      body: JSON.stringify({ username, password, recoveryKey })
+      body: JSON.stringify({ username, password, recoveryKey, agreedToTerms, becomePeerListener })
     }),
 
   login: (username: string, password: string) =>
@@ -56,9 +56,21 @@ export const authApi = {
       body: JSON.stringify({ username, password })
     }),
 
+  recover: (username: string, recoveryKey: string, newPassword: string) =>
+    request<{ token: string; user: any }>('/auth/recover', {
+      method: 'POST',
+      body: JSON.stringify({ username, recoveryKey, newPassword })
+    }),
+
   me: () => request<any>('/auth/me'),
 
   nuke: () => request<{ message: string }>('/auth/nuke', { method: 'DELETE' }),
+
+  updateSettings: (settings: { inactivityEnabled: boolean }) =>
+    request<any>('/auth/settings', { method: 'PATCH', body: JSON.stringify(settings) }),
+
+  applyModerator: (reason: string) =>
+    request<any>('/auth/moderator-apply', { method: 'POST', body: JSON.stringify({ reason }) }),
 };
 
 // ============================================================
@@ -76,6 +88,22 @@ export const journalApi = {
 };
 
 // ============================================================
+//  COMMUNITY UGC
+// ============================================================
+export const communityApi = {
+  getGroups: () => request<any[]>('/community/groups'),
+  getEvents: () => request<any[]>('/community/events'),
+  getOrganizations: () => request<any[]>('/community/organizations'),
+  getQuotes: () => request<any[]>('/community/quotes'),
+  getResources: () => request<any[]>('/community/resources'),
+
+  submitGroup: (data: any) => request<any>('/community/groups', { method: 'POST', body: JSON.stringify(data) }),
+  submitEvent: (data: any) => request<any>('/community/events', { method: 'POST', body: JSON.stringify(data) }),
+  submitOrg: (data: any) => request<any>('/community/organizations', { method: 'POST', body: JSON.stringify(data) }),
+  submitQuote: (data: any) => request<any>('/community/quotes', { method: 'POST', body: JSON.stringify(data) }),
+};
+
+// ============================================================
 //  FORUM
 // ============================================================
 export const forumApi = {
@@ -83,6 +111,14 @@ export const forumApi = {
 
   create: (post: { title: string; body: string; category: string; author?: string; isTriggering?: boolean }) =>
     request<any>('/forum', { method: 'POST', body: JSON.stringify(post) }),
+
+  getComments: (postId: string) => request<any[]>(`/forum/${postId}/comments`),
+
+  createComment: (postId: string, body: string, parentId?: string) =>
+    request<any>(`/forum/${postId}/comments`, {
+      method: 'POST',
+      body: JSON.stringify({ body, parentId })
+    }),
 
   hug: (id: string) => request<any>(`/forum/${id}/hug`, { method: 'POST' }),
 
@@ -113,6 +149,7 @@ export const chatApi = {
 //  VOLUNTEERS
 // ============================================================
 export const volunteerApi = {
+  getMe: () => request<any>('/volunteers/me'),
   getAll: () => request<any[]>('/volunteers'),
 
   getById: (id: string) => request<any>(`/volunteers/${id}`),
@@ -150,4 +187,15 @@ export const adminApi = {
   createArticle: (data: any) => request<any>('/admin/articles', { method: 'POST', body: JSON.stringify(data) }),
   updateArticle: (id: string, data: any) => request<any>(`/admin/articles/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   deleteArticle: (id: string) => request<void>(`/admin/articles/${id}`, { method: 'DELETE' }),
+  getPendingUGC: () => request<any>('/admin/ugc/pending'),
+  moderateUGC: (type: 'group' | 'event' | 'org' | 'quote', id: string, action: 'approve' | 'reject') => 
+    request<any>(`/admin/ugc/${type}/${id}/${action}`, { method: 'POST' }),
+
+  getModApplications: () => request<any[]>('/admin/mod-applications'),
+  moderateModApp: (id: string, action: 'approve' | 'reject') =>
+    request<any>(`/admin/mod-applications/${id}/${action}`, { method: 'POST' }),
+
+  getSystemSettings: () => request<any>('/admin/system-settings'),
+  updateSystemSettings: (data: { modApplicationsOpen: boolean }) =>
+    request<any>('/admin/system-settings', { method: 'POST', body: JSON.stringify(data) }),
 };

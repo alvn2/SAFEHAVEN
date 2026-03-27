@@ -11,11 +11,50 @@ import forumRoutes from './routes/forum.js';
 import adminRoutes from './routes/admin.js';
 import volunteerRoutes from './routes/volunteer.js';
 import safetyRoutes from './routes/safety.js';
+import communityRoutes from './routes/community.js';
 
 dotenv.config();
 
+import http from 'http';
+import { Server } from 'socket.io';
+
 const app = express();
+const server = http.createServer(app);
 const PORT = process.env.PORT || 5000;
+
+const io = new Server(server, {
+  cors: {
+    origin: process.env.CLIENT_URL || 'http://localhost:5173',
+    methods: ["GET", "POST"],
+    credentials: true
+  }
+});
+
+io.on('connection', (socket) => {
+  console.log('A user connected:', socket.id);
+
+  socket.on('join_room', (roomId: string) => {
+    socket.join(roomId);
+    console.log(`User ${socket.id} joined room ${roomId}`);
+  });
+
+  socket.on('leave_room', (roomId: string) => {
+    socket.leave(roomId);
+  });
+
+  socket.on('send_message', (data: any) => {
+    // data should contain { conversationId, message }
+    io.to(data.conversationId).emit('receive_message', data.message);
+  });
+
+  socket.on('typing', (data: { conversationId: string, username: string }) => {
+    socket.to(data.conversationId).emit('user_typing', data.username);
+  });
+
+  socket.on('disconnect', () => {
+    console.log('User disconnected:', socket.id);
+  });
+});
 
 // Middleware
 app.use(helmet());
@@ -38,6 +77,7 @@ app.use('/api/forum', forumRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/volunteers', volunteerRoutes);
 app.use('/api/safety', safetyRoutes);
+app.use('/api/community', communityRoutes);
 
 // 404 handler
 app.use((_req, res) => {
@@ -51,6 +91,6 @@ app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
 });
 
 // Start Server
-app.listen(PORT, () => {
-  console.log(`SafeHaven Server running on port ${PORT}`);
+server.listen(PORT, () => {
+  console.log(`SafeHaven Server (API + WebSockets) running on port ${PORT}`);
 });

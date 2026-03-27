@@ -16,13 +16,33 @@ const applicationSchema = z.object({
   licenseNumber: z.string().optional()
 });
 
+// Get current volunteer profile
+router.get('/me', authenticate, async (req: AuthRequest, res) => {
+  try {
+    const v = await prisma.volunteerProfile.findUnique({ where: { userId: req.user!.id } });
+    if (!v) {
+      res.status(404).json({ error: 'Volunteer profile not found' });
+      return;
+    }
+    res.json({
+      id: v.id, userId: v.userId, name: v.name, track: v.track,
+      photo: v.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(v.name)}&background=random`,
+      role: v.role, qualification: v.qualification, topics: v.topics, location: v.location,
+      whatsapp: v.whatsapp, telegram: v.telegram, languages: v.languages,
+      isOnline: v.isOnline, verified: v.verified, bio: v.bio,
+      impact: { views: v.views, chats: v.chats }
+    });
+  } catch (e) {
+    res.status(500).json({ error: 'Failed to fetch your volunteer profile' });
+  }
+});
+
 // Get all volunteers (public)
 router.get('/', async (_req, res) => {
   try {
     const volunteers = await prisma.volunteerProfile.findMany({
       orderBy: { name: 'asc' }
     });
-    // Map to frontend format
     const mapped = volunteers.map(v => ({
       id: v.id,
       userId: v.userId,

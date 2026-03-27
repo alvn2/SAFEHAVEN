@@ -1,9 +1,10 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { StorageService } from '../lib/storage';
 import { AuthContext } from '../context/AuthContext';
 import { Card, Badge, Button } from '../components/ui';
 import { ExternalLinkWarning } from '../components/ExternalLinkWarning';
+import { SubmitUGCModal } from '../components/SubmitUGCModal';
 import { Users, Calendar, Briefcase, ExternalLink, MapPin, Sun, MessageSquare, ShieldCheck, AlertTriangle } from 'lucide-react';
 
 export const CommunityPage = () => {
@@ -13,11 +14,19 @@ export const CommunityPage = () => {
     const [poll, setPoll] = useState(StorageService.getPoll());
     const [hasVoted, setHasVoted] = useState(false);
     const [externalLink, setExternalLink] = useState<string | null>(null);
+    const [showSubmitModal, setShowSubmitModal] = useState(false);
     
-    const groups = StorageService.getCommunityGroups();
-    const events = StorageService.getEvents();
-    const orgs = StorageService.getOrganizations();
-    const dailyQuote = StorageService.getQuotes()[0]; 
+    const [groups, setGroups] = useState<any[]>([]);
+    const [events, setEvents] = useState<any[]>([]);
+    const [orgs, setOrgs] = useState<any[]>([]);
+    const [dailyQuote, setDailyQuote] = useState<any>(null);
+
+    useEffect(() => {
+        StorageService.getCommunityGroups().then(setGroups);
+        StorageService.getEvents().then(setEvents);
+        StorageService.getOrganizations().then(setOrgs);
+        StorageService.getQuotes().then(q => setDailyQuote(q[0]));
+    }, []);
 
     const handleVote = (optionId: string) => {
         if (hasVoted) return;
@@ -39,9 +48,13 @@ export const CommunityPage = () => {
     return (
         <div className="grid lg:grid-cols-3 gap-8">
             <ExternalLinkWarning isOpen={!!externalLink} onClose={() => setExternalLink(null)} url={externalLink || ''} />
+            <SubmitUGCModal isOpen={showSubmitModal} onClose={() => setShowSubmitModal(false)} />
 
             <div className="lg:col-span-2 space-y-8">
-                <div><h1 className="text-3xl font-bold font-serif mb-2 dark:text-white">Community Hub</h1><p className="text-gray-500">Connect, share, and find your tribe.</p></div>
+                <div className="flex justify-between items-start">
+                    <div><h1 className="text-3xl font-bold font-serif mb-2 dark:text-white">Community Hub</h1><p className="text-gray-500">Connect, share, and find your tribe.</p></div>
+                    {user && <Button variant="outline" size="sm" onClick={() => setShowSubmitModal(true)}>Submit Content</Button>}
+                </div>
                 
                 <div className="flex gap-2 border-b border-gray-200 dark:border-gray-700 overflow-x-auto pb-1">
                     {[{ id: 'groups', label: 'Groups', icon: Users }, { id: 'events', label: 'Events', icon: Calendar }, { id: 'orgs', label: 'Orgs', icon: Briefcase }].map(tab => (

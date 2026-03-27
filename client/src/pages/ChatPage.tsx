@@ -6,6 +6,9 @@ import { Conversation, Message } from '../types';
 import { CRISIS_KEYWORDS } from '../utils/constants';
 import { Card, Button, Modal } from '../components/ui';
 import { Send, Hash, MessageSquare, AlertTriangle, Search, Lock, MoreVertical, Shield, Pin, Check, CheckCheck, Clock } from 'lucide-react';
+import { io } from 'socket.io-client';
+
+const socket = io(import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000');
 
 export const ChatPage = () => {
     const { user } = useContext(AuthContext);
@@ -39,18 +42,44 @@ export const ChatPage = () => {
         return () => clearInterval(interval);
     }, [user, location, selectedChatId]);
 
-    // Message Polling
+    // Message WebSocket
     useEffect(() => {
         if (!selectedChatId || !user) return;
+        
         StorageService.markConversationAsRead(selectedChatId, user.id);
+        
         const loadMessages = async () => {
             const msgs = await StorageService.getMessages(selectedChatId);
             setMessages(msgs);
-            if (Math.random() > 0.9) { setTypingUser("Someone is typing..."); setTimeout(() => setTypingUser(null), 3000); }
         };
         loadMessages();
-        const interval = setInterval(loadMessages, 3000); 
-        return () => clearInterval(interval);
+
+        // Join WebSocket Room
+        socket.emit('join_room', selectedChatId);
+
+        const handleNewMessage = (msg: Message) => {
+            setMessages(prev => {
+                if (prev.find(m => m.id === msg.id)) return prev;
+                return [...prev, msg];
+            });
+            StorageService.markConversationAsRead(selectedChatId, user.id);
+        };
+
+        const handleTyping = (username: string) => {
+            if (username !== user.username) {
+                setTypingUser(`${username} is typing...`);
+                setTimeout(() => setTypingUser(null), 3000);
+            }
+        };
+
+        socket.on('receive_message', handleNewMessage);
+        socket.on('user_typing', handleTyping);
+        
+        return () => {
+            socket.emit('leave_room', selectedChatId);
+            socket.off('receive_message', handleNewMessage);
+            socket.off('user_typing', handleTyping);
+        };
     }, [selectedChatId, user]);
 
     useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages, typingUser]);
@@ -62,6 +91,12 @@ export const ChatPage = () => {
             return () => clearInterval(timer);
         }
     }, [slowModeLeft]);
+
+    const handleTypingStart = () => {
+        if (selectedChatId && user) {
+            socket.emit('typing', { conversationId: selectedChatId, username: user.username || user.id });
+        }
+    };
 
     const handleSendMessage = async (e?: React.FormEvent) => {
         e?.preventDefault();
@@ -80,10 +115,10 @@ export const ChatPage = () => {
             return;
         }
 
-        await StorageService.sendMessage(selectedChatId, user, newMessage);
+        const msg = await StorageService.sendMessage(selectedChatId, user, newMessage);
+        socket.emit('send_message', { conversationId: selectedChatId, message: msg });
+        
         setNewMessage('');
-        const msgs = await StorageService.getMessages(selectedChatId);
-        setMessages(msgs);
     };
 
     const selectedChat = conversations.find(c => c.id === selectedChatId);

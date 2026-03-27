@@ -17,10 +17,22 @@ export const QuickExitButton = () => (
       onClick={() => {
         try {
             StorageService.logout(); 
-            window.history.replaceState(null, '', '/');
+            // 1. Wipe DOM completely to prevent back-forward cache viewing
+            document.body.innerHTML = '<div style="background:white;width:100vw;height:100vh;"></div>';
+            
+            // 2. Clear all storage manually (StorageService.logout only clears tokens)
+            sessionStorage.clear();
+            localStorage.clear();
+            
+            // 3. Flood history state to overwrite the back button cascade
+            for (let i = 0; i < 20; i++) {
+                window.history.pushState({}, '', '/');
+            }
+            
+            // 4. Force replace to an innocuous site
             window.location.replace('https://www.google.com');
         } catch (e) {
-            window.location.href = 'https://www.google.com';
+            window.location.replace('https://www.google.com');
         }
       }}
       className="pointer-events-auto bg-red-600/95 hover:bg-red-700 backdrop-blur-sm text-white font-bold py-3 px-4 sm:px-6 rounded-full shadow-xl shadow-red-900/20 flex items-center gap-2 transition-all hover:scale-105 active:scale-95 group border-2 border-red-500"

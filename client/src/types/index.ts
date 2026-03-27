@@ -8,6 +8,7 @@ export interface User {
   role: UserRole;
   recoveryKey?: string;
   passphraseHash?: string;
+  hasVolunteerProfile?: boolean;
 }
 
 export type VolunteerRole = 'licensed' | 'intern' | 'listener';
@@ -50,6 +51,7 @@ export interface JournalEntry {
   entry: string;
   tags: string[];
   isDraft?: boolean;
+  audioData?: string;
 }
 
 export interface Article {

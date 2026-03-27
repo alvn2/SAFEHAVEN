@@ -90,4 +90,53 @@ router.delete('/:id', authenticate, async (req: AuthRequest, res) => {
   }
 });
 
+// --- Comments / Replies ---
+
+// Get comments for a post (nested)
+router.get('/:id/comments', async (req, res) => {
+  try {
+    const comments = await prisma.forumComment.findMany({
+      where: { postId: req.params.id },
+      orderBy: { createdAt: 'asc' }
+    });
+    // Build nested tree on the server
+    const map = new Map<string, any>();
+    const roots: any[] = [];
+    comments.forEach(c => map.set(c.id, { ...c, children: [] }));
+    comments.forEach(c => {
+      const node = map.get(c.id)!;
+      if (c.parentId && map.has(c.parentId)) {
+        map.get(c.parentId)!.children.push(node);
+      } else {
+        roots.push(node);
+      }
+    });
+    res.json(roots);
+  } catch (e) {
+    res.status(500).json({ error: 'Failed to load comments' });
+  }
+});
+
+// Create a comment (with optional parentId for threaded replies)
+router.post('/:id/comments', authenticate, async (req: AuthRequest, res) => {
+  const { body, parentId } = req.body;
+  if (!body || body.trim().length < 1) {
+    res.status(400).json({ error: 'Comment body is required.' });
+    return;
+  }
+  try {
+    const comment = await prisma.forumComment.create({
+      data: {
+        postId: req.params.id,
+        parentId: parentId || null,
+        author: 'Anonymous',
+        body: body.trim()
+      }
+    });
+    res.json(comment);
+  } catch (e) {
+    res.status(500).json({ error: 'Failed to create comment' });
+  }
+});
+
 export default router;

@@ -48,6 +48,7 @@ async function seed() {
     update: {},
     create: {
       userId: volUser.id,
+      track: 'PROFESSIONAL',
       name: 'Dr. Amina Wanjiku',
       photo: 'https://ui-avatars.com/api/?name=Amina+Wanjiku&background=random',
       role: 'licensed',
@@ -83,6 +84,7 @@ async function seed() {
     update: {},
     create: {
       userId: vol2User.id,
+      track: 'PEER_LISTENER',
       name: 'Brian Kipkoech',
       photo: 'https://ui-avatars.com/api/?name=Brian+Kipkoech&background=random',
       role: 'intern',
@@ -92,7 +94,7 @@ async function seed() {
       whatsapp: '+254700000002',
       languages: ['English', 'Swahili', 'Kalenjin'],
       isOnline: false,
-      verified: false,
+      verified: true,
       bio: 'Passionate about supporting young people through difficult times. Trained in crisis intervention and cognitive behavioral therapy.',
       views: 89,
       chats: 34
@@ -113,15 +115,15 @@ async function seed() {
   }
   console.log(`✅ ${forumPosts.length} forum posts seeded`);
 
-  // --- Articles ---
+  // --- Resources (Articles) ---
   const articles = [
-    { title: 'Understanding Trauma Responses', content: 'Trauma can manifest in many ways — fight, flight, freeze, or fawn. Understanding your response patterns is the first step to healing. This article explores each response and provides evidence-based coping strategies.', category: 'Mental Health', image: 'https://images.unsplash.com/photo-1544027993-37dbfe43562a?w=800', readTime: 7 },
-    { title: 'Safety Planning: A Practical Guide', content: 'A safety plan is a personalized, practical plan that can help you avoid dangerous situations and prepare for the best way to react if you find yourself in one. Here\'s how to create yours step by step.', category: 'Safety', image: 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=800', readTime: 5 },
-    { title: 'Legal Rights for Survivors in Kenya', content: 'The Protection Against Domestic Violence Act (2015) provides comprehensive protection. Learn about your rights, how to obtain protection orders, and the legal resources available to survivors in Kenya.', category: 'Legal', image: 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=800', readTime: 10 },
+    { type: 'ARTICLE', title: 'Understanding Trauma Responses', description: 'Trauma can manifest in many ways — fight, flight, freeze, or fawn. Understanding your response patterns is the first step to healing. This article explores each response and provides evidence-based coping strategies.', category: 'Mental Health', imageUrl: 'https://images.unsplash.com/photo-1544027993-37dbfe43562a?w=800', readTime: 7 },
+    { type: 'ARTICLE', title: 'Safety Planning: A Practical Guide', description: 'A safety plan is a personalized, practical plan that can help you avoid dangerous situations and prepare for the best way to react if you find yourself in one. Here\'s how to create yours step by step.', category: 'Safety', imageUrl: 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=800', readTime: 5 },
+    { type: 'ARTICLE', title: 'Legal Rights for Survivors in Kenya', description: 'The Protection Against Domestic Violence Act (2015) provides comprehensive protection. Learn about your rights, how to obtain protection orders, and the legal resources available to survivors in Kenya.', category: 'Legal', imageUrl: 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=800', readTime: 10 },
   ];
 
   for (const article of articles) {
-    await prisma.article.create({ data: article });
+    await prisma.resource.create({ data: article });
   }
   console.log(`✅ ${articles.length} articles seeded`);
 

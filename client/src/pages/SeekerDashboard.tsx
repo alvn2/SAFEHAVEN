@@ -4,7 +4,7 @@ import { AuthContext } from '../context/AuthContext';
 import { StorageService } from '../lib/storage';
 import { JournalEntry, SafetyPlan } from '../types';
 import { Button, Card, Input, Modal } from '../components/ui';
-import { Trash2, Edit2, X, Lock, Shield, AlertTriangle, Cloud, Check } from 'lucide-react';
+import { Trash2, Edit2, X, Lock, Shield, AlertTriangle, Cloud, Check, Mic, Square } from 'lucide-react';
 
 export const SeekerDashboard = () => {
     const { user, passphrase, logout } = useContext(AuthContext);
@@ -22,6 +22,51 @@ export const SeekerDashboard = () => {
     const [currentEntryId, setCurrentEntryId] = useState<string | null>(null);
     const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'unsaved'>('saved');
     const autosaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const isSavingRef = useRef(false); // Prevent concurrent saves
+
+    // Audio State
+    const [isRecording, setIsRecording] = useState(false);
+    const [recordingDuration, setRecordingDuration] = useState(0);
+    const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
+    const [audioBase64, setAudioBase64] = useState<string | null>(null);
+    const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+    const recordingTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+    const startRecording = async () => {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            const recorder = new MediaRecorder(stream);
+            mediaRecorderRef.current = recorder;
+            const chunks: BlobPart[] = [];
+            recorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
+            recorder.onstop = () => {
+                const blob = new Blob(chunks, { type: 'audio/webm' });
+                setAudioBlob(blob);
+                const reader = new FileReader();
+                reader.readAsDataURL(blob);
+                reader.onloadend = () => setAudioBase64(reader.result as string);
+                stream.getTracks().forEach(t => t.stop());
+            };
+            recorder.start(1000); // 1-second timeslice for continuous recording — NO 28s cap
+            setIsRecording(true);
+            setRecordingDuration(0);
+            // Start visual timer
+            recordingTimerRef.current = setInterval(() => {
+                setRecordingDuration(prev => prev + 1);
+            }, 1000);
+        } catch (err) {
+            alert('Microphone access denied or unavailable.');
+        }
+    };
+
+    const stopRecording = () => {
+        mediaRecorderRef.current?.stop();
+        setIsRecording(false);
+        if (recordingTimerRef.current) {
+            clearInterval(recordingTimerRef.current);
+            recordingTimerRef.current = null;
+        }
+    };
 
     // Safety Plan State
     const [isEditingPlan, setIsEditingPlan] = useState(false);
@@ -45,12 +90,31 @@ export const SeekerDashboard = () => {
         loadData();
     }, [user, passphrase]);
 
-    // Autosave Logic
+    // Autosave Logic — FIXED: uses ref to prevent concurrent saves + proper cleanup
     useEffect(() => {
-        if (!showJournalForm || !entryText) return;
-        setSaveStatus('saving');
+        if (!showJournalForm || !entryText.trim() || !currentEntryId) return;
+        setSaveStatus('unsaved');
         if (autosaveTimerRef.current) clearTimeout(autosaveTimerRef.current);
-        autosaveTimerRef.current = setTimeout(() => { handleSaveEntry(true); }, 2000);
+        autosaveTimerRef.current = setTimeout(async () => {
+            if (isSavingRef.current) return; // Don't autosave while a manual save is in progress
+            isSavingRef.current = true;
+            setSaveStatus('saving');
+            try {
+                const newEntry: JournalEntry = {
+                    id: currentEntryId,
+                    date: new Date().toISOString(),
+                    mood, energy: 3, sleep: 3,
+                    entry: entryText,
+                    tags: [],
+                    isDraft: true,
+                    audioData: audioBase64 || undefined
+                };
+                const updated = await StorageService.upsertJournalEntry(newEntry, passphrase);
+                setEntries(updated);
+                setSaveStatus('saved');
+            } catch { /* ignore */ }
+            isSavingRef.current = false;
+        }, 3000);
         return () => { if (autosaveTimerRef.current) clearTimeout(autosaveTimerRef.current); };
     }, [entryText, mood]);
 
@@ -58,28 +122,67 @@ export const SeekerDashboard = () => {
         setCurrentEntryId(Date.now().toString());
         setEntryText('');
         setMood(3);
+        setAudioBlob(null);
+        setAudioBase64(null);
+        setShowJournalForm(true);
+        setSaveStatus('saved');
+    };
+
+    const handleEditEntry = (entry: JournalEntry) => {
+        setCurrentEntryId(entry.id);
+        setEntryText(entry.entry);
+        setMood(entry.mood);
+        setAudioBase64(entry.audioData || null);
+        setAudioBlob(null);
         setShowJournalForm(true);
         setSaveStatus('saved');
     };
 
     const handleSaveEntry = async (isDraft: boolean = false) => {
-        if (!currentEntryId) return;
+        if (!currentEntryId || isSavingRef.current) return;
+        
+        // CRITICAL: Cancel any pending autosave to prevent double-save
+        if (autosaveTimerRef.current) {
+            clearTimeout(autosaveTimerRef.current);
+            autosaveTimerRef.current = null;
+        }
+        
+        isSavingRef.current = true;
+        setSaveStatus('saving');
+        
         const newEntry: JournalEntry = {
             id: currentEntryId,
             date: new Date().toISOString(),
             mood, energy: 3, sleep: 3,
             entry: entryText,
             tags: [],
-            isDraft
+            isDraft,
+            audioData: audioBase64 || undefined
         };
         const updated = await StorageService.upsertJournalEntry(newEntry, passphrase);
         setEntries(updated);
+        
+        isSavingRef.current = false;
+        
         if (isDraft) {
             setSaveStatus('saved');
         } else {
+            // Close form and reset
             setEntryText('');
+            setAudioBlob(null);
+            setAudioBase64(null);
             setShowJournalForm(false);
             setCurrentEntryId(null);
+            setSaveStatus('saved');
+        }
+    };
+
+    const handleDeleteEntry = async (id: string, e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (!confirm('Are you sure you want to permanently delete this entry?')) return;
+        if (passphrase) {
+            const updated = await StorageService.deleteJournalEntry(id, passphrase);
+            setEntries(updated);
         }
     };
 
@@ -105,11 +208,17 @@ export const SeekerDashboard = () => {
         }
     };
 
+    const formatTime = (seconds: number) => {
+        const m = Math.floor(seconds / 60);
+        const s = seconds % 60;
+        return `${m}:${s.toString().padStart(2, '0')}`;
+    };
+
     return (
         <div className="space-y-8">
             <div className="flex justify-between items-center">
                 <div>
-                    <h1 className="text-3xl font-bold font-serif dark:text-white">Hello, {user?.displayName}</h1>
+                    <h1 className="text-3xl font-bold font-serif dark:text-white">Hello, {user?.username}</h1>
                     <p className="text-gray-500">Your safe space.</p>
                 </div>
                 <Button variant="danger" size="sm" onClick={handleOpenNukeModal} className="gap-2">
@@ -160,21 +269,57 @@ export const SeekerDashboard = () => {
                         <Card className="p-6 animate-fade-in-up">
                             <div className="flex justify-between items-center mb-6">
                                 <h3 className="text-lg font-bold flex items-center gap-2 dark:text-white">
-                                    New Entry
+                                    {currentEntryId && entries.some(e => e.id === currentEntryId) ? 'Edit Entry' : 'New Entry'}
                                     {saveStatus === 'saving' && <span className="text-xs text-gray-400 font-normal flex items-center gap-1"><Cloud className="w-3 h-3 animate-pulse" /> Saving...</span>}
-                                    {saveStatus === 'saved' && <span className="text-xs text-green-500 font-normal flex items-center gap-1"><Check className="w-3 h-3" /> Autosaved</span>}
+                                    {saveStatus === 'saved' && entryText.trim() && <span className="text-xs text-green-500 font-normal flex items-center gap-1"><Check className="w-3 h-3" /> Saved</span>}
                                 </h3>
-                                <button onClick={() => setShowJournalForm(false)}><X className="w-5 h-5 text-gray-400" /></button>
+                                <button onClick={() => { setShowJournalForm(false); if (autosaveTimerRef.current) clearTimeout(autosaveTimerRef.current); }}><X className="w-5 h-5 text-gray-400" /></button>
                             </div>
                             <div className="flex justify-between mb-6 bg-gray-50 dark:bg-gray-900/50 p-4 rounded-xl">
                                 {[1, 2, 3, 4, 5].map(m => (
                                     <button key={m} onClick={() => setMood(m)} className={`text-3xl transition-all transform hover:scale-125 ${mood === m ? 'scale-125' : 'grayscale opacity-70 hover:grayscale-0 hover:opacity-100'}`}>{['😢', '😟', '😐', '🙂', '😊'][m-1]}</button>
                                 ))}
                             </div>
-                            <textarea className="w-full h-32 p-4 rounded-xl border border-gray-300 dark:border-gray-600 bg-transparent mb-4 focus:ring-2 focus:ring-primary-500 outline-none dark:text-white" placeholder="Write your thoughts here..." value={entryText} onChange={(e) => setEntryText(e.target.value)} />
+                            <textarea className="w-full h-32 p-4 rounded-xl border border-gray-300 dark:border-gray-600 bg-transparent mb-4 focus:ring-2 focus:ring-primary-500 outline-none dark:text-white resize-none" placeholder="Write your thoughts here..." value={entryText} onChange={(e) => setEntryText(e.target.value)} />
+                            
+                            {/* Audio Recording — FIXED: visual timer & proper chunked recording */}
+                            <div className="flex gap-4 mb-4 items-center flex-wrap">
+                                {!isRecording && !audioBlob && !audioBase64 && (
+                                    <Button variant="outline" size="sm" onClick={startRecording} type="button">
+                                        <Mic className="w-4 h-4 mr-2"/> Record Audio
+                                    </Button>
+                                )}
+                                {isRecording && (
+                                    <div className="flex items-center gap-3">
+                                        <Button variant="danger" size="sm" onClick={stopRecording} type="button" className="animate-pulse">
+                                            <Square className="w-4 h-4 mr-2"/> Stop
+                                        </Button>
+                                        <div className="flex items-center gap-2 text-red-500 text-sm font-mono font-bold">
+                                            <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+                                            REC {formatTime(recordingDuration)}
+                                        </div>
+                                    </div>
+                                )}
+                                {audioBlob && (
+                                    <div className="flex items-center gap-2">
+                                        <audio src={URL.createObjectURL(audioBlob)} controls className="h-10 outline-none" />
+                                        <button onClick={() => { setAudioBlob(null); setAudioBase64(null); }} className="p-2 text-red-500 hover:bg-red-50 rounded-full transition-colors"><X className="w-5 h-5"/></button>
+                                    </div>
+                                )}
+                                {!audioBlob && audioBase64 && (
+                                    <div className="flex items-center gap-2">
+                                        <audio src={audioBase64} controls className="h-10 outline-none" />
+                                        <button onClick={() => setAudioBase64(null)} className="p-2 text-red-500 hover:bg-red-50 rounded-full transition-colors"><X className="w-5 h-5"/></button>
+                                    </div>
+                                )}
+                            </div>
+
                              <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2 text-xs text-green-600 dark:text-green-400"><Lock className="w-3 h-3" /><span>End-to-End Encrypted</span></div>
-                                <div className="flex gap-2"><Button variant="secondary" onClick={() => handleSaveEntry(true)}>Save Draft</Button><Button onClick={() => handleSaveEntry(false)}>Post Entry</Button></div>
+                                <div className="flex gap-2">
+                                    <Button variant="secondary" onClick={() => handleSaveEntry(true)}>Save Draft</Button>
+                                    <Button onClick={() => handleSaveEntry(false)}>Post Entry</Button>
+                                </div>
                             </div>
                         </Card>
                     )}
@@ -188,7 +333,20 @@ export const SeekerDashboard = () => {
                                     <span className="text-xl">{['😢', '😟', '😐', '🙂', '😊'][entry.mood-1]}</span>
                                 </div>
                                 <p className="text-gray-800 dark:text-gray-200 whitespace-pre-wrap">{entry.entry}</p>
-                                {entry.isDraft && <button className="absolute bottom-4 right-4 bg-primary-100 text-primary-700 px-3 py-1 rounded-lg text-xs font-bold opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => { setCurrentEntryId(entry.id); setEntryText(entry.entry); setMood(entry.mood); setShowJournalForm(true); }}>Resume Editing</button>}
+                                {entry.audioData && (
+                                    <div className="mt-4">
+                                        <audio src={entry.audioData} controls className="h-10 w-full max-w-sm outline-none" />
+                                    </div>
+                                )}
+                                {/* Edit + Delete buttons — always visible, not just on hover */}
+                                <div className="flex gap-2 mt-3 pt-3 border-t border-gray-100 dark:border-gray-800">
+                                    <button onClick={() => handleEditEntry(entry)} className="flex items-center gap-1 px-3 py-1.5 text-sm bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-800 transition-colors">
+                                        <Edit2 className="w-3 h-3"/> Edit
+                                    </button>
+                                    <button onClick={(e) => handleDeleteEntry(entry.id, e)} className="flex items-center gap-1 px-3 py-1.5 text-sm bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded-lg hover:bg-red-100 dark:hover:bg-red-800 transition-colors">
+                                        <Trash2 className="w-3 h-3"/> Delete
+                                    </button>
+                                </div>
                             </Card>
                         ))}
                     </div>
