@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Home, Users, Book, Heart, Globe, BookOpen, Sun, Moon, LogOut, MessageSquare } from 'lucide-react';
+import { Home, Users, Book, Heart, Globe, BookOpen, Sun, Moon, LogOut, MessageSquare, Settings, ShieldCheck } from 'lucide-react';
 import { Logo } from './Logo';
 import { AuthContext } from '../context/AuthContext';
 import { Button } from './ui/Button';
@@ -58,14 +58,28 @@ export const NavBar = ({ toggleTheme, isDark }: { toggleTheme: () => void, isDar
           })}
         </div>
 
-        <div className="pl-2 md:pl-4 border-l border-gray-200 dark:border-gray-700 flex gap-1 md:gap-2 shrink-0">
-          <Button variant="ghost" size="sm" onClick={toggleTheme} className="text-yellow-500 hover:bg-yellow-100 dark:hover:bg-yellow-900/20 px-2 lg:px-4">
+        <div className="pl-2 md:pl-4 border-l border-gray-200 dark:border-gray-700 flex gap-1 md:gap-2 shrink-0 items-center">
+          <Button variant="ghost" size="sm" onClick={toggleTheme} className="text-yellow-500 hover:bg-yellow-100 dark:hover:bg-yellow-900/20 px-2 lg:px-4" title="Toggle Theme">
             {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
           </Button>
           {user && (
-            <Button variant="ghost" size="sm" onClick={handleLogout} className="text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 px-2 lg:px-4" title="Logout">
-              <LogOut className="w-5 h-5" />
-            </Button>
+            <>
+              {user.role === 'ADMIN' && (
+                <Link to="/admin" title="Admin Dashboard">
+                  <Button variant="ghost" size="sm" className="text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 px-2 lg:px-4">
+                    <ShieldCheck className="w-5 h-5" />
+                  </Button>
+                </Link>
+              )}
+              <Link to="/security" title="Settings / Security Center">
+                <Button variant="ghost" size="sm" className="text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 px-2 lg:px-4">
+                  <Settings className="w-5 h-5" />
+                </Button>
+              </Link>
+              <Button variant="ghost" size="sm" onClick={handleLogout} className="text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 px-2 lg:px-4" title="Logout">
+                <LogOut className="w-5 h-5" />
+              </Button>
+            </>
           )}
         </div>
       </div>
