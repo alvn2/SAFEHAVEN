@@ -12,8 +12,10 @@ const MockAuthProvider = ({ children, user }: any) => (
     <AuthContext.Provider value={{ 
         user: user || null, 
         passphrase: 'password123', 
+        isLoading: false,
         login: vi.fn(), 
         registerSeeker: vi.fn(), 
+        recover: vi.fn(),
         logout: vi.fn() 
     }}>
         <ThemeProvider>

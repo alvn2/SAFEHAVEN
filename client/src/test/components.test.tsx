@@ -47,7 +47,7 @@ describe('Complex Components', () => {
         render(
             <MemoryRouter>
                 <AuthProvider>
-                    <VolunteerCard volunteer={mockVol} />
+                    <VolunteerCard volunteer={mockVol} onExternalLink={vi.fn()} />
                 </AuthProvider>
             </MemoryRouter>
         );

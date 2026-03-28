@@ -59,7 +59,7 @@ describe('Feature 2: Authentication & Recovery', () => {
         const words = recoveryKey.split(' ');
         
         // 2. Initiate Recovery
-        const challenge = StorageService.initiateRecovery('forgotten_soul');
+        const challenge: any = StorageService.initiateRecovery('forgotten_soul');
         expect(challenge).not.toBeNull();
         
         const index = challenge!.challengeIndex;
