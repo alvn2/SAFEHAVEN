@@ -3,6 +3,7 @@ import { prisma } from '../db.js';
 import { authenticate, type AuthRequest } from '../middleware/auth.js';
 import { z } from 'zod';
 import { validate } from '../middleware/validate.js';
+import jwt from 'jsonwebtoken';
 
 const router = express.Router();
 
@@ -34,6 +35,52 @@ router.get('/me', authenticate, async (req: AuthRequest, res) => {
     });
   } catch (e) {
     res.status(500).json({ error: 'Failed to fetch your volunteer profile' });
+  }
+});
+
+// Become a peer listener instantly (for existing users)
+router.post('/become-listener', authenticate, async (req: AuthRequest, res) => {
+  try {
+    const user = await prisma.user.findUnique({ where: { id: req.user!.id } });
+    if (!user) {
+        res.status(404).json({ error: 'User not found' });
+        return;
+    }
+    
+    // Check if already a volunteer
+    const existing = await prisma.volunteerProfile.findUnique({ where: { userId: user.id } });
+    if (existing) {
+        res.status(400).json({ error: 'Already a volunteer' });
+        return;
+    }
+
+    await prisma.volunteerProfile.create({
+         data: {
+             userId: user.id,
+             name: user.username,
+             role: 'listener',
+             track: 'PEER_LISTENER',
+             verified: true,
+             bio: 'I am here to listen and support.',
+             qualification: 'Peer Listener',
+             topics: ['General Support'],
+             languages: ['English'],
+             location: 'Remote',
+             whatsapp: ''
+         }
+    }); 
+    
+    if (user.role === 'USER') {
+        await prisma.user.update({
+            where: { id: user.id },
+            data: { role: 'VOLUNTEER_APPROVED' }
+        });
+    }
+
+    const token = jwt.sign({ id: user.id, role: 'VOLUNTEER_APPROVED' }, process.env.JWT_SECRET || 'secret', { expiresIn: '7d' });
+    res.json({ success: true, message: 'You are now a peer listener!', token });
+  } catch (e) {
+    res.status(500).json({ error: 'Failed to become peer listener' });
   }
 });
 

@@ -17,7 +17,7 @@ export const NavBar = ({ toggleTheme, isDark }: { toggleTheme: () => void, isDar
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const navItems = [
+  const defaultNavItems = [
     { name: 'Home', path: '/', icon: Home },
     { name: 'Volunteers', path: '/volunteers', icon: Users },
     { name: 'Messages', path: '/chat', icon: MessageSquare },
@@ -26,6 +26,11 @@ export const NavBar = ({ toggleTheme, isDark }: { toggleTheme: () => void, isDar
     { name: 'Community', path: '/community', icon: Globe },
     { name: 'Library', path: '/resources', icon: BookOpen },
   ];
+
+  const navItems = [...defaultNavItems];
+  if (user && (user.role === 'VOLUNTEER_APPROVED' || user.role === 'ADMIN')) {
+    navItems.splice(4, 0, { name: 'Care Dashboard', path: '/volunteer/dashboard', icon: Heart });
+  }
 
   const handleLogout = () => {
     logout();

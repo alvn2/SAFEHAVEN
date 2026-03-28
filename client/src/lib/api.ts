@@ -158,6 +158,11 @@ export const volunteerApi = {
     name: string; email: string; phone: string; role: string;
     qualification: string; experience: string; licenseNumber?: string;
   }) => request<any>('/volunteers/apply', { method: 'POST', body: JSON.stringify(application) }),
+
+  becomeListener: () => 
+    request<{ success: boolean; message: string; token: string }>('/volunteers/become-listener', {
+      method: 'POST'
+    }),
 };
 
 // ============================================================

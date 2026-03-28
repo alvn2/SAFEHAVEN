@@ -59,7 +59,7 @@ const AppRoutes = () => {
               <Route path="/" element={<HomePage />} />
               <Route path="/auth" element={<AuthPage />} />
               <Route path="/auth/signup" element={<SeekerSignupPage />} />
-              <Route path="/auth/volunteer/apply" element={<VolunteerApplyPage />} />
+              <Route path="/volunteer/apply" element={<VolunteerApplyPage />} />
               <Route path="/volunteers" element={<VolunteerNetworkPage />} />
               <Route path="/resources" element={<ResourcesPage />} />
               <Route path="/community" element={<CommunityPage />} />
@@ -75,7 +75,7 @@ const AppRoutes = () => {
               <Route path="/security" element={user ? <SecurityCenterPage /> : <Navigate to="/auth" />} />
               <Route path="/seeker/dashboard" element={user ? <SeekerDashboard /> : <Navigate to="/auth" />} />
               <Route path="/chat" element={user ? <ChatPage /> : <Navigate to="/auth" />} />
-              <Route path="/volunteer/dashboard" element={user?.role === 'VOLUNTEER_APPROVED' ? <VolunteerDashboard /> : <Navigate to="/auth" />} />
+              <Route path="/volunteer/dashboard" element={(user?.role === 'VOLUNTEER_APPROVED' || user?.role === 'ADMIN') ? <VolunteerDashboard /> : <Navigate to="/auth" />} />
               <Route path="/admin" element={user?.role === 'ADMIN' ? <AdminDashboard /> : <Navigate to="/auth" />} />
               <Route path="/developer" element={user?.role === 'ADMIN' ? <DeveloperDashboard /> : <Navigate to="/auth" />} />
               

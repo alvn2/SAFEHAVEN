@@ -53,9 +53,20 @@ export const VolunteerNetworkPage = () => {
         navigate('/volunteer/apply');
     };
 
-    const handleBecomePeerListener = () => {
+    const handleBecomePeerListener = async () => {
         if (!user) { navigate('/auth'); return; }
-        navigate('/seeker/dashboard');
+        
+        try {
+            const res = await volunteerApi.becomeListener();
+            if (res.token) {
+                // Update the token in sessionStorage so the AuthContext picks up the new roles
+                sessionStorage.setItem('sh_token', res.token);
+                // Hard reload to refresh the AuthContext completely and navigate to the dashboard
+                window.location.href = '/volunteer/dashboard';
+            }
+        } catch (err: any) {
+            alert(err.message || "Failed to become peer listener. You might already have a profile.");
+        }
     };
 
     return (
