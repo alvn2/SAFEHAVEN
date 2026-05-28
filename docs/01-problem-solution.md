@@ -58,7 +58,7 @@ The result: untreated anxiety, depression, and PTSD drive Kenya's youth suicide 
 | Registered Seekers | 10,000 |
 | Active Volunteers | 200 (50 licensed, 150 peer listeners) |
 | Monthly Active Users (MAU) | 3,000 |
-| Average Response Time (Chat) | < 10 minutes |
+| Average Response Time (Chat) | < 5 minutes |
 | User Satisfaction Score (CSAT) | ≥ 4.2/5.0 |
 
 ---
