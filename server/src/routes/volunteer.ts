@@ -4,6 +4,7 @@ import { authenticate, type AuthRequest } from '../middleware/auth.js';
 import { z } from 'zod';
 import { validate } from '../middleware/validate.js';
 import jwt from 'jsonwebtoken';
+import { cacheMiddleware, invalidateCache } from '../middleware/cache.js';
 
 const router = express.Router();
 
@@ -77,6 +78,7 @@ router.post('/become-listener', authenticate, async (req: AuthRequest, res) => {
         });
     }
 
+    invalidateCache('/api/volunteers');
     const token = jwt.sign({ id: user.id, role: 'VOLUNTEER_APPROVED' }, process.env.JWT_SECRET || 'secret', { expiresIn: '7d' });
     res.json({ success: true, message: 'You are now a peer listener!', token });
   } catch (e) {
@@ -84,8 +86,8 @@ router.post('/become-listener', authenticate, async (req: AuthRequest, res) => {
   }
 });
 
-// Get all volunteers (public)
-router.get('/', async (_req, res) => {
+// Get all volunteers (public - cached for 120s with stale-while-revalidate)
+router.get('/', cacheMiddleware(120), async (_req, res) => {
   try {
     const volunteers = await prisma.volunteerProfile.findMany({
       orderBy: { name: 'asc' }

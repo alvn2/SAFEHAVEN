@@ -13,6 +13,12 @@ import volunteerRoutes from './routes/volunteer.js';
 import safetyRoutes from './routes/safety.js';
 import communityRoutes from './routes/community.js';
 
+import { generalRateLimiter, authRateLimiter } from './middleware/rateLimit.js';
+import { idempotency } from './middleware/idempotency.js';
+import { errorHandler } from './middleware/errorHandler.js';
+import { formatErrorResponse } from './utils/errors.js';
+import { startPruningScheduler } from './jobs/pruneOldChats.js';
+
 dotenv.config();
 
 import http from 'http';
@@ -64,13 +70,17 @@ app.use(cors({
 }));
 app.use(express.json({ limit: '5mb' }));
 
+// Global resilient middlewares
+app.use(generalRateLimiter);
+app.use(idempotency);
+
 // Health Check
 app.get('/', (_req, res) => {
   res.json({ status: 'ok', message: 'SafeHaven API is running securely.' });
 });
 
 // Routes
-app.use('/api/auth', authRoutes);
+app.use('/api/auth', authRateLimiter, authRoutes);
 app.use('/api/journal', journalRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/forum', forumRoutes);
@@ -81,16 +91,15 @@ app.use('/api/community', communityRoutes);
 
 // 404 handler
 app.use((_req, res) => {
-  res.status(404).json({ error: 'Route not found' });
+  res.status(404).json(formatErrorResponse('NOT_FOUND', 'Route not found', 404));
 });
 
 // Centralized error handler
-app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
-  console.error('Unhandled error:', err);
-  res.status(500).json({ error: 'Internal server error' });
-});
+app.use(errorHandler);
 
 // Start Server
 (server as any).listen(PORT, () => {
   console.log(`SafeHaven Server (API + WebSockets) running on port ${PORT}`);
+  // Start background async tasks
+  startPruningScheduler();
 });
