@@ -83,17 +83,17 @@ export const VolunteerNetworkPage = () => {
                 
                 {/* CTA: Hidden if user is already a volunteer */}
                 {!isVolunteer && (
-                    <div className="bg-gradient-to-r from-primary-600 to-sky-600 rounded-3xl p-8 text-white flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl">
+                    <div className="bg-gray-900 dark:bg-gray-850 border border-primary-900/50 rounded-2xl p-8 text-white flex flex-col md:flex-row items-center justify-between gap-6 shadow-lg">
                         <div className="max-w-xl">
-                            <h2 className="text-2xl font-bold mb-2">Want to help others?</h2>
-                            <p className="text-primary-100 mb-4">Join our network of compassionate Peer Listeners or apply as a Verified Professional to provide expert support to those in need.</p>
-                            <div className="flex gap-3">
-                                <button onClick={handleApplyNow} className="bg-white text-primary-600 px-6 py-2.5 rounded-xl font-bold hover:bg-gray-50 transition-colors">Apply as Professional</button>
-                                <button onClick={handleBecomePeerListener} className="bg-primary-700 hover:bg-primary-800 text-white px-6 py-2.5 rounded-xl font-bold transition-colors">Become a Peer Listener</button>
+                            <h2 className="text-2xl font-bold mb-2">Want to support seekers?</h2>
+                            <p className="text-gray-300 mb-5 leading-relaxed text-sm">Join our network of trained Peer Listeners or apply as a Verified Mental Health Professional to provide confidential support.</p>
+                            <div className="flex flex-wrap gap-3">
+                                <button onClick={handleApplyNow} className="bg-primary-600 hover:bg-primary-500 text-white px-5 py-2.5 rounded-xl font-semibold text-sm transition-colors shadow-sm">Apply as Professional</button>
+                                <button onClick={handleBecomePeerListener} className="bg-white/10 hover:bg-white/15 text-white border border-white/20 px-5 py-2.5 rounded-xl font-semibold text-sm transition-colors">Become a Peer Listener</button>
                             </div>
                         </div>
-                        <div className="hidden md:flex w-28 h-28 bg-white/15 rounded-2xl items-center justify-center border border-white/20 shadow-inner">
-                            <Handshake className="w-14 h-14 text-white" />
+                        <div className="hidden md:flex w-24 h-24 bg-primary-950/60 rounded-2xl items-center justify-center border border-primary-800/40 shadow-inner shrink-0">
+                            <Handshake className="w-12 h-12 text-primary-400" />
                         </div>
                     </div>
                 )}

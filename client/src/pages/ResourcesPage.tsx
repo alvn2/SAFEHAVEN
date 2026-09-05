@@ -48,7 +48,7 @@ export const ResourcesPage = () => {
             <div className="flex flex-col md:flex-row justify-between items-end gap-6">
                 <div>
                     <h1 className="text-3xl font-bold font-serif mb-2 dark:text-white">Self-Help Library</h1>
-                    <p className="text-gray-500">Curated resources for your journey.</p>
+                    <p className="text-gray-500">Verified guides, emergency hotlines, and grounding exercises across Kenya.</p>
                 </div>
                 <div className="w-full md:w-auto relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />

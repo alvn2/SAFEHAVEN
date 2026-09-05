@@ -50,7 +50,7 @@ export const CommunityPage = () => {
 
             <div className="lg:col-span-2 space-y-8">
                 <div className="flex justify-between items-start">
-                    <div><h1 className="text-3xl font-bold font-serif mb-2 dark:text-white">Community Hub</h1><p className="text-gray-500">Connect, share, and find your tribe.</p></div>
+                    <div><h1 className="text-3xl font-bold font-serif mb-2 dark:text-white">Community Hub</h1><p className="text-gray-500">Anonymous peer support circles and local mental health organizations in Kenya.</p></div>
                     {user && <Button variant="outline" size="sm" onClick={() => setShowSubmitModal(true)}>Submit Content</Button>}
                 </div>
                 

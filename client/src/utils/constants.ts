@@ -37,7 +37,7 @@ export const VOLUNTEERS: Volunteer[] = [
     isOnline: true,
     verified: true,
     bio: 'Experienced clinical psychologist with 10+ years helping individuals overcome trauma and anxiety.',
-    impact: { views: 1240, chats: 45 }
+    impact: { views: 0, chats: 0 }
   },
   {
     id: '2',
@@ -53,7 +53,7 @@ export const VOLUNTEERS: Volunteer[] = [
     isOnline: true,
     verified: false,
     bio: 'Final year Masters student passionate about helping students navigate academic pressure.',
-    impact: { views: 850, chats: 120 }
+    impact: { views: 0, chats: 0 }
   },
   {
     id: '3',
@@ -69,7 +69,7 @@ export const VOLUNTEERS: Volunteer[] = [
     isOnline: false,
     verified: false,
     bio: 'I am here to listen without judgment. I have been trained in active listening and grief support.',
-    impact: { views: 560, chats: 85 }
+    impact: { views: 0, chats: 0 }
   },
 ];
 
@@ -79,7 +79,7 @@ export const ARTICLES: Article[] = [
     title: 'Understanding Anxiety',
     content: 'Anxiety is more than just feeling stressed or worried. It is a natural response to stress.',
     category: 'Anxiety & Stress',
-    image: 'https://placehold.co/600x400?text=Anxiety',
+    image: '/images/anxiety-guide.svg',
     readTime: 5,
     type: 'article'
   },
@@ -88,7 +88,7 @@ export const ARTICLES: Article[] = [
     title: '5 Steps to Better Sleep',
     content: 'Sleep hygiene is crucial for mental health. Try these steps: 1. Stick to a regular sleep schedule.',
     category: 'Self-Care',
-    image: 'https://placehold.co/600x400?text=Sleep',
+    image: '/images/sleep-hygiene.svg',
     readTime: 3,
     type: 'article'
   }
@@ -113,12 +113,12 @@ export const INITIAL_FORUM_POSTS: ForumPost[] = [
 export const DAILY_POLL: Poll = {
   id: 'poll-1',
   question: "What is your main goal for this week?",
-  totalVotes: 142,
+  totalVotes: 0,
   options: [
-    { id: '1', text: 'Improve my sleep schedule', votes: 45 },
-    { id: '2', text: 'Talk to a friend', votes: 30 },
-    { id: '3', text: 'Exercise more', votes: 20 },
-    { id: '4', text: 'Just survive', votes: 47 }
+    { id: '1', text: 'Improve my sleep schedule', votes: 0 },
+    { id: '2', text: 'Talk to a friend', votes: 0 },
+    { id: '3', text: 'Exercise more', votes: 0 },
+    { id: '4', text: 'Just survive', votes: 0 }
   ]
 };
 

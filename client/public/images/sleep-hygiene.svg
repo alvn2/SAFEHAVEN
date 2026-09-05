@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 400" width="600" height="400">
+  <defs>
+    <linearGradient id="bgGradSleep" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a" />
+      <stop offset="100%" stop-color="#020617" />
+    </linearGradient>
+    <linearGradient id="moonGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8" />
+      <stop offset="100%" stop-color="#0284c7" />
+    </linearGradient>
+  </defs>
+  <rect width="600" height="400" fill="url(#bgGradSleep)" rx="16" />
+  <circle cx="300" cy="180" r="130" fill="#1e293b" opacity="0.4" />
+  <circle cx="300" cy="180" r="85" fill="#0369a1" opacity="0.18" />
+  <g transform="translate(255, 120) scale(0.9)">
+    <!-- Crescent Moon & Stars -->
+    <path d="M50 10 A40 40 0 1 0 90 70 A32 32 0 1 1 50 10 Z" fill="url(#moonGrad)" />
+    <circle cx="15" cy="25" r="2.5" fill="#bae6fd" opacity="0.8" />
+    <circle cx="85" cy="20" r="3" fill="#e0f2fe" opacity="0.9" />
+    <circle cx="95" cy="55" r="2" fill="#7dd3fc" opacity="0.7" />
+  </g>
+  <text x="300" y="325" text-anchor="middle" fill="#f8fafc" font-family="sans-serif" font-size="20" font-weight="600" letter-spacing="1">Restorative Sleep Hygiene</text>
+  <text x="300" y="352" text-anchor="middle" fill="#94a3b8" font-family="sans-serif" font-size="13" letter-spacing="0.5">5 Evidence-Based Practices for Nighttime Peace</text>
+</svg>

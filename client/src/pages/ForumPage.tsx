@@ -228,7 +228,12 @@ export const ForumPage = () => {
                         </div>
                         <h3 className="font-bold text-xl mb-2 dark:text-white">{post.title}</h3>
                         <p className={`text-gray-700 dark:text-gray-300 mb-4 whitespace-pre-wrap ${post.isTriggering ? 'blur-sm hover:blur-none transition-all cursor-pointer select-none' : ''}`} title={post.isTriggering ? "Click to reveal content" : ""}>{post.body}</p>
-                        {post.isTriggering && <p className="text-xs text-red-500 mb-4 italic font-medium -mt-2">⚠️ Trigger Warning: Blur active</p>}
+                        {post.isTriggering && (
+                            <p className="flex items-center gap-1.5 text-xs text-red-500 mb-4 italic font-medium -mt-2">
+                                <AlertTriangle className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
+                                <span>Trigger Warning: Sensitive content blurred</span>
+                            </p>
+                        )}
 
                         <div className="flex gap-4 border-t border-gray-100 dark:border-gray-800 pt-4">
                             <button onClick={() => handleHug(post.id)} className="flex items-center gap-1.5 text-gray-500 hover:text-pink-500 transition-colors text-sm font-medium group">

@@ -1,7 +1,7 @@
 import React, { useContext, useState, useEffect } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import { Card, Button, Badge, Input } from '../components/ui';
-import { Shield, Lock, Key, Smartphone, Trash2, Clock, UserCheck } from 'lucide-react';
+import { Shield, Lock, Key, Smartphone, Trash2, Clock, UserCheck, CheckCircle2 } from 'lucide-react';
 import { authApi } from '../lib/api';
 
 export const SecurityCenterPage = () => {
@@ -110,8 +110,9 @@ export const SecurityCenterPage = () => {
                 <h3 className="text-xl font-bold mb-4 dark:text-white flex items-center gap-2"><UserCheck className="w-5 h-5 text-blue-500"/> Apply to be a Moderator</h3>
                 <p className="text-gray-600 dark:text-gray-400 mb-4">Help keep SafeHaven safe. Community Moderators review flagged content, guide discussions, and support the community.</p>
                 {modStatus === 'success' ? (
-                    <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-xl border border-green-200 dark:border-green-800 text-green-700 dark:text-green-300">
-                        ✅ Application submitted! You'll be notified when an admin reviews it.
+                    <div className="flex items-center gap-2.5 bg-emerald-50 dark:bg-emerald-900/20 p-4 rounded-xl border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-200 text-sm font-medium">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" aria-hidden="true" />
+                        <span>Application submitted! You'll be notified when an admin reviews it.</span>
                     </div>
                 ) : (
                     <form onSubmit={handleModApply} className="space-y-4">

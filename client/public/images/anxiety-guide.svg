@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 400" width="600" height="400">
+  <defs>
+    <linearGradient id="bgGradAnxiety" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#064e3b" />
+      <stop offset="100%" stop-color="#022c22" />
+    </linearGradient>
+    <linearGradient id="leafGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#34d399" />
+      <stop offset="100%" stop-color="#059669" />
+    </linearGradient>
+  </defs>
+  <rect width="600" height="400" fill="url(#bgGradAnxiety)" rx="16" />
+  <circle cx="300" cy="200" r="140" fill="#047857" opacity="0.25" />
+  <circle cx="300" cy="200" r="95" fill="#10b981" opacity="0.2" />
+  <g transform="translate(235, 125) scale(1.3)">
+    <!-- Serene Mind & Shield Emblem -->
+    <path d="M50 15C30 15 15 35 15 60C15 80 30 90 50 90C70 90 85 80 85 60C85 45 75 25 50 15Z" fill="url(#leafGrad)" opacity="0.85" />
+    <path d="M50 15C50 15 20 40 20 65C20 80 35 90 50 90" stroke="#ffffff" stroke-width="5" stroke-linecap="round" fill="none" />
+    <path d="M50 15C50 15 80 40 80 65" stroke="#a7f3d0" stroke-width="5" stroke-linecap="round" fill="none" />
+    <circle cx="50" cy="60" r="9" fill="#ffffff" />
+  </g>
+  <text x="300" y="325" text-anchor="middle" fill="#ecfdf5" font-family="sans-serif" font-size="20" font-weight="600" letter-spacing="1">Understanding Anxiety</text>
+  <text x="300" y="352" text-anchor="middle" fill="#6ee7b7" font-family="sans-serif" font-size="13" letter-spacing="0.5">Physical Signs &amp; Coping Strategies</text>
+</svg>

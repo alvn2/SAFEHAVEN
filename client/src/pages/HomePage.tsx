@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { ArrowRight, Shield, Users, Heart, Lock, Check, BookOpen, User, Plus, Minus, MessageSquare, Database, Activity, EyeOff, Globe } from 'lucide-react';
 import { TriageModal } from '../components/TriageModal';
 import { Button, Card } from '../components/ui';
+import { volunteerApi } from '../lib/api';
+import { Volunteer } from '../types';
 
 const SectionTitle = ({ title, subtitle, centered = true }: { title: string, subtitle: string, centered?: boolean }) => (
     <div className={`mb-12 max-w-4xl px-4 ${centered ? 'text-center mx-auto' : ''}`}>
@@ -34,6 +36,16 @@ const FAQItem = ({ question, answer }: { question: string, answer: string }) => 
 export const HomePage = () => {
     const navigate = useNavigate();
     const [showTriage, setShowTriage] = useState(false);
+    const [previewVolunteers, setPreviewVolunteers] = useState<Volunteer[]>([]);
+
+    useEffect(() => {
+        volunteerApi.getAll()
+            .then(data => {
+                const verified = (data || []).filter((v: any) => v.verified);
+                setPreviewVolunteers(verified.slice(0, 2));
+            })
+            .catch(() => setPreviewVolunteers([]));
+    }, []);
 
     return (
         <div className="space-y-0 overflow-x-hidden bg-white dark:bg-gray-950">
@@ -84,8 +96,7 @@ export const HomePage = () => {
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="grid lg:grid-cols-2 gap-12 items-center">
                         <div className="order-2 lg:order-1 relative">
-                            <div className="absolute -top-6 -left-6 w-32 h-32 bg-yellow-100 dark:bg-yellow-900/20 rounded-full blur-2xl opacity-70"></div>
-                            <div className="bg-gray-50 dark:bg-gray-800 p-8 rounded-[2rem] border border-gray-100 dark:border-gray-700 shadow-xl relative z-10 space-y-6">
+                            <div className="bg-gray-50 dark:bg-gray-800 p-8 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-lg relative z-10 space-y-6">
                                 <div className="flex items-start gap-4">
                                     <div className="bg-white dark:bg-gray-700 p-3 rounded-xl shadow-sm text-primary-600 dark:text-primary-400 shrink-0"><Users size={24} /></div>
                                     <div>
@@ -104,7 +115,7 @@ export const HomePage = () => {
                                     <div className="bg-white dark:bg-gray-700 p-3 rounded-xl shadow-sm text-orange-500 dark:text-orange-400 shrink-0"><Globe size={24} /></div>
                                     <div>
                                         <h4 className="font-bold text-lg text-gray-900 dark:text-white mb-1">Accessible to All</h4>
-                                        <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">Works on low-bandwidth connections. No app download required. Accessible via any browser.</p>
+                                        <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">Runs smoothly on low-bandwidth connections. Accessible via any browser or installable on your mobile home screen.</p>
                                     </div>
                                 </div>
                             </div>
@@ -225,49 +236,56 @@ export const HomePage = () => {
                     />
 
                     <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {/* Licensed Card */}
-                        <div className="group bg-green-50 dark:bg-green-900/10 rounded-[1.5rem] p-6 border border-green-100 dark:border-green-900/30 hover:border-green-200 transition-all hover:shadow-xl">
-                            <div className="flex items-center gap-4 mb-4">
-                                <img src="https://ui-avatars.com/api/?name=Dr+Amina&background=10b981&color=fff" alt="Vol" className="w-14 h-14 rounded-full shadow-md" />
+                        {previewVolunteers.map(vol => (
+                            <div key={vol.id} className="group bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700 hover:border-primary-400 transition-all hover:shadow-lg flex flex-col justify-between">
                                 <div>
-                                    <h4 className="font-bold text-lg dark:text-white">Dr. Amina J.</h4>
-                                    <span className="inline-flex items-center gap-1 text-[10px] font-bold text-green-700 bg-green-200/50 dark:text-green-300 dark:bg-green-900/50 px-2 py-0.5 rounded-full mt-1">
-                                        <Check size={10} /> Licensed Pro
-                                    </span>
+                                    <div className="flex items-center gap-4 mb-4">
+                                        <img src={vol.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(vol.name)}&background=10b981&color=fff`} alt={vol.name} className="w-14 h-14 rounded-full object-cover shadow-sm" />
+                                        <div>
+                                            <h4 className="font-bold text-lg dark:text-white">{vol.name}</h4>
+                                            <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700 bg-emerald-50 dark:text-emerald-300 dark:bg-emerald-900/30 px-2.5 py-0.5 rounded-full mt-1">
+                                                <Check size={12} /> {vol.role === 'licensed' ? 'Licensed Professional' : 'Peer Listener'}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <p className="text-gray-600 dark:text-gray-300 text-sm mb-4 leading-relaxed line-clamp-3">{vol.bio || 'Verified listener available for confidential support.'}</p>
+                                    <div className="flex flex-wrap gap-1.5 mb-4">
+                                        {(vol.topics || []).slice(0, 3).map(t => (
+                                            <span key={t} className="text-xs font-medium text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded-md">{t}</span>
+                                        ))}
+                                    </div>
                                 </div>
+                                <button onClick={() => navigate('/volunteers')} className="text-primary-600 dark:text-primary-400 font-semibold hover:underline flex items-center gap-1.5 text-xs pt-3 border-t border-gray-100 dark:border-gray-700">
+                                    <span>Connect Confidentially</span> <ArrowRight size={14} />
+                                </button>
                             </div>
-                            <p className="text-gray-700 dark:text-gray-300 text-sm mb-4 leading-relaxed">"I specialize in trauma and anxiety. Let's work together to find your grounding techniques."</p>
-                            <div className="flex flex-wrap gap-2">
-                                {['Anxiety', 'Trauma', 'Grief'].map(t => <span key={t} className="text-[10px] font-bold text-gray-500 bg-white dark:bg-gray-800 px-2 py-1 rounded-lg">{t}</span>)}
-                            </div>
-                        </div>
+                        ))}
 
-                        {/* Peer Listener Card */}
-                        <div className="group bg-blue-50 dark:bg-blue-900/10 rounded-[1.5rem] p-6 border border-blue-100 dark:border-blue-900/30 hover:border-blue-200 transition-all hover:shadow-xl">
-                            <div className="flex items-center gap-4 mb-4">
-                                <img src="https://ui-avatars.com/api/?name=Sarah+O&background=3b82f6&color=fff" alt="Vol" className="w-14 h-14 rounded-full shadow-md" />
+                        {/* Directory Link Card if fewer than 2 */}
+                        {previewVolunteers.length < 2 && (
+                            <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700 flex flex-col justify-between">
                                 <div>
-                                    <h4 className="font-bold text-lg dark:text-white">Sarah O.</h4>
-                                    <span className="inline-flex items-center gap-1 text-[10px] font-bold text-blue-700 bg-blue-200/50 dark:text-blue-300 dark:bg-blue-900/50 px-2 py-0.5 rounded-full mt-1">
-                                        <Heart size={10} /> Peer Listener
-                                    </span>
+                                    <div className="w-12 h-12 bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 rounded-xl flex items-center justify-center mb-4">
+                                        <Users size={24} />
+                                    </div>
+                                    <h4 className="font-bold text-lg dark:text-white mb-2">Verified Listeners</h4>
+                                    <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed mb-4">Browse our full directory of certified therapists, counselors, and trained peers across Kenya.</p>
                                 </div>
+                                <button onClick={() => navigate('/volunteers')} className="text-primary-600 dark:text-primary-400 font-semibold hover:underline flex items-center gap-1.5 text-xs pt-3 border-t border-gray-100 dark:border-gray-700">
+                                    <span>Browse All Volunteers</span> <ArrowRight size={14} />
+                                </button>
                             </div>
-                            <p className="text-gray-700 dark:text-gray-300 text-sm mb-4 leading-relaxed">"I'm here to listen without judgment. Sometimes you just need to be heard by someone who gets it."</p>
-                            <div className="flex flex-wrap gap-2">
-                                {['Loneliness', 'Stress', 'Relationships'].map(t => <span key={t} className="text-[10px] font-bold text-gray-500 bg-white dark:bg-gray-800 px-2 py-1 rounded-lg">{t}</span>)}
-                            </div>
-                        </div>
+                        )}
 
-                        {/* Join Card */}
-                        <div className="bg-gray-50 dark:bg-gray-900 rounded-[1.5rem] p-6 border border-gray-200 dark:border-gray-800 flex flex-col items-center justify-center text-center hover:bg-gray-100 dark:hover:bg-gray-800/80 transition-colors">
-                            <div className="w-16 h-16 bg-white dark:bg-gray-800 rounded-full flex items-center justify-center mb-4 text-gray-400 shadow-sm">
-                                <Plus size={32} />
+                        {/* Join Network Card */}
+                        <div className="bg-gray-50 dark:bg-gray-900 rounded-2xl p-6 border border-gray-200 dark:border-gray-800 flex flex-col items-center justify-center text-center hover:bg-gray-100/80 dark:hover:bg-gray-800/60 transition-colors">
+                            <div className="w-14 h-14 bg-white dark:bg-gray-800 rounded-full flex items-center justify-center mb-4 text-primary-600 dark:text-primary-400 shadow-sm border border-gray-200 dark:border-gray-700">
+                                <Plus size={28} />
                             </div>
-                            <h4 className="font-bold text-xl dark:text-white mb-2">Join the Network</h4>
-                            <p className="text-gray-600 dark:text-gray-400 mb-6 text-sm">Are you a mental health professional or empathetic listener? We need you.</p>
-                            <button onClick={() => navigate('/auth/volunteer/apply')} className="text-primary-600 font-bold hover:text-primary-700 flex items-center gap-2 text-sm">
-                                Apply to Volunteer <ArrowRight size={16} />
+                            <h4 className="font-bold text-lg dark:text-white mb-2">Join the Network</h4>
+                            <p className="text-gray-600 dark:text-gray-400 mb-6 text-sm">Are you a licensed psychologist or trained peer counselor in Kenya? We welcome you.</p>
+                            <button onClick={() => navigate('/volunteer/apply')} className="text-primary-600 dark:text-primary-400 font-bold hover:underline flex items-center gap-1.5 text-sm">
+                                <span>Apply to Volunteer</span> <ArrowRight size={16} />
                             </button>
                         </div>
                     </div>
