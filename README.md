@@ -94,10 +94,30 @@ Open **http://localhost:5173** in your browser.
 
 > ⚠️ **Change the admin password immediately in production.**
 
+## 🔐 Security & Sovereign Privacy
+
+- **Zero-Knowledge Encryption**: Seeker reflections and safety plans are encrypted client-side using AES-256 before transmission. Passphrases never touch backend servers.
+- **Sovereign Offline Vault**: Seekers can operate in 100% offline Device-Vault mode with KeePassXC-compatible `.safevault` container export and import.
+- **Biometric & Quota Shield**: Audio recording is deprecated to eliminate acoustic biometric liability and protect Neon's 500 MB free tier ($0/mo indefinitely).
+- **Ephemeral Chat Logs**: Background scheduler automatically prunes chat logs older than 7 days and sweeps abandoned empty conversations.
+
+## 🧪 Automated Testing
+
+Both tiers feature standalone, zero-mock automated test suites:
+
+```bash
+# Run server test suite (11/11 invariant tests via node:test and tsx)
+cd server && npm test
+
+# Run client test suite (32/32 unit & component tests via vitest)
+cd client && npx vitest run
+```
+
 ## 📦 Features
 
 ### For Seekers
-- 📔 **Encrypted Journal** — End-to-end encrypted entries with mood tracking & audio recording
+- 📔 **Encrypted Journal** — Client-side AES-256 encrypted entries with mood tracking & tags (text-only cloud sync).
+- 🛡️ **KeePassXC Sovereign Vault** — Download/upload `.safevault` encrypted backup files for 100% offline, serverless diary storage.
 - 🛡️ **Safety Plan** — Personal crisis management plan (warning signs, coping strategies, contacts)
 - 💬 **Secure Chat** — Real-time messaging with volunteers via Socket.IO
 - 🏠 **Quick Exit** — Emergency button that instantly redirects to a safe page
