@@ -90,7 +90,7 @@ router.get('/', async (_req, res) => {
     const volunteers = await prisma.volunteerProfile.findMany({
       orderBy: { name: 'asc' }
     });
-    const mapped = volunteers.map(v => ({
+    const mapped = volunteers.map((v: any) => ({
       id: v.id,
       userId: v.userId,
       name: v.name,

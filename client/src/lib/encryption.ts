@@ -7,11 +7,17 @@ export const encrypt = (text: string, passphrase: string): string => {
 
 export const decrypt = (ciphertext: string, passphrase: string): string => {
   if (!passphrase || !ciphertext) return ciphertext;
+  if (!ciphertext.startsWith('U2FsdGVkX1')) return ciphertext; // Legacy plaintext fallback
   try {
     const bytes = CryptoJS.AES.decrypt(ciphertext, passphrase);
-    return bytes.toString(CryptoJS.enc.Utf8);
+    if (!bytes || bytes.sigBytes <= 0) return "";
+    const decrypted = bytes.toString(CryptoJS.enc.Utf8);
+    // If decryption produced non-printable control characters, it is random noise from a wrong key
+    if (!decrypted || /[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\x9F]/.test(decrypted)) {
+      return "";
+    }
+    return decrypted;
   } catch (e) {
-    console.error("Decryption failed", e);
     return "";
   }
 };

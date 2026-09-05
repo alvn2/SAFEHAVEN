@@ -91,6 +91,6 @@ app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
 });
 
 // Start Server
-server.listen(PORT, () => {
+(server as any).listen(PORT, () => {
   console.log(`SafeHaven Server (API + WebSockets) running on port ${PORT}`);
 });

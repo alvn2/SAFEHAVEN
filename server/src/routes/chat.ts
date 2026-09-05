@@ -13,7 +13,7 @@ router.get('/conversations', authenticate, async (req: AuthRequest, res) => {
             orderBy: { conversation: { lastMessageAt: 'desc' } }
         });
         
-        const conversations = participations.map(p => ({
+        const conversations = participations.map((p: any) => ({
             ...p.conversation,
             unreadCount: p.hasUnread ? 1 : 0
         }));

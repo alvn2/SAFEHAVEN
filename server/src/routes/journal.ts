@@ -14,7 +14,8 @@ const journalSchema = z.object({
   sleep: z.number().min(1).max(10),
   entry: z.string(), // Already encrypted by client
   tags: z.array(z.string()).default([]),
-  isDraft: z.boolean().default(false)
+  isDraft: z.boolean().default(false),
+  audioData: z.string().nullable().optional()
 });
 
 // Get all entries for current user
@@ -32,15 +33,15 @@ router.get('/', authenticate, async (req: AuthRequest, res) => {
 
 // Upsert entry
 router.post('/', authenticate, validate(journalSchema), async (req: AuthRequest, res) => {
-  const { id, date, mood, energy, sleep, entry, tags, isDraft } = req.body;
+  const { id, date, mood, energy, sleep, entry, tags, isDraft, audioData } = req.body;
   try {
     const result = await prisma.journalEntry.upsert({
       where: { id: id || 'new-entry-placeholder' },
-      update: { mood, energy, sleep, entry, tags, isDraft, date: new Date(date) },
+      update: { mood, energy, sleep, entry, tags, isDraft, audioData, date: new Date(date) },
       create: {
         userId: req.user!.id,
         date: new Date(date),
-        mood, energy, sleep, entry, tags, isDraft
+        mood, energy, sleep, entry, tags, isDraft, audioData
       }
     });
     res.json(result);

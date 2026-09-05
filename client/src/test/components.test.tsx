@@ -65,4 +65,18 @@ describe('Complex Components', () => {
         );
         expect(screen.queryByText('Test Modal')).not.toBeInTheDocument();
     });
+
+    it('EmergencyHotlineBar displays crisis hotlines with tap-to-call links', async () => {
+        const { EmergencyHotlineBar } = await import('../components/Layout');
+        render(<EmergencyHotlineBar />);
+
+        expect(screen.getByText(/24\/7 Crisis Lines:/i)).toBeInTheDocument();
+        const redCrossLink = screen.getByText(/Red Cross: 1199/i);
+        expect(redCrossLink).toBeInTheDocument();
+        expect(redCrossLink.getAttribute('href')).toBe('tel:1199');
+
+        const befriendersLink = screen.getByText(/Befrienders: 0722 178 177/i);
+        expect(befriendersLink).toBeInTheDocument();
+        expect(befriendersLink.getAttribute('href')).toBe('tel:+254722178177');
+    });
 });

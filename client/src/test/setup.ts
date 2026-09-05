@@ -1,5 +1,8 @@
-import '@testing-library/jest-dom';
-import { vi } from 'vitest';
+import '@testing-library/jest-dom/vitest';
+import * as matchers from '@testing-library/jest-dom/matchers';
+import { expect, vi } from 'vitest';
+
+expect.extend(matchers);
 
 // Mock LocalStorage
 const localStorageMock = (function () {
@@ -14,28 +17,18 @@ const localStorageMock = (function () {
 
 Object.defineProperty(window, 'localStorage', { value: localStorageMock });
 
-// Mock Crypto
-Object.defineProperty(global, 'crypto', {
-  value: {
-    getRandomValues: (arr: any) => require('crypto').randomBytes(arr.length),
-    subtle: {
-        digest: () => Promise.resolve(new ArrayBuffer(32))
-    }
-  }
-});
-
 // Mock Window Scroll
 window.scrollTo = vi.fn();
 
-// --- NEW: Mock matchMedia ---
+// Mock matchMedia
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
-  value: vi.fn().mockImplementation(query => ({
+  value: vi.fn().mockImplementation((query: string) => ({
     matches: false,
     media: query,
     onchange: null,
-    addListener: vi.fn(), // deprecated
-    removeListener: vi.fn(), // deprecated
+    addListener: vi.fn(),
+    removeListener: vi.fn(),
     addEventListener: vi.fn(),
     removeEventListener: vi.fn(),
     dispatchEvent: vi.fn(),

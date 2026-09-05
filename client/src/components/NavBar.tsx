@@ -38,7 +38,7 @@ export const NavBar = ({ toggleTheme, isDark }: { toggleTheme: () => void, isDar
   };
 
   return (
-    <div className={`fixed top-0 left-0 right-0 z-50 flex justify-center transition-all duration-300 pointer-events-none ${scrolled ? 'pt-2' : 'pt-4 md:pt-6'}`}>
+    <div className={`fixed top-6 left-0 right-0 z-50 flex justify-center transition-all duration-300 pointer-events-none ${scrolled ? 'pt-1' : 'pt-2 md:pt-4'}`}>
       <div className={`bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl border border-gray-200 dark:border-gray-800 shadow-xl pointer-events-auto flex items-center justify-between transition-all duration-500 ease-in-out ${scrolled ? 'rounded-2xl p-2 w-[98%] lg:w-[95%] max-w-7xl' : 'rounded-full p-2 md:p-3 w-[96%] lg:w-[92%] max-w-7xl'}`}>
 
         <Link to="/" className="pl-2 pr-4 border-r border-gray-200 dark:border-gray-700 shrink-0 flex items-center">

@@ -5,13 +5,14 @@ import { AuthContext } from '../context/AuthContext';
 import { ThemeProvider } from '../context/ThemeContext';
 import { SeekerDashboard } from '../pages/SeekerDashboard';
 import { VolunteerNetworkPage } from '../pages/VolunteerNetworkPage';
-import { StorageService } from '../lib/storage';
+import { volunteerApi } from '../lib/api';
 
 // Mock context for protected routes
 const MockAuthProvider = ({ children, user }: any) => (
     <AuthContext.Provider value={{ 
         user: user || null, 
         passphrase: 'password123', 
+        setPassphrase: vi.fn(),
         isLoading: false,
         login: vi.fn(), 
         registerSeeker: vi.fn(), 
@@ -25,10 +26,9 @@ const MockAuthProvider = ({ children, user }: any) => (
 );
 
 describe('Page: SeekerDashboard', () => {
-    // Fix: Added displayName to mock user
-    const mockUser = { id: 'u1', username: 'ghost', displayName: 'GhostUser', role: 'USER' as const };
+    const mockUser = { id: 'u1', username: 'ghost', role: 'USER' as const };
 
-    it('Renders Journal and Safety Plan tabs', () => {
+    it('Renders Journal, Safety Plan tabs, and KeePassXC Vault controls', () => {
         render(
             <MockAuthProvider user={mockUser}>
                 <MemoryRouter>
@@ -37,13 +37,16 @@ describe('Page: SeekerDashboard', () => {
             </MockAuthProvider>
         );
 
-        // Expect the displayName we just defined
-        expect(screen.getByText(/Hello, GhostUser/i)).toBeInTheDocument();
+        expect(screen.getByText(/Hello, ghost/i)).toBeInTheDocument();
         expect(screen.getByText('Journal')).toBeInTheDocument();
         expect(screen.getByText('Safety Plan')).toBeInTheDocument();
+        expect(screen.getByText(/Device Vault/i)).toBeInTheDocument();
+        expect(screen.getByText(/Cloud Sync/i)).toBeInTheDocument();
+        expect(screen.getByText(/Export Vault/i)).toBeInTheDocument();
+        expect(screen.getByText(/Import Vault/i)).toBeInTheDocument();
     });
 
-    it('Opens New Entry form when clicked', () => {
+    it('Opens New Entry form without audio recording button', () => {
         render(
             <MockAuthProvider user={mockUser}>
                 <MemoryRouter>
@@ -55,19 +58,38 @@ describe('Page: SeekerDashboard', () => {
         const prompt = screen.getByText(/How are you feeling right now?/i);
         fireEvent.click(prompt);
         
-        // Check for the placeholder in the opened form
         expect(screen.getByPlaceholderText(/Write your thoughts here/i)).toBeInTheDocument();
+        // Audio recording button must be absent to protect free-tier database
+        expect(screen.queryByText(/Record Audio/i)).not.toBeInTheDocument();
     });
 });
 
 describe('Page: VolunteerNetwork', () => {
+    const mockVolunteers = [
+        {
+            id: 'v1',
+            userId: 'u1',
+            name: 'Dr. Amina J.',
+            photo: 'photo.jpg',
+            role: 'licensed' as const,
+            qualification: 'PhD Clinical Psychology',
+            topics: ['Anxiety', 'Depression'],
+            location: 'Nairobi',
+            whatsapp: '+254700000001',
+            languages: ['English', 'Swahili'],
+            isOnline: true,
+            verified: true,
+            bio: 'Experienced clinical psychologist dedicated to youth mental health.',
+            views: 120,
+            chats: 45
+        }
+    ];
+
     beforeEach(() => {
-        localStorage.clear();
+        vi.spyOn(volunteerApi, 'getAll').mockResolvedValue(mockVolunteers);
     });
 
-    it('Renders volunteers from storage', () => {
-        StorageService.getVolunteers(); // Ensure seed data is loaded
-
+    it('Renders volunteers from API', async () => {
         render(
             <MockAuthProvider user={null}>
                 <MemoryRouter>
@@ -76,14 +98,11 @@ describe('Page: VolunteerNetwork', () => {
             </MockAuthProvider>
         );
 
-        // Fix: Matches "Search..." placeholder
         expect(screen.getByPlaceholderText(/Search/i)).toBeInTheDocument();
-        // Should find Dr. Amina from seed constants
-        expect(screen.getByText(/Dr. Amina J./i)).toBeInTheDocument();
+        expect(await screen.findByText(/Dr. Amina J./i)).toBeInTheDocument();
     });
 
-    it('Filter logic removes mismatched volunteers', () => {
-        StorageService.getVolunteers();
+    it('Filter logic removes mismatched volunteers', async () => {
         render(
             <MockAuthProvider user={null}>
                 <MemoryRouter>
@@ -92,6 +111,7 @@ describe('Page: VolunteerNetwork', () => {
             </MockAuthProvider>
         );
 
+        expect(await screen.findByText(/Dr. Amina J./i)).toBeInTheDocument();
         const searchInput = screen.getByPlaceholderText(/Search/i);
         fireEvent.change(searchInput, { target: { value: 'NonExistentPerson' } });
 

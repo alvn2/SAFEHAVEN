@@ -102,8 +102,8 @@ router.get('/:id/comments', async (req, res) => {
     // Build nested tree on the server
     const map = new Map<string, any>();
     const roots: any[] = [];
-    comments.forEach(c => map.set(c.id, { ...c, children: [] }));
-    comments.forEach(c => {
+    comments.forEach((c: any) => map.set(c.id, { ...c, children: [] }));
+    comments.forEach((c: any) => {
       const node = map.get(c.id)!;
       if (c.parentId && map.has(c.parentId)) {
         map.get(c.parentId)!.children.push(node);

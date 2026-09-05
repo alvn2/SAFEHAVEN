@@ -4,10 +4,21 @@ import { AuthContext } from '../context/AuthContext';
 import { journalApi, safetyApi, authApi } from '../lib/api';
 import { JournalEntry, SafetyPlan } from '../types';
 import { Button, Card, Input, Modal } from '../components/ui';
-import { Trash2, Edit2, X, Lock, Shield, AlertTriangle, Cloud, Check, Mic, Square } from 'lucide-react';
+import { Trash2, Edit2, X, Lock, Shield, AlertTriangle, Cloud, Check, KeyRound, HardDrive, Download, Upload } from 'lucide-react';
+import { encrypt, decrypt } from '../lib/encryption';
+import {
+    getStorageMode,
+    setStorageMode,
+    StorageMode,
+    loadLocalVault,
+    saveLocalVault,
+    exportVault,
+    importVault,
+    downloadVaultFile
+} from '../lib/vault';
 
 export const SeekerDashboard = () => {
-    const { user, passphrase, logout } = useContext(AuthContext);
+    const { user, passphrase, setPassphrase, logout } = useContext(AuthContext);
     const navigate = useNavigate();
     const [entries, setEntries] = useState<JournalEntry[]>([]);
     const [safetyPlan, setSafetyPlan] = useState<SafetyPlan>({
@@ -15,6 +26,10 @@ export const SeekerDashboard = () => {
     });
     const [activeTab, setActiveTab] = useState<'journal' | 'safety'>('journal');
     
+    // Hybrid Storage Engine State
+    const [storageMode, setStorageModeState] = useState<StorageMode>(getStorageMode());
+    const vaultFileInputRef = useRef<HTMLInputElement>(null);
+
     // Journal State
     const [mood, setMood] = useState(3);
     const [entryText, setEntryText] = useState('');
@@ -23,50 +38,6 @@ export const SeekerDashboard = () => {
     const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'unsaved'>('saved');
     const autosaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const isSavingRef = useRef(false); // Prevent concurrent saves
-
-    // Audio State
-    const [isRecording, setIsRecording] = useState(false);
-    const [recordingDuration, setRecordingDuration] = useState(0);
-    const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
-    const [audioBase64, setAudioBase64] = useState<string | null>(null);
-    const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-    const recordingTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
-    const startRecording = async () => {
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            const recorder = new MediaRecorder(stream);
-            mediaRecorderRef.current = recorder;
-            const chunks: BlobPart[] = [];
-            recorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
-            recorder.onstop = () => {
-                const blob = new Blob(chunks, { type: 'audio/webm' });
-                setAudioBlob(blob);
-                const reader = new FileReader();
-                reader.readAsDataURL(blob);
-                reader.onloadend = () => setAudioBase64(reader.result as string);
-                stream.getTracks().forEach(t => t.stop());
-            };
-            recorder.start(1000); // 1-second timeslice for continuous recording — NO 28s cap
-            setIsRecording(true);
-            setRecordingDuration(0);
-            // Start visual timer
-            recordingTimerRef.current = setInterval(() => {
-                setRecordingDuration(prev => prev + 1);
-            }, 1000);
-        } catch (err) {
-            alert('Microphone access denied or unavailable.');
-        }
-    };
-
-    const stopRecording = () => {
-        mediaRecorderRef.current?.stop();
-        setIsRecording(false);
-        if (recordingTimerRef.current) {
-            clearInterval(recordingTimerRef.current);
-            recordingTimerRef.current = null;
-        }
-    };
 
     // Safety Plan State
     const [isEditingPlan, setIsEditingPlan] = useState(false);
@@ -79,28 +50,67 @@ export const SeekerDashboard = () => {
     const [challengeIndex, setChallengeIndex] = useState<number | null>(null);
     const [wordInput, setWordInput] = useState('');
 
-    useEffect(() => {
-        if (!user || !passphrase) return;
-        const loadData = async () => {
-            try {
-                const journalEntries = await journalApi.getAll();
-                setEntries(journalEntries);
-            } catch { setEntries([]); }
-            try {
-                const plan = await safetyApi.get();
-                if (plan) setSafetyPlan(plan);
-            } catch { /* no plan yet */ }
-        };
-        loadData();
-    }, [user, passphrase]);
+    const handleToggleStorageMode = (mode: StorageMode) => {
+        setStorageMode(mode);
+        setStorageModeState(mode);
+    };
 
-    // Autosave Logic — FIXED: uses ref to prevent concurrent saves + proper cleanup
+    const loadData = async () => {
+        if (!user) return;
+        if (storageMode === 'local') {
+            const localData = loadLocalVault(passphrase);
+            setEntries(localData.entries);
+            if (localData.safetyPlan) {
+                setSafetyPlan({
+                    id: 'local-plan',
+                    userId: user.id,
+                    ...localData.safetyPlan
+                });
+            }
+            return;
+        }
+
+        // Cloud mode: fetch from API with local cache fallback
+        try {
+            const journalEntries = await journalApi.getAll();
+            const decryptedEntries = journalEntries.map((e: JournalEntry) => ({
+                ...e,
+                entry: passphrase ? decrypt(e.entry, passphrase) : e.entry
+            }));
+            setEntries(decryptedEntries);
+            saveLocalVault(decryptedEntries, safetyPlan, passphrase);
+        } catch {
+            const localData = loadLocalVault(passphrase);
+            setEntries(localData.entries);
+        }
+        try {
+            const plan = await safetyApi.get();
+            if (plan) {
+                const decryptedPlan = {
+                    ...plan,
+                    warningSigns: passphrase ? decrypt(plan.warningSigns, passphrase) : plan.warningSigns,
+                    copingStrategies: passphrase ? decrypt(plan.copingStrategies, passphrase) : plan.copingStrategies,
+                    safeContacts: passphrase ? decrypt(plan.safeContacts, passphrase) : plan.safeContacts,
+                    professionalContacts: passphrase ? decrypt(plan.professionalContacts, passphrase) : plan.professionalContacts,
+                    environmentChanges: passphrase ? decrypt(plan.environmentChanges, passphrase) : plan.environmentChanges,
+                };
+                setSafetyPlan(decryptedPlan);
+                saveLocalVault(entries, decryptedPlan, passphrase);
+            }
+        } catch { /* no plan yet */ }
+    };
+
+    useEffect(() => {
+        loadData();
+    }, [user, passphrase, storageMode]);
+
+    // Autosave Logic — handles both local vault and cloud sync
     useEffect(() => {
         if (!showJournalForm || !entryText.trim() || !currentEntryId) return;
         setSaveStatus('unsaved');
         if (autosaveTimerRef.current) clearTimeout(autosaveTimerRef.current);
         autosaveTimerRef.current = setTimeout(async () => {
-            if (isSavingRef.current) return; // Don't autosave while a manual save is in progress
+            if (isSavingRef.current) return;
             isSavingRef.current = true;
             setSaveStatus('saving');
             try {
@@ -110,26 +120,34 @@ export const SeekerDashboard = () => {
                     mood, energy: 3, sleep: 3,
                     entry: entryText,
                     tags: [],
-                    isDraft: true,
-                    audioData: audioBase64 || undefined
+                    isDraft: true
                 };
-                const updated = await journalApi.upsert(newEntry);
-                // Reload entries
-                const all = await journalApi.getAll();
-                setEntries(all);
+
+                const existingIndex = entries.findIndex(e => e.id === currentEntryId);
+                const updatedEntries = existingIndex >= 0 
+                    ? entries.map(e => e.id === currentEntryId ? newEntry : e)
+                    : [newEntry, ...entries];
+                setEntries(updatedEntries);
+                saveLocalVault(updatedEntries, safetyPlan, passphrase);
+
+                if (storageMode === 'cloud') {
+                    const encryptedText = passphrase ? encrypt(entryText, passphrase) : entryText;
+                    await journalApi.upsert({
+                        ...newEntry,
+                        entry: encryptedText
+                    });
+                }
                 setSaveStatus('saved');
             } catch { /* ignore */ }
             isSavingRef.current = false;
         }, 3000);
         return () => { if (autosaveTimerRef.current) clearTimeout(autosaveTimerRef.current); };
-    }, [entryText, mood]);
+    }, [entryText, mood, passphrase, storageMode, entries, safetyPlan]);
 
     const handleOpenJournal = () => {
         setCurrentEntryId(Date.now().toString());
         setEntryText('');
         setMood(3);
-        setAudioBlob(null);
-        setAudioBase64(null);
         setShowJournalForm(true);
         setSaveStatus('saved');
     };
@@ -138,8 +156,6 @@ export const SeekerDashboard = () => {
         setCurrentEntryId(entry.id);
         setEntryText(entry.entry);
         setMood(entry.mood);
-        setAudioBase64(entry.audioData || null);
-        setAudioBlob(null);
         setShowJournalForm(true);
         setSaveStatus('saved');
     };
@@ -147,7 +163,6 @@ export const SeekerDashboard = () => {
     const handleSaveEntry = async (isDraft: boolean = false) => {
         if (!currentEntryId || isSavingRef.current) return;
         
-        // CRITICAL: Cancel any pending autosave to prevent double-save
         if (autosaveTimerRef.current) {
             clearTimeout(autosaveTimerRef.current);
             autosaveTimerRef.current = null;
@@ -162,22 +177,30 @@ export const SeekerDashboard = () => {
             mood, energy: 3, sleep: 3,
             entry: entryText,
             tags: [],
-            isDraft,
-            audioData: audioBase64 || undefined
+            isDraft
         };
-        await journalApi.upsert(newEntry);
-        const updated = await journalApi.getAll();
-        setEntries(updated);
+
+        const existingIndex = entries.findIndex(e => e.id === currentEntryId);
+        const updatedEntries = existingIndex >= 0
+            ? entries.map(e => e.id === currentEntryId ? newEntry : e)
+            : [newEntry, ...entries];
+        setEntries(updatedEntries);
+        saveLocalVault(updatedEntries, safetyPlan, passphrase);
+
+        if (storageMode === 'cloud') {
+            const encryptedText = passphrase ? encrypt(entryText, passphrase) : entryText;
+            await journalApi.upsert({
+                ...newEntry,
+                entry: encryptedText
+            });
+        }
         
         isSavingRef.current = false;
         
         if (isDraft) {
             setSaveStatus('saved');
         } else {
-            // Close form and reset
             setEntryText('');
-            setAudioBlob(null);
-            setAudioBase64(null);
             setShowJournalForm(false);
             setCurrentEntryId(null);
             setSaveStatus('saved');
@@ -187,26 +210,83 @@ export const SeekerDashboard = () => {
     const handleDeleteEntry = async (id: string, e: React.MouseEvent) => {
         e.stopPropagation();
         if (!confirm('Are you sure you want to permanently delete this entry?')) return;
-        if (passphrase) {
-            await journalApi.delete(id);
-            const updated = await journalApi.getAll();
-            setEntries(updated);
+        const updated = entries.filter(item => item.id !== id);
+        setEntries(updated);
+        saveLocalVault(updated, safetyPlan, passphrase);
+        if (storageMode === 'cloud') {
+            try {
+                await journalApi.delete(id);
+            } catch { /* ignore */ }
         }
     };
 
     const handleSavePlan = async () => {
         setIsSavingPlan(true);
         try {
-            if (user) await safetyApi.save({
-                warningSigns: safetyPlan.warningSigns,
-                copingStrategies: safetyPlan.copingStrategies,
-                safeContacts: safetyPlan.safeContacts,
-                professionalContacts: safetyPlan.professionalContacts,
-                environmentChanges: safetyPlan.environmentChanges
-            });
+            saveLocalVault(entries, safetyPlan, passphrase);
+            if (storageMode === 'cloud' && user) {
+                await safetyApi.save({
+                    warningSigns: passphrase ? encrypt(safetyPlan.warningSigns, passphrase) : safetyPlan.warningSigns,
+                    copingStrategies: passphrase ? encrypt(safetyPlan.copingStrategies, passphrase) : safetyPlan.copingStrategies,
+                    safeContacts: passphrase ? encrypt(safetyPlan.safeContacts, passphrase) : safetyPlan.safeContacts,
+                    professionalContacts: passphrase ? encrypt(safetyPlan.professionalContacts, passphrase) : safetyPlan.professionalContacts,
+                    environmentChanges: passphrase ? encrypt(safetyPlan.environmentChanges, passphrase) : safetyPlan.environmentChanges
+                });
+            }
         } catch { /* ignore */ }
         setIsSavingPlan(false);
         setIsEditingPlan(false);
+    };
+
+    const handleExportVault = () => {
+        try {
+            const encryptedVault = exportVault(entries, safetyPlan, passphrase);
+            const dateStr = new Date().toISOString().slice(0, 10);
+            downloadVaultFile(encryptedVault, `safehaven-vault-${dateStr}.safevault`);
+        } catch (err: any) {
+            alert('Failed to export vault: ' + (err.message || 'Unknown error'));
+        }
+    };
+
+    const handleImportVault = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = async (event) => {
+            try {
+                const content = event.target?.result as string;
+                const payload = importVault(content, passphrase);
+                setEntries(payload.entries);
+                if (payload.safetyPlan) {
+                    setSafetyPlan({
+                        id: safetyPlan.id || 'local-plan',
+                        userId: user?.id || 'local-user',
+                        ...payload.safetyPlan
+                    });
+                }
+                saveLocalVault(payload.entries, payload.safetyPlan || null, passphrase);
+                if (storageMode === 'cloud') {
+                    for (const entry of payload.entries) {
+                        const encryptedText = passphrase ? encrypt(entry.entry, passphrase) : entry.entry;
+                        await journalApi.upsert({
+                            id: entry.id,
+                            date: entry.date,
+                            mood: entry.mood,
+                            energy: entry.energy,
+                            sleep: entry.sleep,
+                            entry: encryptedText,
+                            tags: entry.tags || [],
+                            isDraft: entry.isDraft
+                        });
+                    }
+                }
+                alert(`Successfully imported ${payload.entries.length} reflections from vault!`);
+            } catch (err: any) {
+                alert('Import failed: ' + (err.message || 'Could not decrypt vault file.'));
+            }
+            if (vaultFileInputRef.current) vaultFileInputRef.current.value = '';
+        };
+        reader.readAsText(file);
     };
 
     const handleOpenNukeModal = () => {
@@ -216,29 +296,99 @@ export const SeekerDashboard = () => {
     const handleNukeData = async () => {
         if (nukeConfirmation !== 'DELETE') return;
         if (user) {
+            localStorage.removeItem('sh_local_vault_data');
             await authApi.nuke();
             logout();
             window.location.href = '/';
         }
     };
 
-    const formatTime = (seconds: number) => {
-        const m = Math.floor(seconds / 60);
-        const s = seconds % 60;
-        return `${m}:${s.toString().padStart(2, '0')}`;
-    };
 
     return (
         <div className="space-y-8">
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
                     <h1 className="text-3xl font-bold font-serif dark:text-white">Hello, {user?.username}</h1>
-                    <p className="text-gray-500">Your safe space.</p>
+                    <p className="text-gray-500 text-sm">Your private sanctuary.</p>
                 </div>
-                <Button variant="danger" size="sm" onClick={handleOpenNukeModal} className="gap-2">
-                    <Trash2 className="w-4 h-4" /> Nuke Data
-                </Button>
+                
+                <div className="flex flex-wrap items-center gap-2">
+                    {/* KeePassXC Hybrid Storage Mode Toggle */}
+                    <div className="flex items-center bg-gray-100 dark:bg-gray-800 p-1 rounded-xl border border-gray-200 dark:border-gray-700">
+                        <button
+                            type="button"
+                            onClick={() => handleToggleStorageMode('local')}
+                            className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold transition-all ${storageMode === 'local' ? 'bg-white dark:bg-gray-700 text-emerald-600 dark:text-emerald-400 shadow-sm' : 'text-gray-500 hover:text-gray-800 dark:hover:text-gray-200'}`}
+                            title="KeePassXC style: Data stays 100% on your device, 0 bytes sent to server"
+                        >
+                            <HardDrive className="w-3.5 h-3.5" />
+                            <span>Device Vault</span>
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => handleToggleStorageMode('cloud')}
+                            className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold transition-all ${storageMode === 'cloud' ? 'bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-sm' : 'text-gray-500 hover:text-gray-800 dark:hover:text-gray-200'}`}
+                            title="Encrypted text sync with zero-knowledge server"
+                        >
+                            <Cloud className="w-3.5 h-3.5" />
+                            <span>Cloud Sync</span>
+                        </button>
+                    </div>
+
+                    {/* Vault Backup & Restore Buttons */}
+                    <Button variant="outline" size="sm" onClick={handleExportVault} className="gap-1.5 text-xs">
+                        <Download className="w-3.5 h-3.5" /> Export Vault
+                    </Button>
+
+                    <input
+                        type="file"
+                        ref={vaultFileInputRef}
+                        accept=".safevault,.json"
+                        onChange={handleImportVault}
+                        className="hidden"
+                    />
+                    <Button variant="outline" size="sm" onClick={() => vaultFileInputRef.current?.click()} className="gap-1.5 text-xs">
+                        <Upload className="w-3.5 h-3.5" /> Import Vault
+                    </Button>
+
+                    <Button variant="danger" size="sm" onClick={handleOpenNukeModal} className="gap-1.5 text-xs">
+                        <Trash2 className="w-3.5 h-3.5" /> Nuke
+                    </Button>
+                </div>
             </div>
+
+            {!passphrase && (
+                <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-amber-900 dark:text-amber-200">
+                    <div className="flex items-center gap-3">
+                        <KeyRound className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0" />
+                        <p className="text-sm">Enter your passphrase to unlock and decrypt your private journal entries.</p>
+                    </div>
+                    <div className="flex items-center gap-2 w-full sm:w-auto">
+                        <input
+                            type="password"
+                            placeholder="Account passphrase"
+                            className="px-3 py-1.5 text-sm rounded-lg border border-amber-300 dark:border-amber-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 flex-1 sm:w-48"
+                            id="unlock-passphrase-input"
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                    const val = (e.target as HTMLInputElement).value;
+                                    if (val) {
+                                        setPassphrase(val);
+                                        sessionStorage.setItem('sh_key', val);
+                                    }
+                                }
+                            }}
+                        />
+                        <Button size="sm" onClick={() => {
+                            const el = document.getElementById('unlock-passphrase-input') as HTMLInputElement;
+                            if (el?.value) {
+                                setPassphrase(el.value);
+                                sessionStorage.setItem('sh_key', el.value);
+                            }
+                        }}>Unlock</Button>
+                    </div>
+                </div>
+            )}
 
             <Modal isOpen={showNukeModal} onClose={() => setShowNukeModal(false)} title="Permanent Account Deletion">
                 <div className="space-y-6">
@@ -296,36 +446,19 @@ export const SeekerDashboard = () => {
                             </div>
                             <textarea className="w-full h-32 p-4 rounded-xl border border-gray-300 dark:border-gray-600 bg-transparent mb-4 focus:ring-2 focus:ring-primary-500 outline-none dark:text-white resize-none" placeholder="Write your thoughts here..." value={entryText} onChange={(e) => setEntryText(e.target.value)} />
                             
-                            {/* Audio Recording — FIXED: visual timer & proper chunked recording */}
-                            <div className="flex gap-4 mb-4 items-center flex-wrap">
-                                {!isRecording && !audioBlob && !audioBase64 && (
-                                    <Button variant="outline" size="sm" onClick={startRecording} type="button">
-                                        <Mic className="w-4 h-4 mr-2"/> Record Audio
-                                    </Button>
-                                )}
-                                {isRecording && (
-                                    <div className="flex items-center gap-3">
-                                        <Button variant="danger" size="sm" onClick={stopRecording} type="button" className="animate-pulse">
-                                            <Square className="w-4 h-4 mr-2"/> Stop
-                                        </Button>
-                                        <div className="flex items-center gap-2 text-red-500 text-sm font-mono font-bold">
-                                            <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
-                                            REC {formatTime(recordingDuration)}
-                                        </div>
-                                    </div>
-                                )}
-                                {audioBlob && (
-                                    <div className="flex items-center gap-2">
-                                        <audio src={URL.createObjectURL(audioBlob)} controls className="h-10 outline-none" />
-                                        <button onClick={() => { setAudioBlob(null); setAudioBase64(null); }} className="p-2 text-red-500 hover:bg-red-50 rounded-full transition-colors"><X className="w-5 h-5"/></button>
-                                    </div>
-                                )}
-                                {!audioBlob && audioBase64 && (
-                                    <div className="flex items-center gap-2">
-                                        <audio src={audioBase64} controls className="h-10 outline-none" />
-                                        <button onClick={() => setAudioBase64(null)} className="p-2 text-red-500 hover:bg-red-50 rounded-full transition-colors"><X className="w-5 h-5"/></button>
-                                    </div>
-                                )}
+                            {/* Privacy & Zero-Knowledge Vault Indicator */}
+                            <div className="flex items-center justify-between gap-3 mb-4 bg-gray-50 dark:bg-gray-900/50 p-3 rounded-xl border border-gray-100 dark:border-gray-800 text-xs text-gray-600 dark:text-gray-400">
+                                <div className="flex items-center gap-2">
+                                    <Shield className="w-4 h-4 text-emerald-500 shrink-0" />
+                                    <span>
+                                        {storageMode === 'local' 
+                                            ? 'Device Vault Active: Reflections stay strictly on your phone/browser (0 bytes sent to server).'
+                                            : 'Cloud Sync Active: Reflections are encrypted with AES-256 before transit.'}
+                                    </span>
+                                </div>
+                                <span className="text-[10px] font-mono uppercase bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 px-2 py-0.5 rounded font-bold whitespace-nowrap">
+                                    {storageMode === 'local' ? 'OFFLINE SECURE' : 'AES-256 SYNC'}
+                                </span>
                             </div>
 
                              <div className="flex items-center justify-between">

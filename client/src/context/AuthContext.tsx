@@ -5,6 +5,7 @@ import { authApi, setToken, getToken } from '../lib/api';
 export const AuthContext = createContext<{
   user: User | null;
   passphrase: string;
+  setPassphrase: (pass: string) => void;
   isLoading: boolean;
   login: (name: string, pass: string) => Promise<boolean>;
   registerSeeker: (name: string, pass: string, agreedToTerms?: boolean, becomePeerListener?: boolean) => Promise<string>;
@@ -13,6 +14,7 @@ export const AuthContext = createContext<{
 }>({
   user: null,
   passphrase: '',
+  setPassphrase: () => {},
   isLoading: true,
   login: async () => false,
   registerSeeker: async () => '',
@@ -28,9 +30,13 @@ export const AuthProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }
   const [lastActivity, setLastActivity] = useState(Date.now());
   const [isLoading, setIsLoading] = useState(true);
 
-  // Restore session from persisted token on mount
+  // Restore session from persisted token and passphrase on mount
   useEffect(() => {
     const savedToken = sessionStorage.getItem('sh_token');
+    const savedKey = sessionStorage.getItem('sh_key');
+    if (savedKey) {
+      setPassphrase(savedKey);
+    }
     if (savedToken) {
       setToken(savedToken);
       authApi.me()
@@ -40,7 +46,9 @@ export const AuthProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }
         })
         .catch(() => {
           sessionStorage.removeItem('sh_token');
+          sessionStorage.removeItem('sh_key');
           setToken(null);
+          setPassphrase('');
         })
         .finally(() => setIsLoading(false));
     } else {
@@ -53,6 +61,7 @@ export const AuthProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }
       const data = await authApi.login(username, password);
       setToken(data.token);
       sessionStorage.setItem('sh_token', data.token);
+      sessionStorage.setItem('sh_key', password);
       setUser({ ...data.user, hasVolunteerProfile: data.user.hasVolunteerProfile || false });
       setPassphrase(password);
       setLastActivity(Date.now());
@@ -67,6 +76,7 @@ export const AuthProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }
       const data = await authApi.recover(username, phrase, newPass);
       setToken(data.token);
       sessionStorage.setItem('sh_token', data.token);
+      sessionStorage.setItem('sh_key', newPass);
       setUser(data.user);
       setPassphrase(newPass);
       setLastActivity(Date.now());
@@ -84,6 +94,7 @@ export const AuthProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }
     const data = await authApi.register(username, password, phrase, agreedToTerms, becomePeerListener);
     setToken(data.token);
     sessionStorage.setItem('sh_token', data.token);
+    sessionStorage.setItem('sh_key', password);
     setUser(data.user);
     setPassphrase(password);
     setLastActivity(Date.now());
@@ -93,6 +104,7 @@ export const AuthProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }
   const logout = useCallback(() => {
     setToken(null);
     sessionStorage.removeItem('sh_token');
+    sessionStorage.removeItem('sh_key');
     setUser(null);
     setPassphrase('');
   }, []);
@@ -126,7 +138,7 @@ export const AuthProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }
   }, [user, lastActivity, logout]);
 
   return (
-    <AuthContext.Provider value={{ user, passphrase, isLoading, login, registerSeeker, recover, logout }}>
+    <AuthContext.Provider value={{ user, passphrase, setPassphrase, isLoading, login, registerSeeker, recover, logout }}>
       {children}
     </AuthContext.Provider>
   );
