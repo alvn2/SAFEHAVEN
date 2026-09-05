@@ -7,7 +7,7 @@ export const PrivacyPolicyPage = () => {
       
       <div className="prose dark:prose-invert max-w-none text-gray-700 dark:text-gray-300 leading-relaxed">
         <p className="text-lg font-medium text-gray-900 dark:text-white">Last Updated: October 2025</p>
-        <p>At SafeHaven, privacy isn't just a policy—it's our core architecture. We collect the absolute minimum amount of data required to provide our service.</p>
+        <p>At SafeHaven, privacy is built directly into our core architecture. We collect only what is strictly necessary to provide peer support and secure private journaling.</p>
 
         <h3 className="text-2xl font-bold mt-8 mb-4 text-gray-900 dark:text-white">1. Data We Do Not Collect</h3>
         <ul className="list-disc pl-5 space-y-2">

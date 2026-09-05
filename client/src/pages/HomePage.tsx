@@ -41,13 +41,9 @@ export const HomePage = () => {
 
             {/* --- HERO SECTION --- */}
             <header className="relative hero-pattern pt-44 pb-20 lg:pt-52 lg:pb-32 -mt-32 overflow-hidden">
-                {/* Background Blobs */}
-                <div className="absolute top-20 right-0 -mr-20 w-72 h-72 bg-primary-200/30 dark:bg-primary-900/20 rounded-full blur-3xl animate-pulse"></div>
-                <div className="absolute bottom-0 left-0 -ml-20 w-64 h-64 bg-blue-200/30 dark:bg-blue-900/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
-
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                     <div className="text-center max-w-4xl mx-auto">
-                        <div className="inline-flex items-center gap-2 bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border border-primary-200 dark:border-primary-800 text-primary-800 dark:text-primary-300 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wide mb-6 shadow-sm animate-fade-in-up">
+                        <div className="inline-flex items-center gap-2 bg-white/90 dark:bg-gray-800/90 border border-primary-200 dark:border-primary-800 text-primary-800 dark:text-primary-300 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wide mb-6 shadow-sm animate-fade-in-up">
                             <span className="relative flex h-2.5 w-2.5">
                                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary-400 opacity-75"></span>
                                 <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-primary-500"></span>
@@ -57,11 +53,11 @@ export const HomePage = () => {
 
                         <h1 className="text-4xl md:text-6xl font-bold text-gray-900 dark:text-white mb-6 leading-tight tracking-tight font-serif animate-fade-in-up animation-delay-200">
                             A Safe Space for Your <br />
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-teal-500">Mind to Breathe.</span>
+                            <span className="text-primary-600 dark:text-primary-400">Mind to Breathe.</span>
                         </h1>
 
                         <p className="text-lg md:text-xl text-gray-600 dark:text-gray-300 mb-10 max-w-2xl mx-auto leading-relaxed animate-fade-in-up animation-delay-400">
-                            SafeHaven is Kenya's first <strong>zero-knowledge</strong> mental health platform. Connect with verified volunteers, journal privately, and find peace—without giving up your identity.
+                            SafeHaven is Kenya's first <strong>zero-knowledge</strong> mental health platform. Connect with verified volunteers, journal privately, and find support without surrendering your anonymity.
                         </p>
 
                         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center animate-fade-in-up animation-delay-400">
@@ -160,12 +156,7 @@ export const HomePage = () => {
             </section>
 
             {/* --- PRIVACY DIRECTIVE (Technical Core) --- */}
-            <section className="py-20 bg-gray-900 text-white overflow-hidden relative my-12 mx-2 sm:mx-8 rounded-[2.5rem]">
-                <div className="absolute top-0 left-0 w-full h-full opacity-20 pointer-events-none">
-                    <div className="absolute right-0 top-0 w-[400px] h-[400px] bg-primary-600 rounded-full blur-[120px]"></div>
-                    <div className="absolute left-0 bottom-0 w-[400px] h-[400px] bg-blue-600 rounded-full blur-[120px]"></div>
-                </div>
-
+            <section className="py-20 bg-gray-900 text-white overflow-hidden relative my-12 mx-2 sm:mx-8 rounded-2xl border border-gray-800 shadow-xl">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                     <div className="grid lg:grid-cols-2 gap-16 items-center">
                         <div>
@@ -195,9 +186,8 @@ export const HomePage = () => {
                             </div>
                         </div>
 
-                        <div className="relative group">
-                            <div className="absolute -inset-1 bg-gradient-to-r from-primary-600 to-blue-600 rounded-3xl blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
-                            <div className="bg-gray-950/80 backdrop-blur-xl border border-gray-800 p-6 rounded-3xl shadow-2xl relative">
+                        <div className="relative">
+                            <div className="bg-gray-950 border border-gray-800 p-6 rounded-2xl shadow-xl relative">
                                 <div className="flex items-center gap-4 mb-6 border-b border-gray-800 pb-4">
                                     <div className="w-3 h-3 rounded-full bg-red-500"></div>
                                     <div className="w-3 h-3 rounded-full bg-yellow-500"></div>

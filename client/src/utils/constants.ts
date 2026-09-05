@@ -16,9 +16,9 @@ export const TOPICS = [
 ];
 
 export const VOLUNTEER_ROLES = {
-  licensed: { label: 'Licensed Pro', color: 'green', icon: '🟢', description: 'Verified Professional' },
-  intern: { label: 'Student Intern', color: 'yellow', icon: '🟡', description: 'Under Supervision' },
-  listener: { label: 'Peer Listener', color: 'blue', icon: '🔵', description: 'Trained Supporter' },
+  licensed: { label: 'Licensed Pro', color: 'green', description: 'Verified Professional' },
+  intern: { label: 'Student Intern', color: 'yellow', description: 'Under Supervision' },
+  listener: { label: 'Peer Listener', color: 'blue', description: 'Trained Supporter' },
 };
 
 export const VOLUNTEERS: Volunteer[] = [

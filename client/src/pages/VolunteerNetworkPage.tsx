@@ -6,7 +6,7 @@ import { Volunteer } from '../types';
 import { VolunteerCard } from '../components/VolunteerCard';
 import { ExternalLinkWarning } from '../components/ExternalLinkWarning';
 import { TOPICS } from '../utils/constants';
-import { Search } from 'lucide-react';
+import { Search, Handshake } from 'lucide-react';
 
 export const VolunteerNetworkPage = () => {
     const { user } = useContext(AuthContext);
@@ -92,8 +92,8 @@ export const VolunteerNetworkPage = () => {
                                 <button onClick={handleBecomePeerListener} className="bg-primary-700 hover:bg-primary-800 text-white px-6 py-2.5 rounded-xl font-bold transition-colors">Become a Peer Listener</button>
                             </div>
                         </div>
-                        <div className="hidden md:flex w-32 h-32 bg-white/10 rounded-full items-center justify-center backdrop-blur-sm border border-white/20">
-                            <span className="text-4xl">🤝</span>
+                        <div className="hidden md:flex w-28 h-28 bg-white/15 rounded-2xl items-center justify-center border border-white/20 shadow-inner">
+                            <Handshake className="w-14 h-14 text-white" />
                         </div>
                     </div>
                 )}
