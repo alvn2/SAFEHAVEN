@@ -66,7 +66,7 @@ router.get('/:id/messages', authenticate, async (req: AuthRequest, res) => {
 
 // Send Message
 router.post('/:id/messages', authenticate, async (req: AuthRequest, res) => {
-    const { content, senderName } = req.body;
+    const { content } = req.body;
     
     if (!content) {
         res.status(400).json({ error: 'Content required' });
@@ -74,11 +74,32 @@ router.post('/:id/messages', authenticate, async (req: AuthRequest, res) => {
     }
 
     try {
+        const participant = await prisma.conversationParticipant.findUnique({
+            where: {
+                userId_conversationId: {
+                    userId: req.user?.id!,
+                    conversationId: req.params.id
+                }
+            }
+        });
+
+        if (!participant) {
+            res.status(403).json({ error: 'Access denied: You are not a participant in this conversation.' });
+            return;
+        }
+
+        const user = await prisma.user.findUnique({
+            where: { id: req.user?.id },
+            select: { username: true, role: true }
+        });
+
+        const senderName = user?.username || (req.user?.role === 'VOLUNTEER' ? 'Peer Listener' : 'Anonymous');
+
         const message = await prisma.message.create({
             data: {
                 conversationId: req.params.id,
                 senderId: req.user?.id!,
-                senderName: senderName || 'Anonymous',
+                senderName,
                 content, 
                 createdAt: new Date()
             }

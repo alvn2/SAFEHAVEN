@@ -8,6 +8,20 @@ export interface AuthRequest extends Request {
   };
 }
 
+export const getJwtSecret = (): string => {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('FATAL SECURITY ERROR: JWT_SECRET environment variable is missing in production.');
+    }
+    return 'dev-insecure-secret-change-me';
+  }
+  if (process.env.NODE_ENV === 'production' && (secret === 'secret' || secret.length < 32)) {
+    throw new Error('FATAL SECURITY ERROR: JWT_SECRET is too weak for production (minimum 32 characters required).');
+  }
+  return secret;
+};
+
 export const authenticate = (req: AuthRequest, res: Response, next: NextFunction) => {
   const authHeader = req.header('Authorization');
   const token = authHeader?.startsWith('Bearer ') ? authHeader.substring(7) : null;
@@ -18,7 +32,7 @@ export const authenticate = (req: AuthRequest, res: Response, next: NextFunction
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret') as { id: string; role: string };
+    const decoded = jwt.verify(token, getJwtSecret()) as { id: string; role: string };
     req.user = decoded;
     next();
   } catch (err) {

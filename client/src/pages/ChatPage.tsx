@@ -8,7 +8,11 @@ import { Card, Button, Modal } from '../components/ui';
 import { Send, Hash, MessageSquare, AlertTriangle, Search, Lock, MoreVertical, Shield, Pin, Check, CheckCheck, Clock } from 'lucide-react';
 import { io } from 'socket.io-client';
 
-const socket = io(import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000');
+const socket = io(import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000', {
+    auth: (cb) => {
+        cb({ token: sessionStorage.getItem('sh_token') });
+    }
+});
 
 export const ChatPage = () => {
     const { user } = useContext(AuthContext);

@@ -1,6 +1,6 @@
 import express from 'express';
 import { prisma } from '../db.js';
-import { authenticate, type AuthRequest } from '../middleware/auth.js';
+import { authenticate, getJwtSecret, type AuthRequest } from '../middleware/auth.js';
 import { z } from 'zod';
 import { validate } from '../middleware/validate.js';
 import jwt from 'jsonwebtoken';
@@ -39,7 +39,7 @@ router.get('/me', authenticate, async (req: AuthRequest, res) => {
   }
 });
 
-// Become a peer listener instantly (for existing users)
+// Become a peer listener (requires verification before listing)
 router.post('/become-listener', authenticate, async (req: AuthRequest, res) => {
   try {
     const user = await prisma.user.findUnique({ where: { id: req.user!.id } });
@@ -61,7 +61,7 @@ router.post('/become-listener', authenticate, async (req: AuthRequest, res) => {
              name: user.username,
              role: 'listener',
              track: 'PEER_LISTENER',
-             verified: true,
+             verified: false,
              bio: 'I am here to listen and support.',
              qualification: 'Peer Listener',
              topics: ['General Support'],
@@ -74,22 +74,23 @@ router.post('/become-listener', authenticate, async (req: AuthRequest, res) => {
     if (user.role === 'USER') {
         await prisma.user.update({
             where: { id: user.id },
-            data: { role: 'VOLUNTEER_APPROVED' }
+            data: { role: 'VOLUNTEER_PENDING' }
         });
     }
 
     invalidateCache('/api/volunteers');
-    const token = jwt.sign({ id: user.id, role: 'VOLUNTEER_APPROVED' }, process.env.JWT_SECRET || 'secret', { expiresIn: '7d' });
-    res.json({ success: true, message: 'You are now a peer listener!', token });
+    const token = jwt.sign({ id: user.id, role: 'VOLUNTEER_PENDING' }, getJwtSecret(), { expiresIn: '7d' });
+    res.json({ success: true, message: 'Your peer listener application has been submitted and is pending verification.', token });
   } catch (e) {
     res.status(500).json({ error: 'Failed to become peer listener' });
   }
 });
 
-// Get all volunteers (public - cached for 30s with 60s stale-while-revalidate)
+// Get all volunteers (public - cached for 30s with 60s stale-while-revalidate, verified only)
 router.get('/', cacheMiddleware(30, 60), async (_req, res) => {
   try {
     const volunteers = await prisma.volunteerProfile.findMany({
+      where: { verified: true },
       orderBy: { name: 'asc' }
     });
     const mapped = volunteers.map((v: any) => ({

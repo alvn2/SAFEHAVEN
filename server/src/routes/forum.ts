@@ -1,6 +1,6 @@
 import express from 'express';
 import { prisma } from '../db.js';
-import { authenticate, type AuthRequest } from '../middleware/auth.js';
+import { authenticate, requireAdmin, type AuthRequest } from '../middleware/auth.js';
 import { z } from 'zod';
 import { validate } from '../middleware/validate.js';
 
@@ -41,8 +41,8 @@ router.post('/', authenticate, validate(forumPostSchema), async (req: AuthReques
   }
 });
 
-// Hug a post
-router.post('/:id/hug', async (req, res) => {
+// Hug a post (requires authentication to prevent bot inflation)
+router.post('/:id/hug', authenticate, async (req: AuthRequest, res) => {
   try {
     const post = await prisma.forumPost.update({
       where: { id: req.params.id },
@@ -67,8 +67,8 @@ router.post('/:id/flag', authenticate, async (req: AuthRequest, res) => {
   }
 });
 
-// Dismiss flag (admin)
-router.post('/:id/dismiss', authenticate, async (req: AuthRequest, res) => {
+// Dismiss flag (admin only)
+router.post('/:id/dismiss', authenticate, requireAdmin, async (req: AuthRequest, res) => {
   try {
     await prisma.forumPost.update({
       where: { id: req.params.id },
@@ -80,8 +80,8 @@ router.post('/:id/dismiss', authenticate, async (req: AuthRequest, res) => {
   }
 });
 
-// Delete post (admin)
-router.delete('/:id', authenticate, async (req: AuthRequest, res) => {
+// Delete post (admin only)
+router.delete('/:id', authenticate, requireAdmin, async (req: AuthRequest, res) => {
   try {
     await prisma.forumPost.delete({ where: { id: req.params.id } });
     res.json({ success: true });

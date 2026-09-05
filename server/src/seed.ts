@@ -5,7 +5,8 @@ async function seed() {
   console.log('🌱 Seeding SafeHaven database...\n');
 
   // --- Admin User ---
-  const adminPassword = await bcrypt.hash('admin123', 12);
+  const initialAdminPass = process.env.ADMIN_INITIAL_PASSWORD || 'DevAdmin@SafeHaven2026!';
+  const adminPassword = await bcrypt.hash(initialAdminPass, 12);
   const admin = await prisma.user.upsert({
     where: { username: 'admin' },
     update: {},
@@ -15,7 +16,7 @@ async function seed() {
       role: 'ADMIN'
     }
   });
-  console.log(`✅ Admin user created: ${admin.username} (password: admin123)`);
+  console.log(`✅ Admin user configured: ${admin.username}`);
 
   // --- Demo Seeker ---
   const seekerPassword = await bcrypt.hash('seeker123', 12);

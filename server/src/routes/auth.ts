@@ -4,7 +4,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { z } from 'zod';
 import { validate } from '../middleware/validate.js';
-import { authenticate, type AuthRequest } from '../middleware/auth.js';
+import { authenticate, getJwtSecret, type AuthRequest } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -30,7 +30,7 @@ const recoverSchema = z.object({
 
 // --- Helpers ---
 const signToken = (id: string, role: string) =>
-  jwt.sign({ id, role }, process.env.JWT_SECRET || 'secret', { expiresIn: '7d' });
+  jwt.sign({ id, role }, getJwtSecret(), { expiresIn: '7d' });
 
 // --- Recover ---
 router.post('/recover', validate(recoverSchema), async (req, res) => {
@@ -38,8 +38,16 @@ router.post('/recover', validate(recoverSchema), async (req, res) => {
   
   try {
     const user = await prisma.user.findUnique({ where: { username } });
-    // Match exactly the stored recovery phrase
-    if (!user || !user.recoveryKey || user.recoveryKey !== recoveryKey) {
+    if (!user || !user.recoveryKey) {
+      res.status(401).json({ error: 'Invalid username or recovery key' });
+      return;
+    }
+
+    const cleanInputKey = recoveryKey.trim().toLowerCase();
+    const isMatch = await bcrypt.compare(cleanInputKey, user.recoveryKey).catch(() => false)
+      || (user.recoveryKey === cleanInputKey || user.recoveryKey === recoveryKey); // backward-compatible check
+
+    if (!isMatch) {
       res.status(401).json({ error: 'Invalid username or recovery key' });
       return;
     }
@@ -55,7 +63,7 @@ router.post('/recover', validate(recoverSchema), async (req, res) => {
     const token = signToken(user.id, user.role);
     res.json({
       token,
-      user: { id: user.id, username: user.username, role: user.role, recoveryKey: user.recoveryKey }
+      user: { id: user.id, username: user.username, role: user.role }
     });
   } catch (error) {
     console.error('Recovery error:', error);
@@ -76,12 +84,16 @@ router.post('/register', validate(registerSchema), async (req, res) => {
 
     const salt = await bcrypt.genSalt(12);
     const passphraseHash = await bcrypt.hash(password, salt);
+    // Hash recovery key with bcrypt for zero-knowledge storage
+    const hashedRecoveryKey = recoveryKey 
+      ? await bcrypt.hash(recoveryKey.trim().toLowerCase(), 12) 
+      : null;
 
     let user = await prisma.user.create({
       data: { 
         username, 
         passphraseHash, 
-        recoveryKey, 
+        recoveryKey: hashedRecoveryKey, 
         role: 'USER',
         agreedToTerms: agreedToTerms || false
       }
@@ -94,30 +106,28 @@ router.post('/register', validate(registerSchema), async (req, res) => {
              name: username,
              role: 'listener',
              track: 'PEER_LISTENER',
-             verified: true,
+             verified: false, // Must be verified by admin before public listing
              bio: 'I am here to listen and support.',
-             qualification: 'Peer Listener',
+             qualification: 'Peer Listener (Pending Review)',
              topics: ['General Support'],
              languages: ['English'],
              location: 'Remote',
              whatsapp: ''
          }
       });
-      // Update the user's role to reflect they are now a volunteer
+      // Set role to VOLUNTEER_PENDING (requires admin approval)
       await prisma.user.update({
         where: { id: user.id },
-        data: { role: 'VOLUNTEER_APPROVED' }
+        data: { role: 'VOLUNTEER_PENDING' }
       });
-      // Re-fetch to get updated role for token
-      const updatedUser = await prisma.user.findUnique({ where: { id: user.id } });
-      if (updatedUser) user = updatedUser;
+      user.role = 'VOLUNTEER_PENDING';
     }
 
     const token = signToken(user.id, user.role);
 
     res.json({
       token,
-      user: { id: user.id, username: user.username, role: user.role, recoveryKey: user.recoveryKey }
+      user: { id: user.id, username: user.username, role: user.role }
     });
   } catch (error) {
     console.error('Registration error:', error);
@@ -166,7 +176,7 @@ router.post('/login', validate(loginSchema), async (req, res) => {
     const token = signToken(user.id, user.role);
     res.json({
       token,
-      user: { id: user.id, username: user.username, role: user.role, recoveryKey: user.recoveryKey }
+      user: { id: user.id, username: user.username, role: user.role }
     });
   } catch (error) {
     console.error('Login error:', error);
@@ -179,7 +189,7 @@ router.get('/me', authenticate, async (req: AuthRequest, res) => {
   try {
     const user = await prisma.user.findUnique({
       where: { id: req.user!.id },
-      select: { id: true, username: true, role: true, recoveryKey: true, createdAt: true, inactivityEnabled: true }
+      select: { id: true, username: true, role: true, createdAt: true, inactivityEnabled: true }
     });
     if (!user) {
       res.status(404).json({ error: 'User not found' });

@@ -18,6 +18,9 @@ import { idempotency } from './middleware/idempotency.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { formatErrorResponse } from './utils/errors.js';
 import { startPruningScheduler } from './jobs/pruneOldChats.js';
+import { getJwtSecret } from './middleware/auth.js';
+import { prisma } from './db.js';
+import jwt from 'jsonwebtoken';
 
 dotenv.config();
 
@@ -38,29 +41,109 @@ const io = new Server(server, {
   }
 });
 
-io.on('connection', (socket) => {
-  console.log('A user connected:', socket.id);
+// Socket.IO Authentication Middleware (Zero-Trust)
+io.use((socket, next) => {
+  const token = socket.handshake.auth?.token || 
+    (socket.handshake.headers['authorization']?.startsWith('Bearer ') 
+      ? socket.handshake.headers['authorization'].substring(7) 
+      : null);
 
-  socket.on('join_room', (roomId: string) => {
-    socket.join(roomId);
-    console.log(`User ${socket.id} joined room ${roomId}`);
+  if (!token) {
+    return next(new Error('Authentication required for real-time crisis chat.'));
+  }
+
+  try {
+    const decoded = jwt.verify(token, getJwtSecret()) as { id: string; role: string };
+    socket.data.user = decoded;
+    next();
+  } catch {
+    return next(new Error('Invalid authentication token for real-time chat.'));
+  }
+});
+
+io.on('connection', (socket) => {
+  const user = socket.data.user;
+
+  socket.on('join_room', async (roomId: string) => {
+    if (!roomId || !user?.id) return;
+
+    try {
+      // Check if user is a participant in the conversation or is an admin
+      const participant = await prisma.conversationParticipant.findUnique({
+        where: {
+          userId_conversationId: {
+            userId: user.id,
+            conversationId: roomId
+          }
+        }
+      });
+
+      if (!participant && user.role !== 'ADMIN') {
+        socket.emit('error', { message: 'Access denied: You are not a participant in this conversation.' });
+        return;
+      }
+
+      socket.join(roomId);
+    } catch {
+      socket.emit('error', { message: 'Failed to authorize room access.' });
+    }
   });
 
   socket.on('leave_room', (roomId: string) => {
     socket.leave(roomId);
   });
 
-  socket.on('send_message', (data: any) => {
-    // data should contain { conversationId, message }
-    io.to(data.conversationId).emit('receive_message', data.message);
+  socket.on('send_message', async (data: any) => {
+    if (!data?.conversationId || !data?.message || !user?.id) return;
+
+    try {
+      const participant = await prisma.conversationParticipant.findUnique({
+        where: {
+          userId_conversationId: {
+            userId: user.id,
+            conversationId: data.conversationId
+          }
+        }
+      });
+
+      if (!participant && user.role !== 'ADMIN') {
+        socket.emit('error', { message: 'Unauthorized: Cannot send messages to this conversation.' });
+        return;
+      }
+
+      // Ensure senderId matches authenticated user
+      if (typeof data.message === 'object') {
+        data.message.senderId = user.id;
+      }
+
+      io.to(data.conversationId).emit('receive_message', data.message);
+    } catch {
+      socket.emit('error', { message: 'Failed to process message broadcast.' });
+    }
   });
 
-  socket.on('typing', (data: { conversationId: string, username: string }) => {
-    socket.to(data.conversationId).emit('user_typing', data.username);
+  socket.on('typing', async (data: { conversationId: string, username: string }) => {
+    if (!data?.conversationId || !user?.id) return;
+    try {
+      const participant = await prisma.conversationParticipant.findUnique({
+        where: {
+          userId_conversationId: {
+            userId: user.id,
+            conversationId: data.conversationId
+          }
+        }
+      });
+
+      if (participant) {
+        socket.to(data.conversationId).emit('user_typing', data.username);
+      }
+    } catch {
+      /* ignore typing errors */
+    }
   });
 
   socket.on('disconnect', () => {
-    console.log('User disconnected:', socket.id);
+    /* cleaned up by socket.io */
   });
 });
 

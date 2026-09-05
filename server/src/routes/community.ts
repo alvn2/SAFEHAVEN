@@ -46,7 +46,10 @@ router.post('/quotes', authenticate, async (req: AuthRequest, res) => {
 
 router.get('/groups', async (_req, res) => {
   try {
-    const groups = await prisma.communityGroup.findMany({ orderBy: { createdAt: 'desc' } });
+    const groups = await prisma.communityGroup.findMany({
+      where: { status: 'APPROVED' },
+      orderBy: { createdAt: 'desc' }
+    });
     res.json(groups);
   } catch (e) { res.status(500).json({ error: 'DB Error' }); }
 });

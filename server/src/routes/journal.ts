@@ -35,16 +35,35 @@ router.get('/', authenticate, async (req: AuthRequest, res) => {
 router.post('/', authenticate, validate(journalSchema), async (req: AuthRequest, res) => {
   const { id, date, mood, energy, sleep, entry, tags, isDraft, audioData } = req.body;
   try {
-    const result = await prisma.journalEntry.upsert({
-      where: { id: id || 'new-entry-placeholder' },
-      update: { mood, energy, sleep, entry, tags, isDraft, audioData, date: new Date(date) },
-      create: {
+    if (id) {
+      const existing = await prisma.journalEntry.findUnique({
+        where: { id }
+      });
+
+      if (existing) {
+        if (existing.userId !== req.user!.id) {
+          res.status(403).json({ error: 'Access denied: You do not own this journal entry' });
+          return;
+        }
+
+        const updated = await prisma.journalEntry.update({
+          where: { id },
+          data: { mood, energy, sleep, entry, tags, isDraft, audioData, date: new Date(date) }
+        });
+        res.json(updated);
+        return;
+      }
+    }
+
+    const created = await prisma.journalEntry.create({
+      data: {
+        ...(id ? { id } : {}),
         userId: req.user!.id,
         date: new Date(date),
         mood, energy, sleep, entry, tags, isDraft, audioData
       }
     });
-    res.json(result);
+    res.json(created);
   } catch (e) {
     console.error(e);
     res.status(500).json({ error: 'Failed to save entry' });
