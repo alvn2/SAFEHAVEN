@@ -1,4 +1,5 @@
 import type { Request, Response, NextFunction } from 'express';
+import { Buffer } from 'node:buffer';
 
 interface CachedResponse {
   statusCode: number;
@@ -22,6 +23,18 @@ const cleanupTimer = setInterval(() => {
 }, 10 * 60 * 1000);
 cleanupTimer.unref();
 
+// Lightweight zero-dependency JWT payload extractor
+function decodeJwtPayload(token: string): { id?: string } | null {
+  try {
+    const parts = token.split('.');
+    if (parts.length < 2) return null;
+    const payload = (Buffer as any).from(parts[1], 'base64url').toString('utf8');
+    return JSON.parse(payload);
+  } catch {
+    return null;
+  }
+}
+
 export const idempotency = (req: Request, res: Response, next: NextFunction) => {
   // Only apply to state-modifying HTTP methods
   if (!['POST', 'PUT', 'PATCH', 'DELETE'].includes(req.method)) {
@@ -33,7 +46,20 @@ export const idempotency = (req: Request, res: Response, next: NextFunction) => 
     return next();
   }
 
-  const clientIdentifier = (req as any).user?.id || req.ip || 'anonymous';
+  // Attempt to extract authenticated user from req.user or directly from Bearer token
+  let userId = (req as any).user?.id;
+  if (!userId) {
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.split(' ')[1];
+      const decoded = decodeJwtPayload(token);
+      if (decoded?.id) {
+        userId = decoded.id;
+      }
+    }
+  }
+
+  const clientIdentifier = userId ? `user:${userId}` : `ip:${req.ip || 'anonymous'}`;
   const cacheKey = `${clientIdentifier}:${req.method}:${req.baseUrl + req.path}:${key}`;
 
   const cached = idempotencyStore.get(cacheKey);
@@ -42,17 +68,27 @@ export const idempotency = (req: Request, res: Response, next: NextFunction) => 
     return res.status(cached.statusCode).json(cached.body);
   }
 
-  // Intercept res.json to capture response
+  // Intercept res.json to capture response (deep copy to prevent mutation)
   const originalJson = res.json.bind(res);
   res.json = (body: any) => {
     // Only cache successful or non-server-error responses
     if (res.statusCode < 500) {
-      idempotencyStore.set(cacheKey, {
-        statusCode: res.statusCode,
-        headers: {},
-        body,
-        createdAt: Date.now()
-      });
+      try {
+        const clonedBody = typeof body === 'object' && body !== null ? JSON.parse(JSON.stringify(body)) : body;
+        idempotencyStore.set(cacheKey, {
+          statusCode: res.statusCode,
+          headers: {},
+          body: clonedBody,
+          createdAt: Date.now()
+        });
+      } catch {
+        idempotencyStore.set(cacheKey, {
+          statusCode: res.statusCode,
+          headers: {},
+          body,
+          createdAt: Date.now()
+        });
+      }
     }
     return originalJson(body);
   };

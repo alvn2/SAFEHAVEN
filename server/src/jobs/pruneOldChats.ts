@@ -13,11 +13,14 @@ export const pruneOldChats = async (): Promise<{ deletedMessages: number; delete
       }
     });
 
-    // 2. Find and delete conversations that have no messages left
+    // 2. Find and delete conversations that have no messages left AND have been empty for > 7 days
     const emptyConversations = await prisma.conversation.findMany({
       where: {
         messages: {
           none: {}
+        },
+        lastMessageAt: {
+          lt: sevenDaysAgo
         }
       },
       select: { id: true }

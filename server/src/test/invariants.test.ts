@@ -1,10 +1,17 @@
 import { describe, it, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
+import { Buffer } from 'node:buffer';
 import { AppError, formatErrorResponse } from '../utils/errors.js';
 import { errorHandler } from '../middleware/errorHandler.js';
 import { idempotency } from '../middleware/idempotency.js';
 import { createRateLimiter } from '../middleware/rateLimit.js';
 import { cacheMiddleware, invalidateCache } from '../middleware/cache.js';
+
+function makeFakeJwt(payload: { id: string }): string {
+  const header = (Buffer as any).from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64url');
+  const body = (Buffer as any).from(JSON.stringify(payload)).toString('base64url');
+  return `${header}.${body}.fakesig`;
+}
 
 // Helper to construct mock Express Request/Response
 function createMockContext(options: {
@@ -155,6 +162,44 @@ describe('INV-05: Idempotency Replay on Flaky Mobile Networks', () => {
     assert.equal(ctx2.res.statusCode, 201);
     assert.equal(ctx2.res.getHeader('x-idempotency-replay'), 'true');
     assert.deepEqual(ctx2.res.body, { id: 'journal-entry-1', status: 'created' });
+  });
+
+  it('isolates idempotency cache keys by Bearer token user ID across shared NAT IPs', () => {
+    const key = `shared-key-${Date.now()}`;
+    const sharedIp = '197.237.100.1'; // Safaricom / Airtel CGNAT IP
+    const tokenA = makeFakeJwt({ id: 'user-A' });
+    const tokenB = makeFakeJwt({ id: 'user-B' });
+
+    // User A submits mutation
+    const ctxA = createMockContext({
+      method: 'POST',
+      path: '/api/journal',
+      headers: {
+        'idempotency-key': key,
+        'authorization': `Bearer ${tokenA}`
+      },
+      ip: sharedIp
+    });
+
+    idempotency(ctxA.req, ctxA.res, ctxA.next);
+    assert.equal(ctxA.wasNextCalled(), true);
+    ctxA.res.status(201).json({ secretNote: 'User A journal' });
+
+    // User B submits mutation with same key from same IP
+    const ctxB = createMockContext({
+      method: 'POST',
+      path: '/api/journal',
+      headers: {
+        'idempotency-key': key,
+        'authorization': `Bearer ${tokenB}`
+      },
+      ip: sharedIp
+    });
+
+    idempotency(ctxB.req, ctxB.res, ctxB.next);
+    // User B must NOT receive User A's replay! Next must be called!
+    assert.equal(ctxB.wasNextCalled(), true);
+    assert.equal(ctxB.res.getHeader('x-idempotency-replay'), undefined);
   });
 });
 

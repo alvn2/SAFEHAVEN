@@ -86,8 +86,8 @@ router.post('/become-listener', authenticate, async (req: AuthRequest, res) => {
   }
 });
 
-// Get all volunteers (public - cached for 120s with stale-while-revalidate)
-router.get('/', cacheMiddleware(120), async (_req, res) => {
+// Get all volunteers (public - cached for 30s with 60s stale-while-revalidate)
+router.get('/', cacheMiddleware(30, 60), async (_req, res) => {
   try {
     const volunteers = await prisma.volunteerProfile.findMany({
       orderBy: { name: 'asc' }

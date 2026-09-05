@@ -25,6 +25,8 @@ import http from 'http';
 import { Server } from 'socket.io';
 
 const app = express();
+// Enable reverse proxy support for Render/Cloudflare so req.ip reads X-Forwarded-For
+app.set('trust proxy', 1);
 const server = http.createServer(app);
 const PORT = process.env.PORT || 5000;
 

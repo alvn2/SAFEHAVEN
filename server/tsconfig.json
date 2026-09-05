@@ -8,6 +8,7 @@
     "rootDir": "src",
     "strict": true,
     "lib": ["es2020"],
+    "types": ["node"],
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
