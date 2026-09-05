@@ -5,9 +5,9 @@ import { AuthContext, AuthProvider } from './context/AuthContext';
 import { ThemeProvider, ThemeContext } from './context/ThemeContext';
 import { WifiOff } from 'lucide-react';
 
-// Eagerly loaded core routes for instant initial render
 import { HomePage } from './pages/HomePage';
 import { AuthPage } from './pages/AuthPage';
+import { InstallPrompt } from './components/InstallPrompt';
 
 // Lazy-loaded routes for code splitting & bundle reduction
 const SeekerSignupPage = lazy(() => import('./pages/SeekerSignupPage').then(m => ({ default: m.SeekerSignupPage })));
@@ -66,6 +66,7 @@ const AppRoutes = () => {
   return (
     <Router>
         <OfflineBanner />
+        <InstallPrompt />
         <RootLayout toggleTheme={toggleTheme} isDark={isDark}>
           <Suspense fallback={<PageFallback />}>
             <Routes>
