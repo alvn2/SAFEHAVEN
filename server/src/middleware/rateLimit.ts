@@ -30,8 +30,8 @@ export const createRateLimiter = (options: {
   cleanupTimer.unref();
 
   return (req: Request, res: Response, next: NextFunction) => {
-    // Exempt local health checks or safety nuke calls
-    if (req.path === '/' || req.path === '/nuke') {
+    // Exempt local health checks or safety nuke calls (including /api/auth/nuke)
+    if (req.path === '/' || req.path === '/nuke' || req.path.endsWith('/nuke')) {
       return next();
     }
 
