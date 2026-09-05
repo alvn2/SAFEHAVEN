@@ -38,7 +38,7 @@ client/
 │   │   ├── HomePage.tsx             # Landing page with hero + crisis resources
 │   │   ├── AuthPage.tsx             # Login / Register
 │   │   ├── SeekerSignupPage.tsx     # Extended signup flow with recovery key
-│   │   ├── SeekerDashboard.tsx      # Journal + Safety Plan + Audio Recording
+│   │   ├── SeekerDashboard.tsx      # Encrypted Journal + Safety Plan + Sovereign Vault
 │   │   ├── ForumPage.tsx            # Peer support forum with threaded comments
 │   │   ├── ChatPage.tsx             # Real-time messaging (Socket.IO)
 │   │   ├── VolunteerNetworkPage.tsx  # Volunteer directory + CTA
@@ -46,7 +46,8 @@ client/
 │   │   ├── VolunteerDashboard.tsx   # Volunteer impact dashboard
 │   │   ├── CommunityPage.tsx        # Groups, Events, Organizations
 │   │   ├── ResourcesPage.tsx        # Articles, Books, Videos library
-│   │   ├── AdminDashboard.tsx       # Admin panel (role: ADMIN only)
+│   │   ├── AdminDashboard.tsx       # Admin panel (Users, Vetting, Moderation, UGC)
+│   │   ├── DeveloperDashboard.tsx   # Developer console (Accounts, Articles, Audit Logs)
 │   │   ├── SecurityCenterPage.tsx   # User security settings
 │   │   ├── SecurityWhitepaperPage.tsx # Platform security docs
 │   │   ├── PrivacyPolicyPage.tsx    # Privacy policy
@@ -153,13 +154,23 @@ AuthContext.tsx
 | `npm run preview` | Preview production build locally |
 | `npm run test` | Run Vitest test suite |
 
+## 📱 Progressive Web App (PWA)
+
+SafeHaven is fully configured as an installable Progressive Web App:
+- **Web App Manifest**: Located at `/manifest.webmanifest` defining standalone display, icons, and theme color `#0d9488`.
+- **Service Worker**: Caches critical assets and static resources for quick startup and resilient offline shell access.
+- **Custom Install Prompt**: Users can install SafeHaven directly to home screens on iOS, Android, macOS, and Windows.
+
 ## 🔐 Admin Access
 
-Login at `/auth` with:
+Login at `/auth` with administrator credentials:
 
 | Field | Value |
 |-------|-------|
 | **Username** | `admin` |
 | **Password** | `SafeHaven@Admin2026` |
 
-Then navigate to `/admin` for the admin dashboard.
+When logged in as an administrator:
+- A blue **Shield icon** appears in the top navigation bar.
+- Access the **Admin Dashboard** at `/admin` (Registered Users list, Volunteer Vetting queue, Flagged Forum moderation, UGC approval).
+- Access the **Developer Console** at `/developer` (Live Database accounts, Article publishing, System stats, Audit logs).

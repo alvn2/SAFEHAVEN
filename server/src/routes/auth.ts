@@ -158,7 +158,7 @@ router.post('/login', validate(loginSchema), async (req, res) => {
       return;
     }
 
-    if (user.inactivityEnabled && user.lastActive) {
+    if (user.role !== 'ADMIN' && user.inactivityEnabled && user.lastActive) {
       const ninetyDaysAgo = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000);
       if (user.lastActive < ninetyDaysAgo) {
         await prisma.user.update({ where: { id: user.id }, data: { status: 'SUSPENDED' } });

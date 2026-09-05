@@ -45,6 +45,7 @@ npm install
 cp .env.example .env  # Edit with your database URL
 npx prisma db push
 npx prisma generate
+npm run seed          # Seed default admin, volunteers, and canonical posts
 npm run dev
 ```
 
@@ -145,6 +146,7 @@ Message           → id, conversationId, senderId, content
 | `npm run dev` | Start dev server with hot reload (`tsx watch`) |
 | `npm run build` | Compile TypeScript to `dist/` |
 | `npm start` | Run compiled production build |
+| `npm run seed` | Seed/reset initial admin, volunteers, resources, and canonical posts |
 | `npm run prisma:push` | Push schema changes to database |
 | `npm run prisma:generate` | Regenerate Prisma client types |
 
@@ -155,4 +157,5 @@ Message           → id, conversationId, senderId, content
 | **Username** | `admin` |
 | **Password** | `SafeHaven@Admin2026` |
 
-> Created via seed script. Change immediately in production.
+> 💡 Administrator accounts (`role: ADMIN`) are exempted from the automated 90-day inactivity lockout rule.
+> ⚠️ Created via seed script. Change immediately in production.

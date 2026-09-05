@@ -2,30 +2,33 @@ import React, { useState, useEffect } from 'react';
 import { adminApi, forumApi } from '../lib/api';
 import { VolunteerApplication, ForumPost } from '../types';
 import { Card, Badge, Button } from '../components/ui';
-import { ShieldCheck, Flag, Check, Trash2, Eye, LayoutList, UserCheck, ToggleLeft, ToggleRight } from 'lucide-react';
+import { ShieldCheck, Flag, Check, Trash2, Eye, LayoutList, UserCheck, ToggleLeft, ToggleRight, Users } from 'lucide-react';
 
 export const AdminDashboard = () => {
     const [apps, setApps] = useState<VolunteerApplication[]>([]);
     const [posts, setPosts] = useState<ForumPost[]>([]);
     const [ugc, setUgc] = useState<any>({ groups: [], events: [], orgs: [], quotes: [] });
     const [modApps, setModApps] = useState<any[]>([]);
+    const [users, setUsers] = useState<any[]>([]);
     const [modAppsOpen, setModAppsOpen] = useState(false);
-    const [activeTab, setActiveTab] = useState<'volunteers' | 'moderation' | 'ugc' | 'moderators'>('volunteers');
+    const [activeTab, setActiveTab] = useState<'volunteers' | 'moderation' | 'ugc' | 'moderators' | 'users'>('volunteers');
     const [approvingId, setApprovingId] = useState<string | null>(null);
 
     const loadData = async () => {
-        const [a, p, u, ma, ss] = await Promise.all([
+        const [a, p, u, ma, ss, us] = await Promise.all([
             adminApi.getApplications().catch(() => []),
             adminApi.getFlaggedPosts().catch(() => []),
             adminApi.getPendingUGC().catch(() => ({ groups: [], events: [], orgs: [], quotes: [] })),
             adminApi.getModApplications().catch(() => []),
-            adminApi.getSystemSettings().catch(() => ({ modApplicationsOpen: false }))
+            adminApi.getSystemSettings().catch(() => ({ modApplicationsOpen: false })),
+            adminApi.getUsers().catch(() => [])
         ]);
         setApps(a);
         setPosts(p);
         setUgc(u);
         setModApps(ma);
         setModAppsOpen(ss.modApplicationsOpen);
+        setUsers(us);
     };
 
     useEffect(() => {
@@ -98,6 +101,12 @@ export const AdminDashboard = () => {
                     onClick={() => setActiveTab('moderators')}
                 >
                     <UserCheck className="w-4 h-4" /> Mod Applications ({modApps.length})
+                </button>
+                <button 
+                    className={`px-4 py-2 font-medium border-b-2 transition-colors flex items-center gap-2 ${activeTab === 'users' ? 'border-primary-500 text-primary-600 dark:text-primary-400' : 'border-transparent text-gray-500 dark:text-gray-400'}`}
+                    onClick={() => setActiveTab('users')}
+                >
+                    <Users className="w-4 h-4" /> Users ({users.length})
                 </button>
             </div>
 
@@ -313,6 +322,48 @@ export const AdminDashboard = () => {
                         )}
                     </Card>
                 </div>
+            )}
+
+            {activeTab === 'users' && (
+                <Card className="p-0 overflow-hidden">
+                    <div className="px-6 py-4 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+                        <div>
+                            <h2 className="font-bold text-lg dark:text-white">Registered Platform Accounts ({users.length})</h2>
+                            <p className="text-xs text-gray-500 mt-0.5">Live user accounts persisted in database</p>
+                        </div>
+                    </div>
+                    {users.length === 0 ? (
+                        <div className="p-12 text-center text-gray-500">No users found.</div>
+                    ) : (
+                        <div className="divide-y divide-gray-200 dark:divide-gray-700">
+                            {users.map((u: any) => {
+                                const roleColor = 
+                                    u.role === 'ADMIN' ? 'purple' :
+                                    u.role === 'VOLUNTEER_APPROVED' ? 'blue' :
+                                    u.role === 'MODERATOR' ? 'green' : 'gray';
+                                return (
+                                    <div key={u.id} className="p-4 px-6 flex flex-col md:flex-row md:items-center justify-between gap-3 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 rounded-full bg-primary-100 dark:bg-primary-900/50 flex items-center justify-center font-bold text-primary-600 dark:text-primary-400 text-sm shrink-0">
+                                                {u.username?.slice(0, 2).toUpperCase() || 'U'}
+                                            </div>
+                                            <div>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="font-bold dark:text-white text-base">{u.username}</span>
+                                                    <Badge color={roleColor as any}>{u.role}</Badge>
+                                                </div>
+                                                <span className="font-mono text-xs text-gray-400 dark:text-gray-500">{u.id}</span>
+                                            </div>
+                                        </div>
+                                        <div className="text-sm text-gray-500 dark:text-gray-400 text-right md:self-center">
+                                            <div>Registered: {u.createdAt ? new Date(u.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }) : 'Unknown'}</div>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
+                </Card>
             )}
         </div>
     );

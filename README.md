@@ -70,6 +70,7 @@ VITE_API_URL=http://localhost:5000/api
 cd server
 npx prisma db push      # Push schema to database
 npx prisma generate     # Generate Prisma client
+npm run seed            # Seed initial admin, volunteers, resources, and demo data
 ```
 
 ### 4. Start Development Servers
@@ -90,9 +91,11 @@ Open **http://localhost:5173** in your browser.
 |-------|-------|
 | **Username** | `admin` |
 | **Password** | `SafeHaven@Admin2026` |
-| **Dashboard** | `/admin` |
+| **Admin Dashboard** | `/admin` |
+| **Developer Console** | `/developer` |
 
-> ⚠️ **Change the admin password immediately in production.**
+> 💡 **Admin Lockout Immunity**: Administrator accounts are exempted from the automated 90-day inactivity lockout rule.
+> ⚠️ **Change the admin password in production if deploying publicly.**
 
 ## 🔐 Security & Sovereign Privacy
 
@@ -115,6 +118,10 @@ cd client && npx vitest run
 
 ## 📦 Features
 
+### Progressive Web App (PWA)
+- 📱 **Installable on Mobile & Desktop** — Web App Manifest and Service Worker support with custom install prompt.
+- ⚡ **Offline-Ready Shell** — Fast-loading client with emergency Quick Exit and local sovereign vault encryption.
+
 ### For Seekers
 - 📔 **Encrypted Journal** — Client-side AES-256 encrypted entries with mood tracking & tags (text-only cloud sync).
 - 🛡️ **KeePassXC Sovereign Vault** — Download/upload `.safevault` encrypted backup files for 100% offline, serverless diary storage.
@@ -133,10 +140,11 @@ cd client && npx vitest run
 - 📅 **Events** — Community events with registration
 - 📚 **Resource Library** — Articles, books, and video content
 
-### Admin
-- 👥 **User Management** — Role assignment, volunteer approval
-- 📊 **Analytics Dashboard** — Platform statistics
-- 🔧 **Content Moderation** — Forum post flagging, community content review
+### Admin & Development
+- 👥 **User Accounts Management** — Direct visibility into all registered seeker, volunteer, and admin accounts (`/admin` and `/developer`)
+- 🛡️ **Volunteer Vetting Queue** — Review submitted certifications, professional credentials, and approve/reject applications
+- 📊 **Analytics & System Health** — Platform statistics (user count, active volunteers, forum posts)
+- 🔧 **Content Moderation** — Review flagged forum discussions and community user-generated content (UGC)
 
 ## 📂 Documentation
 

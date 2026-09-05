@@ -9,21 +9,24 @@ export const DeveloperDashboard = () => {
     const [articles, setArticles] = useState<Article[]>([]);
     const [newArticle, setNewArticle] = useState({ title: '', content: '', category: '' });
     const [apps, setApps] = useState<VolunteerApplication[]>([]);
+    const [users, setUsers] = useState<any[]>([]);
     const [logs, setLogs] = useState<AuditLogEntry[]>([]);
     const [volCount, setVolCount] = useState(0);
 
     useEffect(() => {
         const loadData = async () => {
-            const [a, ap, l, v] = await Promise.all([
+            const [a, ap, l, v, us] = await Promise.all([
                 adminApi.getArticles().catch(() => []),
                 adminApi.getApplications().catch(() => []),
                 adminApi.getAuditLogs().catch(() => []),
-                volunteerApi.getAll().catch(() => [])
+                volunteerApi.getAll().catch(() => []),
+                adminApi.getUsers().catch(() => [])
             ]);
             setArticles(a);
             setApps(ap);
             setLogs(l);
             setVolCount(v.length);
+            setUsers(us);
         };
         loadData();
     }, []);
@@ -84,16 +87,59 @@ export const DeveloperDashboard = () => {
             )}
 
             {tab === 'users' && (
-                <Card className="p-0 overflow-hidden">
-                    <div className="p-6 border-b border-gray-200 dark:border-gray-800"><h3 className="font-bold text-lg dark:text-white">Pending Applications</h3></div>
-                    {apps.filter((a: any) => a.status === 'pending').length === 0 ? <div className="p-8 text-center text-gray-500">No pending applications.</div> : 
-                    apps.filter((a: any) => a.status === 'pending').map((app: any) => (
-                        <div key={app.id} className="p-6 border-b border-gray-200 dark:border-gray-800 flex justify-between items-start">
-                            <div><h4 className="font-bold text-lg dark:text-white">{app.name}</h4><div className="flex gap-2 text-sm text-gray-500 mt-1"><span>{app.email}</span> • <span>{app.phone}</span></div><div className="mt-3 p-3 bg-gray-100 dark:bg-gray-800 rounded-lg text-sm dark:text-gray-300"><span className="font-bold">Qual:</span> {app.qualification}</div></div>
-                            <div className="flex gap-2"><Button size="sm" variant="danger">Reject</Button><Button size="sm" onClick={() => handleApprove(app.id)}>Approve</Button></div>
+                <div className="space-y-6">
+                    <Card className="p-0 overflow-hidden">
+                        <div className="p-6 border-b border-gray-200 dark:border-gray-800 flex justify-between items-center">
+                            <div>
+                                <h3 className="font-bold text-lg dark:text-white">Registered Platform Accounts ({users.length})</h3>
+                                <p className="text-xs text-gray-500">Live database accounts (Seekers, Volunteers, Admins)</p>
+                            </div>
+                            <Badge color="purple">{users.length} Total Accounts</Badge>
                         </div>
-                    ))}
-                </Card>
+                        {users.length === 0 ? (
+                            <div className="p-8 text-center text-gray-500">No registered users found.</div>
+                        ) : (
+                            <div className="divide-y divide-gray-200 dark:divide-gray-700">
+                                {users.map((u: any) => {
+                                    const roleColor = 
+                                        u.role === 'ADMIN' ? 'purple' :
+                                        u.role === 'VOLUNTEER_APPROVED' ? 'blue' :
+                                        u.role === 'MODERATOR' ? 'green' : 'gray';
+                                    return (
+                                        <div key={u.id} className="p-4 px-6 flex justify-between items-center hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-9 h-9 rounded-full bg-primary-100 dark:bg-primary-900/40 flex items-center justify-center font-bold text-primary-600 text-sm">
+                                                    {u.username?.slice(0, 2).toUpperCase() || 'U'}
+                                                </div>
+                                                <div>
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="font-bold dark:text-white">{u.username}</span>
+                                                        <Badge color={roleColor as any}>{u.role}</Badge>
+                                                    </div>
+                                                    <span className="font-mono text-xs text-gray-400">{u.id}</span>
+                                                </div>
+                                            </div>
+                                            <span className="text-xs text-gray-400">
+                                                Joined {u.createdAt ? new Date(u.createdAt).toLocaleDateString() : 'N/A'}
+                                            </span>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
+                    </Card>
+
+                    <Card className="p-0 overflow-hidden">
+                        <div className="p-6 border-b border-gray-200 dark:border-gray-800"><h3 className="font-bold text-lg dark:text-white">Pending Volunteer Applications</h3></div>
+                        {apps.filter((a: any) => a.status === 'pending').length === 0 ? <div className="p-8 text-center text-gray-500">No pending applications.</div> : 
+                        apps.filter((a: any) => a.status === 'pending').map((app: any) => (
+                            <div key={app.id} className="p-6 border-b border-gray-200 dark:border-gray-800 flex justify-between items-start">
+                                <div><h4 className="font-bold text-lg dark:text-white">{app.name}</h4><div className="flex gap-2 text-sm text-gray-500 mt-1"><span>{app.email}</span> • <span>{app.phone}</span></div><div className="mt-3 p-3 bg-gray-100 dark:bg-gray-800 rounded-lg text-sm dark:text-gray-300"><span className="font-bold">Qual:</span> {app.qualification}</div></div>
+                                <div className="flex gap-2"><Button size="sm" variant="danger">Reject</Button><Button size="sm" onClick={() => handleApprove(app.id)}>Approve</Button></div>
+                            </div>
+                        ))}
+                    </Card>
+                </div>
             )}
 
              {tab === 'system' && (
