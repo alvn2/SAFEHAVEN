@@ -3,7 +3,10 @@ import React from 'react';
 export const TermsPage = () => {
   return (
     <div className="max-w-3xl mx-auto py-8 space-y-8">
-      <h1 className="text-4xl font-bold font-serif mb-8 dark:text-white">Terms and Conditions</h1>
+      <div>
+        <h1 className="text-4xl font-bold font-serif mb-2 dark:text-white">Terms and Conditions</h1>
+        <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Last Updated: September 2026</p>
+      </div>
       
       <div className="prose dark:prose-invert max-w-none space-y-6 text-gray-700 dark:text-gray-300">
         <div className="bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-yellow-500 p-4">

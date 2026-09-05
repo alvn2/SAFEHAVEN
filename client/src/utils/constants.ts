@@ -106,7 +106,7 @@ export const INITIAL_FORUM_POSTS: ForumPost[] = [
     body: 'Work has been really stressful and I feel like I cannot catch a break. Anyone else feel this way?',
     category: 'Anxiety & Stress',
     hugs: 5,
-    date: '2023-10-25T10:00:00Z',
+    date: '2026-09-02T10:00:00Z',
   }
 ];
 

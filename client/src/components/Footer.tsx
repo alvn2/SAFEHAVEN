@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Logo } from './Logo';
-import { Phone } from 'lucide-react';
+import { Phone, Heart } from 'lucide-react';
 
 export const Footer = () => (
     <footer className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-t border-gray-200 dark:border-gray-800 mt-auto pt-12 pb-8 px-4 sm:px-6 lg:px-8">
@@ -37,7 +37,11 @@ export const Footer = () => (
 
             <div className="border-t border-gray-200 dark:border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center text-gray-400 text-sm gap-4">
                 <div className="text-center md:text-left">
-                    <p>© 2025 SafeHaven Kenya. Built with ❤️ in Nairobi.</p>
+                    <p className="flex items-center justify-center md:justify-start gap-1">
+                        <span>© {new Date().getFullYear()} SafeHaven Kenya. Built with</span>
+                        <Heart className="w-3.5 h-3.5 text-rose-500 fill-rose-500 inline" aria-hidden="true" />
+                        <span>in Nairobi.</span>
+                    </p>
                     <p className="mt-1 text-xs">Developed by <a href="https://devlinktechnologies.co.ke" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:underline">Devlink Technologies</a></p>
                 </div>
                 <div className="flex gap-4 items-center">
