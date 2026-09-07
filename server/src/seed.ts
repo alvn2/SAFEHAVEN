@@ -61,7 +61,7 @@ async function seed() {
       userId: volUser.id,
       track: 'PROFESSIONAL',
       name: 'Dr. Amina Wanjiku',
-      photo: 'https://ui-avatars.com/api/?name=Amina+Wanjiku&background=random',
+      photo: '',
       role: 'licensed',
       qualification: 'PhD Clinical Psychology – University of Nairobi',
       topics: ['Anxiety', 'Depression', 'Trauma', 'Grief'],
@@ -97,7 +97,7 @@ async function seed() {
       userId: vol2User.id,
       track: 'PEER_LISTENER',
       name: 'Brian Kipkoech',
-      photo: 'https://ui-avatars.com/api/?name=Brian+Kipkoech&background=random',
+      photo: '',
       role: 'intern',
       qualification: 'MSc Counselling Psychology – Kenyatta University',
       topics: ['Youth Support', 'Self-Harm', 'Relationship Issues'],
@@ -158,7 +158,7 @@ async function seed() {
     data: {
       type: 'group',
       name: 'Nairobi Anxiety Support',
-      avatar: 'https://ui-avatars.com/api/?name=Anxiety+Support&background=random',
+      avatar: '',
       lastMessage: 'Welcome to the group. This is a safe space.',
       lastMessageAt: new Date()
     }

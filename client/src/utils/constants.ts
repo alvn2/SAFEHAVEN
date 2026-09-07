@@ -1,4 +1,4 @@
-import { Article, ForumPost, Volunteer, CommunityGroup, Event, Book, Video, Quote, Poll } from '../types';
+import { Article, ForumPost, CommunityGroup, Event, Book, Video, Quote, Poll } from '../types';
 
 export const CRISIS_NUMBERS = [
   { name: 'Befrienders Kenya', number: '0722 178 177' },
@@ -20,58 +20,6 @@ export const VOLUNTEER_ROLES = {
   intern: { label: 'Student Intern', color: 'yellow', description: 'Under Supervision' },
   listener: { label: 'Peer Listener', color: 'blue', description: 'Trained Supporter' },
 };
-
-export const VOLUNTEERS: Volunteer[] = [
-  {
-    id: '1',
-    userId: 'u1',
-    name: 'Dr. Amina Juma',
-    photo: 'https://ui-avatars.com/api/?name=Amina+Juma&background=10b981&color=fff',
-    role: 'licensed',
-    qualification: 'PhD Clinical Psychology',
-    topics: ['Anxiety', 'Depression', 'Trauma'],
-    location: 'Nairobi',
-    whatsapp: '254700000001',
-    telegram: 'DrAminaHelp',
-    languages: ['English', 'Swahili'],
-    isOnline: true,
-    verified: true,
-    bio: 'Experienced clinical psychologist with 10+ years helping individuals overcome trauma and anxiety.',
-    impact: { views: 0, chats: 0 }
-  },
-  {
-    id: '2',
-    userId: 'u2',
-    name: 'James Mwangi',
-    photo: 'https://ui-avatars.com/api/?name=James+Mwangi&background=eab308&color=fff',
-    role: 'intern',
-    qualification: 'MA Student (Supervised)',
-    topics: ['Academic Stress', 'Relationships'],
-    location: 'Nairobi',
-    whatsapp: '254700000002',
-    languages: ['English', 'Swahili', 'Sheng'],
-    isOnline: true,
-    verified: false,
-    bio: 'Final year Masters student passionate about helping students navigate academic pressure.',
-    impact: { views: 0, chats: 0 }
-  },
-  {
-    id: '3',
-    userId: 'u3',
-    name: 'Sarah Ochieng',
-    photo: 'https://ui-avatars.com/api/?name=Sarah+Ochieng&background=3b82f6&color=fff',
-    role: 'listener',
-    qualification: 'Trained Peer Counselor',
-    topics: ['Loneliness', 'Grief'],
-    location: 'Kisumu',
-    whatsapp: '254700000003',
-    languages: ['English', 'Luo'],
-    isOnline: false,
-    verified: false,
-    bio: 'I am here to listen without judgment. I have been trained in active listening and grief support.',
-    impact: { views: 0, chats: 0 }
-  },
-];
 
 export const ARTICLES: Article[] = [
   {

@@ -18,7 +18,6 @@ const journalSchema = z.object({
   audioData: z.string().nullable().optional()
 });
 
-// Get all entries for current user
 router.get('/', authenticate, async (req: AuthRequest, res) => {
   try {
     const entries = await prisma.journalEntry.findMany({
@@ -31,7 +30,6 @@ router.get('/', authenticate, async (req: AuthRequest, res) => {
   }
 });
 
-// Upsert entry
 router.post('/', authenticate, validate(journalSchema), async (req: AuthRequest, res) => {
   const { id, date, mood, energy, sleep, entry, tags, isDraft, audioData } = req.body;
   try {
@@ -70,7 +68,6 @@ router.post('/', authenticate, validate(journalSchema), async (req: AuthRequest,
   }
 });
 
-// Delete entry
 router.delete('/:id', authenticate, async (req: AuthRequest, res) => {
   try {
     const entry = await prisma.journalEntry.findFirst({

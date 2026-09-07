@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { ArrowRight, Shield, Users, Heart, Lock, Check, BookOpen, User, Plus, Minus, MessageSquare, Database, Activity, EyeOff, Globe } from 'lucide-react';
+import { ArrowRight, Shield, Users, User, Heart, Lock, Check, BookOpen, Plus, Minus, MessageSquare, Database, Activity, EyeOff, Globe } from 'lucide-react';
 import { TriageModal } from '../components/TriageModal';
 import { Button, Card } from '../components/ui';
 import { volunteerApi } from '../lib/api';

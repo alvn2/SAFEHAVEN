@@ -4,7 +4,6 @@ import { authenticate, type AuthRequest } from '../middleware/auth.js';
 
 const router = express.Router();
 
-// Get safety plan for the current user
 router.get('/', authenticate, async (req: AuthRequest, res) => {
   try {
     const plan = await prisma.safetyPlan.findUnique({
@@ -16,7 +15,6 @@ router.get('/', authenticate, async (req: AuthRequest, res) => {
   }
 });
 
-// Upsert safety plan
 router.put('/', authenticate, async (req: AuthRequest, res) => {
   const { warningSigns, copingStrategies, safeContacts, professionalContacts, environmentChanges } = req.body;
   try {

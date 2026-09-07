@@ -25,25 +25,20 @@ export const SeekerDashboard = () => {
         id: '', userId: '', warningSigns: '', copingStrategies: '', safeContacts: '', professionalContacts: '', environmentChanges: ''
     });
     const [activeTab, setActiveTab] = useState<'journal' | 'safety'>('journal');
-    
-    // Hybrid Storage Engine State
     const [storageMode, setStorageModeState] = useState<StorageMode>(getStorageMode());
     const vaultFileInputRef = useRef<HTMLInputElement>(null);
 
-    // Journal State
     const [mood, setMood] = useState(3);
     const [entryText, setEntryText] = useState('');
     const [showJournalForm, setShowJournalForm] = useState(false);
     const [currentEntryId, setCurrentEntryId] = useState<string | null>(null);
     const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'unsaved'>('saved');
     const autosaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-    const isSavingRef = useRef(false); // Prevent concurrent saves
+    const isSavingRef = useRef(false);
 
-    // Safety Plan State
     const [isEditingPlan, setIsEditingPlan] = useState(false);
     const [isSavingPlan, setIsSavingPlan] = useState(false);
 
-    // Nuke State
     const [showNukeModal, setShowNukeModal] = useState(false);
     const [nukeConfirmation, setNukeConfirmation] = useState('');
     const [challengeWord, setChallengeWord] = useState<string | null>(null);
@@ -198,7 +193,7 @@ export const SeekerDashboard = () => {
             if (!passphrase) {
                 alert('Zero-Knowledge Security Notice: A vault passphrase is required to encrypt your reflections before cloud sync. To ensure your private thoughts are never transmitted in plaintext, this entry has been saved strictly in your offline Device Vault.');
                 setStorageMode('local');
-                localStorage.setItem('safehaven_storage_mode', 'local');
+                setStorageModeState('local');
             } else {
                 const encryptedText = encrypt(entryText, passphrase);
                 const encryptedAudio = newEntry.audioData ? encrypt(newEntry.audioData, passphrase) : undefined;
@@ -243,7 +238,7 @@ export const SeekerDashboard = () => {
                 if (!passphrase) {
                     alert('Zero-Knowledge Security Notice: A vault passphrase is required to encrypt your safety plan before cloud sync. Your plan has been saved strictly to your offline Device Vault.');
                     setStorageMode('local');
-                    localStorage.setItem('safehaven_storage_mode', 'local');
+                    setStorageModeState('local');
                 } else {
                     await safetyApi.save({
                         warningSigns: encrypt(safetyPlan.warningSigns, passphrase),

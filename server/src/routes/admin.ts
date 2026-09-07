@@ -8,15 +8,14 @@ const router = express.Router();
 router.use(authenticate);
 router.use(requireAdmin);
 
-// Helper: write an anonymized audit log entry without exposing plaintext usernames
+const shortHash = (id: string, len: number = 8) =>
+  crypto.createHash('sha256').update(id).digest('hex').substring(0, len);
+
+// Anonymized audit log entry without exposing plaintext usernames
 const audit = async (adminId: string, action: string, details: string, rawTargetId?: string) => {
   try {
-    const targetIdHash = rawTargetId
-      ? crypto.createHash('sha256').update(rawTargetId).digest('hex').substring(0, 16)
-      : '';
-    const adminHash = adminId
-      ? crypto.createHash('sha256').update(adminId).digest('hex').substring(0, 8)
-      : 'system';
+    const targetIdHash = rawTargetId ? shortHash(rawTargetId, 16) : '';
+    const adminHash = adminId ? shortHash(adminId, 8) : 'system';
 
     await prisma.auditLog.create({
       data: {
@@ -108,36 +107,31 @@ router.get('/users', async (_req: AuthRequest, res) => {
   }
 });
 
-// Suspend a user
 router.patch('/users/:id/suspend', async (req: AuthRequest, res) => {
   try {
     const target = await prisma.user.findUnique({ where: { id: req.params.id } });
     if (!target) { res.status(404).json({ error: 'User not found' }); return; }
     if (target.role === 'ADMIN') { res.status(403).json({ error: 'Cannot suspend admin accounts' }); return; }
-    const shortRef = crypto.createHash('sha256').update(target.id).digest('hex').substring(0, 8);
     await prisma.user.update({ where: { id: req.params.id }, data: { status: 'SUSPENDED' } });
-    await audit(req.user!.id, 'USER_SUSPENDED', `Suspended user [ref: #${shortRef}]`, target.id);
+    await audit(req.user!.id, 'USER_SUSPENDED', `Suspended user [ref: #${shortHash(target.id)}]`, target.id);
     res.json({ success: true });
   } catch (e) {
     res.status(500).json({ error: 'Failed to suspend user' });
   }
 });
 
-// Reactivate a user
 router.patch('/users/:id/reactivate', async (req: AuthRequest, res) => {
   try {
     const target = await prisma.user.findUnique({ where: { id: req.params.id } });
     if (!target) { res.status(404).json({ error: 'User not found' }); return; }
-    const shortRef = crypto.createHash('sha256').update(target.id).digest('hex').substring(0, 8);
     await prisma.user.update({ where: { id: req.params.id }, data: { status: 'ACTIVE' } });
-    await audit(req.user!.id, 'USER_REACTIVATED', `Reactivated user [ref: #${shortRef}]`, target.id);
+    await audit(req.user!.id, 'USER_REACTIVATED', `Reactivated user [ref: #${shortHash(target.id)}]`, target.id);
     res.json({ success: true });
   } catch (e) {
     res.status(500).json({ error: 'Failed to reactivate user' });
   }
 });
 
-// Change user role (max MODERATOR — cannot promote to ADMIN)
 router.patch('/users/:id/role', async (req: AuthRequest, res) => {
   const { role } = req.body;
   const ALLOWED_ROLES = ['USER', 'VOLUNTEER_PENDING', 'VOLUNTEER_APPROVED', 'MODERATOR'];
@@ -149,28 +143,25 @@ router.patch('/users/:id/role', async (req: AuthRequest, res) => {
     const target = await prisma.user.findUnique({ where: { id: req.params.id } });
     if (!target) { res.status(404).json({ error: 'User not found' }); return; }
     if (target.role === 'ADMIN') { res.status(403).json({ error: 'Cannot change role of admin accounts' }); return; }
-    const shortRef = crypto.createHash('sha256').update(target.id).digest('hex').substring(0, 8);
     const updated = await prisma.user.update({
       where: { id: req.params.id },
       data: { role },
       select: { id: true, username: true, role: true, status: true, createdAt: true }
     });
-    await audit(req.user!.id, 'USER_ROLE_CHANGED', `Changed role for user [ref: #${shortRef}]: ${target.role} → ${role}`, target.id);
+    await audit(req.user!.id, 'USER_ROLE_CHANGED', `Changed role for user [ref: #${shortHash(target.id)}]: ${target.role} → ${role}`, target.id);
     res.json(updated);
   } catch (e) {
     res.status(500).json({ error: 'Failed to change role' });
   }
 });
 
-// Delete a user
 router.delete('/users/:id', async (req: AuthRequest, res) => {
   try {
     const target = await prisma.user.findUnique({ where: { id: req.params.id } });
     if (!target) { res.status(404).json({ error: 'User not found' }); return; }
     if (target.role === 'ADMIN') { res.status(403).json({ error: 'Cannot delete admin accounts' }); return; }
-    const shortRef = crypto.createHash('sha256').update(target.id).digest('hex').substring(0, 8);
     await prisma.user.delete({ where: { id: req.params.id } });
-    await audit(req.user!.id, 'USER_DELETED', `Deleted user account [ref: #${shortRef}]`, target.id);
+    await audit(req.user!.id, 'USER_DELETED', `Deleted user account [ref: #${shortHash(target.id)}]`, target.id);
     res.json({ success: true });
   } catch (e) {
     res.status(500).json({ error: 'Failed to delete user' });

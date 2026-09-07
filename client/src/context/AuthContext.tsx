@@ -1,6 +1,6 @@
 import React, { useState, createContext, useEffect, useCallback } from 'react';
 import { User } from '../types';
-import { authApi, setToken, getToken } from '../lib/api';
+import { authApi, setToken } from '../lib/api';
 
 export const AuthContext = createContext<{
   user: User | null;

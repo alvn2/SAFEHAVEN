@@ -5,8 +5,7 @@ import { Card, Input, Button } from '../components/ui';
 import { KeyRound, ArrowLeft, Eye, EyeOff } from 'lucide-react';
 
 export const AuthPage = () => {
-    const AuthContextData = useContext(AuthContext);
-    const { login } = AuthContextData;
+    const { login, recover } = useContext(AuthContext);
     const [view, setView] = useState<'login' | 'recover'>('login');
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
@@ -59,8 +58,7 @@ export const AuthPage = () => {
         }
         setIsLoading(true);
         try {
-            // we assumed AuthContext exported 'recover'. Let's destructure it above.
-            await AuthContextData.recover(username, recoveryKey, password);
+            await recover(username, recoveryKey, password);
             navigate('/seeker/dashboard');
         } catch (err: any) {
             setError(err.message || 'Invalid username or recovery key.');

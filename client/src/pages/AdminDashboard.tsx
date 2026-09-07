@@ -103,7 +103,15 @@ export const AdminDashboard = () => {
     const [roleFilter, setRoleFilter] = useState('ALL');
 
     const loadData = async () => {
-        const [a, p, u, ma, ss, us, ap] = await Promise.all([
+        const [
+            applicationsData,
+            flaggedPostsData,
+            pendingUgcData,
+            modApplicationsData,
+            systemSettingsData,
+            usersData,
+            allPostsData
+        ] = await Promise.all([
             adminApi.getApplications().catch(() => []),
             adminApi.getFlaggedPosts().catch(() => []),
             adminApi.getPendingUGC().catch(() => ({ groups: [], events: [], orgs: [], quotes: [] })),
@@ -112,13 +120,13 @@ export const AdminDashboard = () => {
             adminApi.getUsers().catch(() => []),
             adminApi.getAllPosts().catch(() => ({ posts: [] }))
         ]);
-        setApps(a);
-        setPosts(p);
-        setUgc(u);
-        setModApps(ma);
-        setModAppsOpen(ss.modApplicationsOpen);
-        setUsers(us);
-        setAllPosts(ap.posts || []);
+        setApps(applicationsData);
+        setPosts(flaggedPostsData);
+        setUgc(pendingUgcData);
+        setModApps(modApplicationsData);
+        setModAppsOpen(systemSettingsData.modApplicationsOpen);
+        setUsers(usersData);
+        setAllPosts(allPostsData.posts || []);
     };
 
     useEffect(() => { loadData(); }, []);

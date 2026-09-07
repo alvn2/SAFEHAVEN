@@ -14,7 +14,6 @@ const forumPostSchema = z.object({
   isTriggering: z.boolean().default(false)
 });
 
-// Get all posts (public)
 router.get('/', async (_req, res) => {
   try {
     const posts = await prisma.forumPost.findMany({
@@ -28,7 +27,6 @@ router.get('/', async (_req, res) => {
   }
 });
 
-// Create post
 router.post('/', authenticate, validate(forumPostSchema), async (req: AuthRequest, res) => {
   const { title, body, category, isTriggering, author } = req.body;
   try {
@@ -41,7 +39,7 @@ router.post('/', authenticate, validate(forumPostSchema), async (req: AuthReques
   }
 });
 
-// Hug a post (requires authentication to prevent bot inflation)
+// Authentication required to prevent automated vote inflation
 router.post('/:id/hug', authenticate, async (req: AuthRequest, res) => {
   try {
     const post = await prisma.forumPost.update({
@@ -54,7 +52,6 @@ router.post('/:id/hug', authenticate, async (req: AuthRequest, res) => {
   }
 });
 
-// Flag a post
 router.post('/:id/flag', authenticate, async (req: AuthRequest, res) => {
   try {
     await prisma.forumPost.update({
@@ -67,7 +64,6 @@ router.post('/:id/flag', authenticate, async (req: AuthRequest, res) => {
   }
 });
 
-// Dismiss flag (admin only)
 router.post('/:id/dismiss', authenticate, requireAdmin, async (req: AuthRequest, res) => {
   try {
     await prisma.forumPost.update({
@@ -80,7 +76,6 @@ router.post('/:id/dismiss', authenticate, requireAdmin, async (req: AuthRequest,
   }
 });
 
-// Delete post (admin only)
 router.delete('/:id', authenticate, requireAdmin, async (req: AuthRequest, res) => {
   try {
     await prisma.forumPost.delete({ where: { id: req.params.id } });
@@ -90,9 +85,6 @@ router.delete('/:id', authenticate, requireAdmin, async (req: AuthRequest, res) 
   }
 });
 
-// --- Comments / Replies ---
-
-// Get comments for a post (nested)
 router.get('/:id/comments', async (req, res) => {
   try {
     const comments = await prisma.forumComment.findMany({
@@ -117,7 +109,6 @@ router.get('/:id/comments', async (req, res) => {
   }
 });
 
-// Create a comment (with optional parentId for threaded replies)
 router.post('/:id/comments', authenticate, async (req: AuthRequest, res) => {
   const { body, parentId } = req.body;
   if (!body || body.trim().length < 1) {

@@ -18,7 +18,6 @@ const applicationSchema = z.object({
   licenseNumber: z.string().optional()
 });
 
-// Get current volunteer profile
 router.get('/me', authenticate, async (req: AuthRequest, res) => {
   try {
     const v = await prisma.volunteerProfile.findUnique({ where: { userId: req.user!.id } });
@@ -28,7 +27,7 @@ router.get('/me', authenticate, async (req: AuthRequest, res) => {
     }
     res.json({
       id: v.id, userId: v.userId, name: v.name, track: v.track,
-      photo: v.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(v.name)}&background=random`,
+      photo: v.photo || '',
       role: v.role, qualification: v.qualification, topics: v.topics, location: v.location,
       whatsapp: v.whatsapp, telegram: v.telegram, languages: v.languages,
       isOnline: v.isOnline, verified: v.verified, bio: v.bio,
@@ -86,7 +85,6 @@ router.post('/become-listener', authenticate, async (req: AuthRequest, res) => {
   }
 });
 
-// Get all volunteers (public - cached for 30s with 60s stale-while-revalidate, verified only)
 router.get('/', cacheMiddleware(30, 60), async (_req, res) => {
   try {
     const volunteers = await prisma.volunteerProfile.findMany({
@@ -97,7 +95,7 @@ router.get('/', cacheMiddleware(30, 60), async (_req, res) => {
       id: v.id,
       userId: v.userId,
       name: v.name,
-      photo: v.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(v.name)}&background=random`,
+      photo: v.photo || '',
       role: v.role,
       qualification: v.qualification,
       topics: v.topics,
@@ -116,7 +114,6 @@ router.get('/', cacheMiddleware(30, 60), async (_req, res) => {
   }
 });
 
-// Get single volunteer
 router.get('/:id', async (req, res) => {
   try {
     const v = await prisma.volunteerProfile.findUnique({ where: { id: req.params.id } });
@@ -124,11 +121,10 @@ router.get('/:id', async (req, res) => {
       res.status(404).json({ error: 'Volunteer not found' });
       return;
     }
-    // Increment views
     await prisma.volunteerProfile.update({ where: { id: v.id }, data: { views: { increment: 1 } } });
     res.json({
       id: v.id, userId: v.userId, name: v.name,
-      photo: v.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(v.name)}&background=random`,
+      photo: v.photo || '',
       role: v.role, qualification: v.qualification, topics: v.topics, location: v.location,
       whatsapp: v.whatsapp, telegram: v.telegram, languages: v.languages,
       isOnline: v.isOnline, verified: v.verified, bio: v.bio,

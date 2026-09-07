@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { adminApi, volunteerApi } from '../lib/api';
+import { adminApi } from '../lib/api';
 import { Card, Button, Badge, Input } from '../components/ui';
 import { ShieldCheck, FileText, Activity, Server, Users, Trash2, Plus, ScrollText, Edit2, X, RefreshCw } from 'lucide-react';
 import { Article, VolunteerApplication, AuditLogEntry } from '../types';
@@ -21,18 +21,18 @@ export const DeveloperDashboard = () => {
     const [isPublishing, setIsPublishing] = useState(false);
 
     const loadData = async () => {
-        const [a, ap, l, us, st] = await Promise.all([
+        const [articlesData, applicationsData, logsData, usersData, statsData] = await Promise.all([
             adminApi.getArticles().catch(() => []),
             adminApi.getApplications().catch(() => []),
             adminApi.getAuditLogs().catch(() => []),
             adminApi.getUsers().catch(() => []),
             adminApi.getStats().catch(() => null)
         ]);
-        setArticles(a);
-        setApps(ap);
-        setLogs(l);
-        setUsers(us);
-        setStats(st);
+        setArticles(articlesData);
+        setApps(applicationsData);
+        setLogs(logsData);
+        setUsers(usersData);
+        setStats(statsData);
     };
 
     useEffect(() => { loadData(); }, []);

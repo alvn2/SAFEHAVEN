@@ -9,30 +9,15 @@
  * remain client-side constants since they don't have backend models.
  */
 
-import { JournalEntry, ForumPost, User, Volunteer, Article, SafetyPlan, VolunteerApplication, AuditLogEntry, CommunityGroup, Event as AppEvent, Quote, Book, Video } from '../types';
+import { JournalEntry, ForumPost, Volunteer, Article, SafetyPlan, VolunteerApplication, AuditLogEntry, CommunityGroup, Event as AppEvent, Quote, Book, Video } from '../types';
 import { INITIAL_FORUM_POSTS, ARTICLES as INITIAL_ARTICLES, BOOKS as INITIAL_BOOKS, VIDEOS as INITIAL_VIDEOS, QUOTES as INITIAL_QUOTES, COMMUNITY_GROUPS, EVENTS as INITIAL_EVENTS, DAILY_POLL } from '../utils/constants';
-import CryptoJS from 'crypto-js';
 import { encrypt, decrypt } from './encryption';
 import { journalApi, forumApi, chatApi, volunteerApi, safetyApi, adminApi, authApi, communityApi, setToken } from './api';
 
 export const StorageService = {
-  // --- AUDIT LOGGING (now via admin API) ---
-  logAction: (_action: string, _details: string, _targetId: string) => {
-    // Audit logging now happens server-side automatically
-  },
   getAuditLogs: async (): Promise<AuditLogEntry[]> => {
     try { return await adminApi.getAuditLogs(); } catch { return []; }
   },
-
-  // --- AUTHENTICATION (delegated to AuthContext, kept for backward compat) ---
-  getUser: (): User | null => null, // Now handled by AuthContext
-  login: (_username: string, _password: string): User | null => null, // Now handled by AuthContext
-  registerSeeker: (_username: string, _password: string): { user: User, recoveryKey: string } => {
-    throw new Error('Use AuthContext.registerSeeker() instead');
-  },
-  initiateRecovery: (_username: string) => null,
-  verifyRecovery: (_username: string, _word: string, _index: number, _newPassword: string) => false,
-  getRecoveryPhrase: (_user: User, _passphrase: string) => null,
 
   logout: () => {
     setToken(null);
@@ -72,26 +57,20 @@ export const StorageService = {
   getVolunteers: async (): Promise<Volunteer[]> => {
     try { return await volunteerApi.getAll(); } catch { return []; }
   },
-  updateVolunteer: (_v: Volunteer) => {
-    // Volunteer updates happen through admin panel in backend
-  },
 
   // --- CHAT ---
-  getConversations: async (uid: string) => {
+  getConversations: async (_uid: string) => {
     try { return await chatApi.getConversations(); } catch { return []; }
   },
   createConversation: (_participants: string[], _type: 'dm'|'group', _name?: string, _avatar?: string) => {
-    // TODO: Not yet implemented on backend — would need a POST /chat/conversations endpoint
     return { id: 'temp_' + Date.now(), type: 'dm', participants: _participants, lastMessageAt: new Date().toISOString() };
   },
-  sendMessage: async (cid: string, sender: User, text: string) => {
+  sendMessage: async (cid: string, sender: { displayName?: string; username?: string }, text: string) => {
     try { return await chatApi.sendMessage(cid, text, sender.displayName || sender.username || 'Anon'); } catch { return null; }
   },
   getMessages: async (cid: string) => {
     try { return await chatApi.getMessages(cid); } catch { return []; }
   },
-  markConversationAsRead: (_cid: string, _uid: string) => {},
-  joinGroupChat: (_gid: string, _uid: string) => {},
 
   // --- JOURNAL (client-side encryption preserved) ---
   getJournalEntries: async (pass: string): Promise<JournalEntry[]> => {

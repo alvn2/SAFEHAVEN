@@ -65,7 +65,6 @@ router.post('/conversations', authenticate, async (req: AuthRequest, res) => {
     }
 });
 
-// Get Conversations
 router.get('/conversations', authenticate, async (req: AuthRequest, res) => {
     try {
         const participations = await prisma.conversationParticipant.findMany({
@@ -85,7 +84,6 @@ router.get('/conversations', authenticate, async (req: AuthRequest, res) => {
     }
 });
 
-// Get Messages
 router.get('/:id/messages', authenticate, async (req: AuthRequest, res) => {
     try {
         const participant = await prisma.conversationParticipant.findUnique({
@@ -102,7 +100,6 @@ router.get('/:id/messages', authenticate, async (req: AuthRequest, res) => {
             return;
         }
 
-        // Mark as read
         await prisma.conversationParticipant.update({
             where: {
                 userId_conversationId: {
@@ -125,7 +122,6 @@ router.get('/:id/messages', authenticate, async (req: AuthRequest, res) => {
     }
 });
 
-// Send Message
 router.post('/:id/messages', authenticate, async (req: AuthRequest, res) => {
     const { content } = req.body;
     
@@ -174,7 +170,6 @@ router.post('/:id/messages', authenticate, async (req: AuthRequest, res) => {
             }
         });
 
-        // Mark unread for others
         await prisma.conversationParticipant.updateMany({
             where: {
                 conversationId: req.params.id,
