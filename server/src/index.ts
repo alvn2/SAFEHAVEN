@@ -68,7 +68,7 @@ io.on('connection', (socket) => {
     if (!roomId || !user?.id) return;
 
     try {
-      // Check if user is a participant in the conversation or is an admin
+      // Strictly enforce that only explicit participants can access the room (no admin eavesdropping)
       const participant = await prisma.conversationParticipant.findUnique({
         where: {
           userId_conversationId: {
@@ -78,7 +78,7 @@ io.on('connection', (socket) => {
         }
       });
 
-      if (!participant && user.role !== 'ADMIN') {
+      if (!participant) {
         socket.emit('error', { message: 'Access denied: You are not a participant in this conversation.' });
         return;
       }
@@ -97,6 +97,7 @@ io.on('connection', (socket) => {
     if (!data?.conversationId || !data?.message || !user?.id) return;
 
     try {
+      // Strictly enforce that only explicit participants can broadcast messages
       const participant = await prisma.conversationParticipant.findUnique({
         where: {
           userId_conversationId: {
@@ -106,7 +107,7 @@ io.on('connection', (socket) => {
         }
       });
 
-      if (!participant && user.role !== 'ADMIN') {
+      if (!participant) {
         socket.emit('error', { message: 'Unauthorized: Cannot send messages to this conversation.' });
         return;
       }
@@ -148,7 +149,9 @@ io.on('connection', (socket) => {
 });
 
 // Middleware
-app.use(helmet());
+app.use(helmet({
+  referrerPolicy: { policy: 'no-referrer' }
+}));
 app.use(cors({
   origin: process.env.CLIENT_URL || 'http://localhost:5173',
   credentials: true

@@ -11,8 +11,9 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
     ...(options.headers as Record<string, string> || {})
   };
 
-  if (authToken) {
-    headers['Authorization'] = `Bearer ${authToken}`;
+  const token = authToken || (typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('sh_token') : null);
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
   }
 
   const res = await fetch(`${API_BASE}${endpoint}`, {
@@ -82,6 +83,7 @@ export const journalApi = {
   upsert: (entry: {
     id?: string; date: string; mood: number; energy: number;
     sleep: number; entry: string; tags: string[]; isDraft?: boolean;
+    audioData?: string | null;
   }) => request<any>('/journal', { method: 'POST', body: JSON.stringify(entry) }),
 
   delete: (id: string) => request<void>(`/journal/${id}`, { method: 'DELETE' }),
@@ -133,6 +135,9 @@ export const forumApi = {
 //  CHAT
 // ============================================================
 export const chatApi = {
+  createConversation: (volunteerId: string) =>
+    request<any>('/chat/conversations', { method: 'POST', body: JSON.stringify({ volunteerId }) }),
+
   getConversations: () => request<any[]>('/chat/conversations'),
 
   getMessages: (conversationId: string) =>
@@ -203,4 +208,14 @@ export const adminApi = {
   getSystemSettings: () => request<any>('/admin/system-settings'),
   updateSystemSettings: (data: { modApplicationsOpen: boolean }) =>
     request<any>('/admin/system-settings', { method: 'POST', body: JSON.stringify(data) }),
+
+  // User management
+  suspendUser: (id: string) => request<any>(`/admin/users/${id}/suspend`, { method: 'PATCH' }),
+  reactivateUser: (id: string) => request<any>(`/admin/users/${id}/reactivate`, { method: 'PATCH' }),
+  changeUserRole: (id: string, role: string) =>
+    request<any>(`/admin/users/${id}/role`, { method: 'PATCH', body: JSON.stringify({ role }) }),
+  deleteUser: (id: string) => request<void>(`/admin/users/${id}`, { method: 'DELETE' }),
+
+  // All posts (proactive moderation)
+  getAllPosts: (page = 1) => request<any>(`/admin/all-posts?page=${page}`),
 };

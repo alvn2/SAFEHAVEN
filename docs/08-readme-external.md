@@ -71,19 +71,21 @@ Your journal is **end-to-end encrypted**. Not even SafeHaven admins can read it.
 4. Optionally add **tags** to categorize your entry
 5. Click **Save**
 
-### Audio Entries
+### Sovereign Offline Vault (`.safevault`)
 
-1. Click the **microphone icon** in the journal editor
-2. Record your voice note
-3. The audio is encrypted and saved with your entry
+If you prefer 100% offline storage or lack mobile data bundles:
+1. Toggle the storage mode on your Seeker Dashboard from **Cloud Sync** to **Device Vault**.
+2. Write reflections entirely offline. Zero bytes leave your device.
+3. Click **Export .safevault** to download a KeePassXC-compatible AES-256 encrypted backup file directly to your phone or laptop.
+4. Restore your diary anytime using **Import .safevault**.
 
 ### Viewing Past Entries
 
-- Scroll through your journal to see past entries
-- Your **mood chart** shows patterns over time
-- Use the search to find specific entries
+- Scroll through your journal to review past reflections
+- Your **mood chart** tracks emotional trends over time
+- Use the search bar to locate specific entries
 
-> 🔒 **Your journal entries are encrypted with your passphrase before leaving your browser. The server only stores encrypted text that nobody else can read.**
+> 🔒 **Your reflections are encrypted client-side with your passphrase before transmission. The server only stores opaque ciphertext that nobody else can decrypt.**
 
 ---
 
@@ -95,11 +97,11 @@ Your safety plan helps you during moments of crisis.
 
 Go to the **Safety Plan** tab and fill in:
 
-1. **Warning Signs** — How do you know you're starting to feel bad?
+1. **Warning Signs** — How do you know you're starting to feel overwhelmed?
 2. **Coping Strategies** — What has helped you calm down before?
-3. **Safe Contacts** — People you trust (friends, family)
-4. **Professional Contacts** — Therapists, counselors, hotlines
-5. **Environment Changes** — Things you can change about your surroundings
+3. **Safe Contacts** — People you trust (friends, mentors)
+4. **Professional Contacts** — Verified counselors, hotlines
+5. **Environment Changes** — Adjustments to make your immediate surroundings safe
 
 > 📱 **Your safety plan is available offline** — you can access it even without internet.
 
@@ -139,89 +141,83 @@ The forum is a safe space to share and connect anonymously.
 
 ### Volunteer Profiles Show
 
-- Name and photo
+- Name and avatar initials
 - Qualifications and specializations
 - Languages spoken
 - Location
 - Online/offline status
-- Verification badge (✅ means admin-verified)
+- Verification badge (verified through official Kenyan government regulatory bodies and recognized NGO health partner channels)
 
 ### Becoming a Volunteer
 
 1. Click **"Become a Volunteer"**
-2. Fill in the application form (name, email, qualifications, experience)
-3. Submit for admin review
-4. Once approved, you'll get access to the Volunteer Dashboard
+2. Fill in the application form (name, email, qualifications, experience, license number)
+3. Submit for review
+4. Once verified, you'll receive access to the Volunteer & Staff portal
 
 ---
 
-## 7. Secure Chat
+## 7. Client-Side Encrypted Chat
 
 ### Starting a Conversation
 
-1. Go to **Chat** from the navigation
-2. Find an available volunteer or create a new conversation
+1. Go to **Volunteers** or **Chat** from the navigation
+2. Select a verified listener or counselor and click **"Chat Anonymously"**
 3. Type your message and send
 4. Messages are delivered in real-time
 
-### Chat Features
+### Privacy-Preserving Chat Architecture
 
-- **Real-time messaging** — Messages appear instantly
-- **Typing indicators** — See when someone is typing
-- **Group chats** — Join group support sessions
-
----
-
-## 8. Community & Resources
-
-### Community Groups
-
-- Browse support groups (WhatsApp, Telegram, in-person)
-- Each group has a safety rating (Verified Safe, Community Moderated, Unmoderated)
-- Submit your own group for admin approval
-
-### Events
-
-- Find mental health events, workshops, and webinars
-- Filter by date and location
-
-### Resource Library
-
-- **Articles** — Read about mental health topics
-- **Books** — Recommended reading with links
-- **Videos** — TED Talks and educational videos
-- **Quotes** — Daily inspiration (English and Swahili)
+- **Client-Side E2E Encryption** — Every message is encrypted in your browser using an AES-256 session key derived from the conversation ID. Plaintext messages never touch our servers or database.
+- **No Administrative Eavesdropping** — Server administrators have zero access to private conversation rooms.
+- **Typing indicators** — Real-time cues without revealing IP or identity.
 
 ---
 
-## 9. Security & Privacy
+## 8. Community & African Wisdom
+
+### African & Kenyan Proverbs Library
+
+- Over **300+ authentic African and Kenyan proverbs** (Swahili, Kikuyu, Luo, Luhya, Maasai, Kamba, Kalenjin, Somali, Wangari Maathai, Desmond Tutu, Chinua Achebe).
+- Daily wisdom rotations provide culturally resonant mental health perspectives.
+- Community members can contribute their own wisdom quotes for instant inclusion.
+
+### Community Groups & Events
+
+- Browse support groups (in-person, WhatsApp, Telegram).
+- External group links feature safety warnings indicating potential phone number visibility.
+- Mental health workshops and community events across Kenya.
+
+---
+
+## 9. Security & Sovereign Privacy
 
 ### What SafeHaven NEVER Collects
 
-- ❌ Real name
-- ❌ Email address
-- ❌ Phone number
-- ❌ Location data
+- ❌ Real name, email address, or phone number
+- ❌ Location / GPS data
 - ❌ IP address logs
+- ❌ Third-party fonts or tracking pixels (all assets are 100% offline/local)
 
-### What SafeHaven Encrypts
+### Administrative Seeker Isolation
 
-- ✅ Journal entries (end-to-end encrypted)
-- ✅ Safety plan data
-- ✅ Chat messages
-- ✅ Your password (bcrypt hashed — we can't see it)
+SafeHaven administrators and staff can manage volunteers and moderate community content, but **cannot view, list, or monitor seeker accounts**. The admin user directory strictly excludes regular seekers, guaranteeing complete freedom from internal surveillance.
+
+### Task Switcher Screen Masking
+
+Whenever you switch away from SafeHaven or open the mobile app switcher, a full-screen privacy shield automatically masks your screen to prevent sensitive journaling or chat history from being captured in OS screenshot thumbnails.
 
 ### Quick Exit
 
-If you need to quickly leave SafeHaven:
-- Click the **Quick Exit** button (always visible in the navigation)
-- Your browser will immediately redirect to a safe website (Google)
+If you need to leave SafeHaven immediately:
+- Click the **Quick Exit** button (top right of every screen).
+- Your browser will immediately redirect to a neutral page.
 
-### Deleting Your Account
+### Emergency Data Wipe ("Nuke Account")
 
-1. Go to **Security Center**
-2. Click **"Delete All My Data"**
-3. Confirm — this **permanently** erases everything and cannot be undone
+1. Go to **Security Center** (from your Seeker Dashboard).
+2. Click **"Delete All My Data (Nuke Account)"**.
+3. Confirm — this initiates an atomic database wipe that permanently erases your account, messages, journal entries, and safety plan, while instantly purging your browser's local cache.
 
 ---
 

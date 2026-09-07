@@ -4,6 +4,7 @@ import { AuthContext } from '../context/AuthContext';
 import { chatApi } from '../lib/api';
 import { Conversation, Message } from '../types';
 import { CRISIS_KEYWORDS } from '../utils/constants';
+import { encryptChatMessage, decryptChatMessage } from '../lib/encryption';
 import { Card, Button, Modal } from '../components/ui';
 import { Send, Hash, MessageSquare, AlertTriangle, Search, Lock, MoreVertical, Shield, Pin, Check, CheckCheck, Clock } from 'lucide-react';
 import { io } from 'socket.io-client';
@@ -44,7 +45,20 @@ export const ChatPage = () => {
         
         const params = new URLSearchParams(location.search);
         const initialChatId = params.get('id');
-        if (initialChatId && !selectedChatId) setSelectedChatId(initialChatId);
+        const volunteerUserId = params.get('volunteer');
+
+        if (initialChatId && !selectedChatId) {
+            setSelectedChatId(initialChatId);
+        } else if (volunteerUserId && !selectedChatId) {
+            chatApi.createConversation(volunteerUserId)
+                .then(conv => {
+                    if (conv?.id) {
+                        setSelectedChatId(conv.id);
+                        loadChats();
+                    }
+                })
+                .catch(() => {});
+        }
         return () => clearInterval(interval);
     }, [user, location, selectedChatId]);
 
@@ -57,7 +71,11 @@ export const ChatPage = () => {
         const loadMessages = async () => {
             try {
                 const msgs = await chatApi.getMessages(selectedChatId);
-                setMessages(msgs);
+                const decryptedMsgs = msgs.map((m: Message) => ({
+                    ...m,
+                    content: decryptChatMessage(m.content, selectedChatId)
+                }));
+                setMessages(decryptedMsgs);
             } catch { setMessages([]); }
         };
         loadMessages();
@@ -66,11 +84,14 @@ export const ChatPage = () => {
         socket.emit('join_room', selectedChatId);
 
         const handleNewMessage = (msg: Message) => {
+            const decryptedMsg = {
+                ...msg,
+                content: decryptChatMessage(msg.content, selectedChatId)
+            };
             setMessages(prev => {
-                if (prev.find(m => m.id === msg.id)) return prev;
-                return [...prev, msg];
+                if (prev.find(m => m.id === decryptedMsg.id)) return prev;
+                return [...prev, decryptedMsg];
             });
-
         };
 
         const handleTyping = (username: string) => {
@@ -124,7 +145,8 @@ export const ChatPage = () => {
         }
 
         try {
-            const msg = await chatApi.sendMessage(selectedChatId, newMessage, user.username || 'Anonymous');
+            const encryptedContent = encryptChatMessage(newMessage, selectedChatId);
+            const msg = await chatApi.sendMessage(selectedChatId, encryptedContent, user.username || 'Anonymous');
             socket.emit('send_message', { conversationId: selectedChatId, message: msg });
         } catch { /* ignore */ }
         
@@ -144,7 +166,15 @@ export const ChatPage = () => {
                     </div>
                     <div className="flex flex-col gap-3">
                         <Button className="w-full bg-red-600 hover:bg-red-700">Get Immediate Help</Button>
-                        <Button variant="secondary" onClick={async () => { setShowCrisisAlert(false); try { await chatApi.sendMessage(selectedChatId!, newMessage, user!.username || 'Anonymous'); } catch {} setNewMessage(''); }}>Send Anyway</Button>
+                        <Button variant="secondary" onClick={async () => {
+                            setShowCrisisAlert(false);
+                            try {
+                                const encryptedContent = encryptChatMessage(newMessage, selectedChatId!);
+                                const msg = await chatApi.sendMessage(selectedChatId!, encryptedContent, user!.username || 'Anonymous');
+                                socket.emit('send_message', { conversationId: selectedChatId!, message: msg });
+                            } catch {}
+                            setNewMessage('');
+                        }}>Send Anyway</Button>
                     </div>
                 </div>
             </Modal>

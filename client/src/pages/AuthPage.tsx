@@ -23,31 +23,28 @@ export const AuthPage = () => {
         setIsLoading(true);
 
         try {
-            const success = await login(username, password);
+            const success = await login(username.trim(), password);
             if (success) {
-                // Fetch user info to determine redirect
-                // The AuthContext already sets the user, we can read it after a tick
-                setTimeout(() => {
-                    const storedToken = sessionStorage.getItem('sh_token');
-                    if (storedToken) {
-                        // Decode the token to get role (simple base64 decode of payload)
-                        try {
-                            const payload = JSON.parse(atob(storedToken.split('.')[1]));
-                            if (payload.role === 'ADMIN') navigate('/developer');
-                            else if (payload.role === 'VOLUNTEER_APPROVED') navigate('/volunteer/dashboard');
-                            else navigate('/seeker/dashboard');
-                        } catch {
-                            navigate('/seeker/dashboard');
-                        }
-                    } else {
-                        navigate('/seeker/dashboard');
-                    }
-                }, 100);
+                const storedToken = sessionStorage.getItem('sh_token');
+                let role = '';
+                if (storedToken) {
+                    try {
+                        const payload = JSON.parse(atob(storedToken.split('.')[1]));
+                        role = payload.role;
+                    } catch { /* fallback */ }
+                }
+                if (role === 'ADMIN') {
+                    navigate('/admin');
+                } else if (role === 'VOLUNTEER_APPROVED') {
+                    navigate('/volunteer/dashboard');
+                } else {
+                    navigate('/seeker/dashboard');
+                }
             } else {
                 setError('Invalid username or password.');
             }
-        } catch (err) {
-            setError('System error. Please try again.');
+        } catch (err: any) {
+            setError(err?.message || 'System error. Please try again.');
         } finally {
             setIsLoading(false);
         }

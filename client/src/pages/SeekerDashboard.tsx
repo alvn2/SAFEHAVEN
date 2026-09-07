@@ -75,7 +75,8 @@ export const SeekerDashboard = () => {
             const journalEntries = await journalApi.getAll();
             const decryptedEntries = journalEntries.map((e: JournalEntry) => ({
                 ...e,
-                entry: passphrase ? decrypt(e.entry, passphrase) : e.entry
+                entry: passphrase ? decrypt(e.entry, passphrase) : e.entry,
+                audioData: (e.audioData && passphrase) ? (decrypt(e.audioData, passphrase) || e.audioData) : e.audioData
             }));
             setEntries(decryptedEntries);
             saveLocalVault(decryptedEntries, safetyPlan, passphrase);
@@ -114,27 +115,31 @@ export const SeekerDashboard = () => {
             isSavingRef.current = true;
             setSaveStatus('saving');
             try {
+                const existingIndex = entries.findIndex(e => e.id === currentEntryId);
+                const existingEntry = existingIndex >= 0 ? entries[existingIndex] : undefined;
                 const newEntry: JournalEntry = {
                     id: currentEntryId,
                     date: new Date().toISOString(),
                     mood, energy: 3, sleep: 3,
                     entry: entryText,
                     tags: [],
-                    isDraft: true
+                    isDraft: true,
+                    audioData: existingEntry?.audioData
                 };
 
-                const existingIndex = entries.findIndex(e => e.id === currentEntryId);
                 const updatedEntries = existingIndex >= 0 
                     ? entries.map(e => e.id === currentEntryId ? newEntry : e)
                     : [newEntry, ...entries];
                 setEntries(updatedEntries);
                 saveLocalVault(updatedEntries, safetyPlan, passphrase);
 
-                if (storageMode === 'cloud') {
-                    const encryptedText = passphrase ? encrypt(entryText, passphrase) : entryText;
+                if (storageMode === 'cloud' && passphrase) {
+                    const encryptedText = encrypt(entryText, passphrase);
+                    const encryptedAudio = newEntry.audioData ? encrypt(newEntry.audioData, passphrase) : undefined;
                     await journalApi.upsert({
                         ...newEntry,
-                        entry: encryptedText
+                        entry: encryptedText,
+                        audioData: encryptedAudio
                     });
                 }
                 setSaveStatus('saved');
@@ -171,16 +176,18 @@ export const SeekerDashboard = () => {
         isSavingRef.current = true;
         setSaveStatus('saving');
         
+        const existingIndex = entries.findIndex(e => e.id === currentEntryId);
+        const existingEntry = existingIndex >= 0 ? entries[existingIndex] : undefined;
         const newEntry: JournalEntry = {
             id: currentEntryId,
             date: new Date().toISOString(),
             mood, energy: 3, sleep: 3,
             entry: entryText,
             tags: [],
-            isDraft
+            isDraft,
+            audioData: existingEntry?.audioData
         };
 
-        const existingIndex = entries.findIndex(e => e.id === currentEntryId);
         const updatedEntries = existingIndex >= 0
             ? entries.map(e => e.id === currentEntryId ? newEntry : e)
             : [newEntry, ...entries];
@@ -188,11 +195,19 @@ export const SeekerDashboard = () => {
         saveLocalVault(updatedEntries, safetyPlan, passphrase);
 
         if (storageMode === 'cloud') {
-            const encryptedText = passphrase ? encrypt(entryText, passphrase) : entryText;
-            await journalApi.upsert({
-                ...newEntry,
-                entry: encryptedText
-            });
+            if (!passphrase) {
+                alert('Zero-Knowledge Security Notice: A vault passphrase is required to encrypt your reflections before cloud sync. To ensure your private thoughts are never transmitted in plaintext, this entry has been saved strictly in your offline Device Vault.');
+                setStorageMode('local');
+                localStorage.setItem('safehaven_storage_mode', 'local');
+            } else {
+                const encryptedText = encrypt(entryText, passphrase);
+                const encryptedAudio = newEntry.audioData ? encrypt(newEntry.audioData, passphrase) : undefined;
+                await journalApi.upsert({
+                    ...newEntry,
+                    entry: encryptedText,
+                    audioData: encryptedAudio
+                });
+            }
         }
         
         isSavingRef.current = false;
@@ -225,13 +240,19 @@ export const SeekerDashboard = () => {
         try {
             saveLocalVault(entries, safetyPlan, passphrase);
             if (storageMode === 'cloud' && user) {
-                await safetyApi.save({
-                    warningSigns: passphrase ? encrypt(safetyPlan.warningSigns, passphrase) : safetyPlan.warningSigns,
-                    copingStrategies: passphrase ? encrypt(safetyPlan.copingStrategies, passphrase) : safetyPlan.copingStrategies,
-                    safeContacts: passphrase ? encrypt(safetyPlan.safeContacts, passphrase) : safetyPlan.safeContacts,
-                    professionalContacts: passphrase ? encrypt(safetyPlan.professionalContacts, passphrase) : safetyPlan.professionalContacts,
-                    environmentChanges: passphrase ? encrypt(safetyPlan.environmentChanges, passphrase) : safetyPlan.environmentChanges
-                });
+                if (!passphrase) {
+                    alert('Zero-Knowledge Security Notice: A vault passphrase is required to encrypt your safety plan before cloud sync. Your plan has been saved strictly to your offline Device Vault.');
+                    setStorageMode('local');
+                    localStorage.setItem('safehaven_storage_mode', 'local');
+                } else {
+                    await safetyApi.save({
+                        warningSigns: encrypt(safetyPlan.warningSigns, passphrase),
+                        copingStrategies: encrypt(safetyPlan.copingStrategies, passphrase),
+                        safeContacts: encrypt(safetyPlan.safeContacts, passphrase),
+                        professionalContacts: encrypt(safetyPlan.professionalContacts, passphrase),
+                        environmentChanges: encrypt(safetyPlan.environmentChanges, passphrase)
+                    });
+                }
             }
         } catch { /* ignore */ }
         setIsSavingPlan(false);
@@ -266,18 +287,24 @@ export const SeekerDashboard = () => {
                 }
                 saveLocalVault(payload.entries, payload.safetyPlan || null, passphrase);
                 if (storageMode === 'cloud') {
-                    for (const entry of payload.entries) {
-                        const encryptedText = passphrase ? encrypt(entry.entry, passphrase) : entry.entry;
-                        await journalApi.upsert({
-                            id: entry.id,
-                            date: entry.date,
-                            mood: entry.mood,
-                            energy: entry.energy,
-                            sleep: entry.sleep,
-                            entry: encryptedText,
-                            tags: entry.tags || [],
-                            isDraft: entry.isDraft
-                        });
+                    if (!passphrase) {
+                        alert('Zero-Knowledge Security Notice: A vault passphrase is required to encrypt reflections before cloud sync. The imported reflections remain safely stored in your offline Device Vault.');
+                    } else {
+                        for (const entry of payload.entries) {
+                            const encryptedText = encrypt(entry.entry, passphrase);
+                            const encryptedAudio = entry.audioData ? encrypt(entry.audioData, passphrase) : undefined;
+                            await journalApi.upsert({
+                                id: entry.id,
+                                date: entry.date,
+                                mood: entry.mood,
+                                energy: entry.energy,
+                                sleep: entry.sleep,
+                                entry: encryptedText,
+                                audioData: encryptedAudio,
+                                tags: entry.tags || [],
+                                isDraft: entry.isDraft
+                            });
+                        }
                     }
                 }
                 alert(`Successfully imported ${payload.entries.length} reflections from vault!`);
@@ -296,16 +323,51 @@ export const SeekerDashboard = () => {
     const handleNukeData = async () => {
         if (nukeConfirmation !== 'DELETE') return;
         if (user) {
-            localStorage.removeItem('sh_local_vault_data');
-            await authApi.nuke();
+            try {
+                await authApi.nuke();
+            } catch (err) {
+                console.error("Server nuke failed", err);
+            }
+            // Irrevocably clear all local, cached, and session storage
+            localStorage.clear();
+            sessionStorage.clear();
             logout();
-            window.location.href = '/';
+            window.location.replace('/');
         }
     };
 
 
     return (
         <div className="space-y-8">
+            {user?.role === 'VOLUNTEER_PENDING' && (
+                <div className="bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-2xl p-4 flex items-center justify-between gap-4 text-amber-900 dark:text-amber-300">
+                    <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-xl bg-amber-100 dark:bg-amber-900/60 flex items-center justify-center shrink-0">
+                            <Shield className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                        </div>
+                        <div>
+                            <p className="font-semibold text-sm">Volunteer Application Under Review</p>
+                            <p className="text-xs text-amber-700 dark:text-amber-400">Our team is reviewing your credentials. You will be notified once approved.</p>
+                        </div>
+                    </div>
+                </div>
+            )}
+            {user?.role === 'VOLUNTEER_APPROVED' && (
+                <div className="bg-primary-50 dark:bg-primary-950/40 border border-primary-200 dark:border-primary-800 rounded-2xl p-4 flex items-center justify-between gap-4 text-primary-900 dark:text-primary-300">
+                    <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-xl bg-primary-100 dark:bg-primary-900/60 flex items-center justify-center shrink-0">
+                            <Check className="w-5 h-5 text-primary-600 dark:text-primary-400" />
+                        </div>
+                        <div>
+                            <p className="font-semibold text-sm">You are a Verified SafeHaven Volunteer!</p>
+                            <p className="text-xs text-primary-700 dark:text-primary-400">Manage your chats, active status, and listener profile in the volunteer dashboard.</p>
+                        </div>
+                    </div>
+                    <Button size="sm" onClick={() => navigate('/volunteer/dashboard')}>
+                        Volunteer Portal →
+                    </Button>
+                </div>
+            )}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
                     <h1 className="text-3xl font-bold font-serif dark:text-white">Hello, {user?.username}</h1>

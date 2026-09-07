@@ -5,6 +5,7 @@ import { TriageModal } from '../components/TriageModal';
 import { Button, Card } from '../components/ui';
 import { volunteerApi } from '../lib/api';
 import { Volunteer } from '../types';
+import { Avatar } from '../components/Avatar';
 
 const SectionTitle = ({ title, subtitle, centered = true }: { title: string, subtitle: string, centered?: boolean }) => (
     <div className={`mb-12 max-w-4xl px-4 ${centered ? 'text-center mx-auto' : ''}`}>
@@ -64,19 +65,19 @@ export const HomePage = () => {
                         </div>
 
                         <h1 className="text-4xl md:text-6xl font-bold text-gray-900 dark:text-white mb-6 leading-tight tracking-tight font-serif animate-fade-in-up animation-delay-200">
-                            A Safe Space for Your <br />
-                            <span className="text-primary-600 dark:text-primary-400">Mind to Breathe.</span>
+                            Free, Anonymous Mental Health <br />
+                            <span className="text-primary-600 dark:text-primary-400">Support Across Kenya.</span>
                         </h1>
 
                         <p className="text-lg md:text-xl text-gray-600 dark:text-gray-300 mb-10 max-w-2xl mx-auto leading-relaxed animate-fade-in-up animation-delay-400">
-                            SafeHaven is Kenya's first <strong>zero-knowledge</strong> mental health platform. Connect with verified volunteers, journal privately, and find support without surrendering your anonymity.
+                            Built for complete privacy. Connect with verified volunteer counselors and peer listeners without providing your phone number, email, or real identity.
                         </p>
 
                         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center animate-fade-in-up animation-delay-400">
                             <Button size="lg" onClick={() => setShowTriage(true)} className="w-full sm:w-auto text-lg px-8 py-6 shadow-xl shadow-primary-900/20 hover:shadow-2xl hover:-translate-y-1">
                                 I Need Help Now <ArrowRight size={20} className="ml-2" />
                             </Button>
-                            <Button variant="secondary" size="lg" onClick={() => navigate('/resources')} className="w-full sm:w-auto text-lg px-8 py-6 hover:-translate-y-1 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm border-gray-200 dark:border-gray-700">
+                            <Button variant="secondary" size="lg" onClick={() => navigate('/resources')} className="w-full sm:w-auto text-lg px-8 py-6 hover:-translate-y-1 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 shadow-sm">
                                 <BookOpen size={20} className="mr-2" /> Self-Help Library
                             </Button>
                         </div>
@@ -85,7 +86,7 @@ export const HomePage = () => {
                             <div className="flex items-center gap-2"><Shield size={18} className="text-primary-500" /><span>Zero Data Collected</span></div>
                             <div className="flex items-center gap-2"><Check size={18} className="text-blue-500" /><span>Verified Volunteers</span></div>
                             <div className="flex items-center gap-2"><Heart size={18} className="text-red-500" /><span>Always Free</span></div>
-                            <div className="flex items-center gap-2"><Lock size={18} className="text-orange-500" /><span>End-to-End Encrypted</span></div>
+                            <div className="flex items-center gap-2"><Lock size={18} className="text-orange-500" /><span>Client-Side Encrypted</span></div>
                         </div>
                     </div>
                 </div>
@@ -98,39 +99,39 @@ export const HomePage = () => {
                         <div className="order-2 lg:order-1 relative">
                             <div className="bg-gray-50 dark:bg-gray-800 p-8 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-lg relative z-10 space-y-6">
                                 <div className="flex items-start gap-4">
-                                    <div className="bg-white dark:bg-gray-700 p-3 rounded-xl shadow-sm text-primary-600 dark:text-primary-400 shrink-0"><Users size={24} /></div>
+                                    <div className="bg-white dark:bg-gray-700 p-3 rounded-xl shadow-sm text-primary-600 dark:text-primary-400 shrink-0"><Check size={24} /></div>
                                     <div>
-                                        <h4 className="font-bold text-lg text-gray-900 dark:text-white mb-1">Community First</h4>
-                                        <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">Built by Kenyan developers and psychologists volunteering their time. A solution for us, by us.</p>
+                                        <h4 className="font-bold text-lg text-gray-900 dark:text-white mb-1">Vetted Through Official Channels</h4>
+                                        <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">Licensed counselors are verified through official government regulatory bodies and recognized NGO health partner channels. Peer listeners complete active-listening training.</p>
                                     </div>
                                 </div>
                                 <div className="flex items-start gap-4">
                                     <div className="bg-white dark:bg-gray-700 p-3 rounded-xl shadow-sm text-blue-600 dark:text-blue-400 shrink-0"><EyeOff size={24} /></div>
                                     <div>
-                                        <h4 className="font-bold text-lg text-gray-900 dark:text-white mb-1">Anonymity is Power</h4>
-                                        <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">Stigma silences people. By removing identity, we remove the fear of judgment. Be your true self.</p>
+                                        <h4 className="font-bold text-lg text-gray-900 dark:text-white mb-1">Total Identity Anonymity</h4>
+                                        <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">Your identity cannot be breached or tracked because it is never collected. No phone numbers, no emails, and no administrative user rosters.</p>
                                     </div>
                                 </div>
                                 <div className="flex items-start gap-4">
                                     <div className="bg-white dark:bg-gray-700 p-3 rounded-xl shadow-sm text-orange-500 dark:text-orange-400 shrink-0"><Globe size={24} /></div>
                                     <div>
-                                        <h4 className="font-bold text-lg text-gray-900 dark:text-white mb-1">Accessible to All</h4>
-                                        <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">Runs smoothly on low-bandwidth connections. Accessible via any browser or installable on your mobile home screen.</p>
+                                        <h4 className="font-bold text-lg text-gray-900 dark:text-white mb-1">Accessible on Low-Bandwidth Networks</h4>
+                                        <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">Lightweight (under 100KB), fast on 3G mobile connections across Kenya, and installable as an offline-first web app with a local device vault.</p>
                                     </div>
                                 </div>
                             </div>
                         </div>
                         <div className="order-1 lg:order-2">
-                            <span className="text-primary-600 dark:text-primary-400 font-bold uppercase tracking-wider text-sm mb-2 block">Our Origin Story</span>
-                            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-6 font-serif">Born from a need for <br />Silence & Safety.</h2>
+                            <span className="text-primary-600 dark:text-primary-400 font-bold uppercase tracking-wider text-sm mb-2 block">Our Origin & Mission</span>
+                            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-6 font-serif">Bridging Care & Privacy <br />in Nairobi and Beyond.</h2>
                             <p className="text-gray-600 dark:text-gray-300 text-lg mb-6 leading-relaxed">
-                                SafeHaven started with a simple observation in Nairobi: Mental health support is expensive, and stigma makes people afraid to use their real names.
+                                SafeHaven was conceived in Nairobi to address two critical barriers in Kenya: the high cost of therapy and the social stigma that keeps individuals from seeking help under their real names.
                             </p>
                             <p className="text-gray-600 dark:text-gray-300 text-lg mb-8 leading-relaxed">
-                                We asked ourselves: <em className="text-gray-900 dark:text-white font-semibold">"What if we could build a platform where the user is invisible, but the help is real?"</em>
+                                We operate as an independent, volunteer-driven initiative. To keep SafeHaven 100% free and expand our volunteer training and crisis infrastructure, <strong>we are actively seeking philanthropic partners and grant funding</strong>.
                             </p>
-                            <div className="pl-6 border-l-4 border-primary-500 italic text-gray-800 dark:text-gray-200 text-lg font-serif">
-                                "We don't want your data. We don't want your email. We just want you to be okay."
+                            <div className="pl-6 border-l-4 border-primary-500 text-gray-800 dark:text-gray-200 text-base font-medium leading-relaxed">
+                                "No fees, no email harvesting, no corporate tracking. Real mental health support when you need it most."
                             </div>
                         </div>
                     </div>
@@ -150,9 +151,9 @@ export const HomePage = () => {
                         <div className="hidden md:block absolute top-10 left-[16%] right-[16%] h-0.5 bg-gray-200 dark:bg-gray-800 -z-10 border-t-2 border-dashed border-gray-300 dark:border-gray-700"></div>
 
                         {[
-                            { title: 'Create Anonymous ID', desc: 'Generate a random username. We give you a 12-word Recovery Key. No email needed.', icon: User, color: 'blue' },
-                            { title: 'Connect or Journal', desc: 'Chat with verified volunteers via encrypted channels or use your private, encrypted journal.', icon: MessageSquare, color: 'green' },
-                            { title: 'Heal at Your Pace', desc: 'Access resources, join support groups, or just breathe. You are in full control.', icon: Heart, color: 'red' }
+                            { title: 'Create Anonymous ID', desc: 'Generate a random username. We give you a 12-word Recovery Key. No email or phone number is ever needed.', icon: User, color: 'blue' },
+                            { title: 'Connect with Verified Listeners', desc: 'Chat directly with verified professionals and trained peer listeners via encrypted private channels.', icon: MessageSquare, color: 'green' },
+                            { title: 'Keep an Encrypted Vault', desc: 'Store private reflections and safety plans encrypted on your phone, or export them to an offline KeePassXC vault.', icon: Shield, color: 'red' }
                         ].map((step, idx) => (
                             <Card key={idx} hoverable className="p-8 group">
                                 <div className={`w-16 h-16 bg-${step.color}-50 dark:bg-${step.color}-900/20 text-${step.color}-600 dark:text-${step.color}-400 rounded-2xl flex items-center justify-center mb-6 text-xl font-bold mx-auto shadow-inner ring-1 ring-${step.color}-100 dark:ring-${step.color}-900/40`}>
@@ -171,23 +172,23 @@ export const HomePage = () => {
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                     <div className="grid lg:grid-cols-2 gap-16 items-center">
                         <div>
-                            <span className="text-primary-400 font-bold uppercase tracking-wider text-xs mb-2 block">The Zero-Knowledge Architecture</span>
-                            <h2 className="text-3xl lg:text-5xl font-bold text-white mb-6 font-serif leading-none">We can't read your data. <br />Even if we tried.</h2>
+                            <span className="text-primary-400 font-bold uppercase tracking-wider text-xs mb-2 block">Zero-Knowledge Architecture</span>
+                            <h2 className="text-3xl lg:text-5xl font-bold text-white mb-6 font-serif leading-tight">We can't read your data. <br />Even if we tried.</h2>
                             <p className="text-gray-300 text-lg mb-8 leading-relaxed">
-                                Most apps encrypt data "at rest" but hold the keys. SafeHaven uses <strong>Client-Side Encryption (AES-256)</strong>. Your password <em>is</em> the key, and it never leaves your device unhashed.
+                                Most apps encrypt data "at rest" but hold the decryption keys on their servers. SafeHaven uses <strong>Client-Side AES-256 Encryption</strong>. Your password <em>is</em> the key, and it never leaves your device unhashed.
                             </p>
                             <ul className="space-y-4 text-base">
                                 <li className="flex items-start gap-4">
                                     <div className="mt-1 bg-green-500/20 p-1.5 rounded-lg text-green-400"><Database size={18} /></div>
-                                    <span className="text-gray-300">Journal entries are encrypted <strong>before</strong> upload.</span>
+                                    <span className="text-gray-300">Reflections are encrypted in your browser <strong>before</strong> upload.</span>
                                 </li>
                                 <li className="flex items-start gap-4">
                                     <div className="mt-1 bg-blue-500/20 p-1.5 rounded-lg text-blue-400"><Activity size={18} /></div>
-                                    <span className="text-gray-300">We don't track IPs or browser fingerprints on journal entries.</span>
+                                    <span className="text-gray-300">We do not log IP addresses, device identifiers, or tracking cookies.</span>
                                 </li>
                                 <li className="flex items-start gap-4">
                                     <div className="mt-1 bg-red-500/20 p-1.5 rounded-lg text-red-400"><Shield size={18} /></div>
-                                    <span className="text-gray-300">The <strong>"Kill Switch"</strong> instantly cryptographically shreds your data.</span>
+                                    <span className="text-gray-300">The <strong>"Kill Switch"</strong> instantly and permanently purges all records.</span>
                                 </li>
                             </ul>
                             <div className="mt-10">
@@ -198,27 +199,38 @@ export const HomePage = () => {
                         </div>
 
                         <div className="relative">
-                            <div className="bg-gray-950 border border-gray-800 p-6 rounded-2xl shadow-xl relative">
-                                <div className="flex items-center gap-4 mb-6 border-b border-gray-800 pb-4">
-                                    <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                                    <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-                                    <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                                    <div className="ml-auto text-xs text-gray-500 font-mono">ENCRYPTION PROTOCOL</div>
+                            <div className="bg-gray-950 border border-gray-800 p-6 md:p-8 rounded-2xl shadow-xl space-y-6">
+                                <div className="flex items-center justify-between border-b border-gray-800 pb-4">
+                                    <span className="text-xs font-bold uppercase tracking-wider text-emerald-400 font-mono flex items-center gap-2">
+                                        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Cryptographic Zero-Knowledge Pipeline
+                                    </span>
+                                    <span className="text-[11px] text-gray-500 font-mono">CLIENT-SIDE AES-256</span>
                                 </div>
-                                <div className="space-y-3 font-mono text-xs md:text-sm">
-                                    <div className="flex gap-2 text-green-400"><span className="opacity-50">&gt;</span> <span>Initiating handshake...</span></div>
-                                    <div className="flex gap-2 text-blue-400"><span className="opacity-50">&gt;</span> <span>Generating PBKDF2 Key Derivation...</span></div>
-                                    <div className="flex gap-2 text-primary-400"><span className="opacity-50">&gt;</span> <span>Encrypting payload with AES-256-GCM...</span></div>
 
-                                    <div className="mt-4 p-3 bg-gray-900 rounded-lg border border-gray-800 relative overflow-hidden group-hover:border-primary-900 transition-colors">
-                                        <p className="text-gray-500 text-[10px] mb-1">SERVER VIEW (WHAT WE SEE)</p>
-                                        <p className="text-gray-400 break-all text-[10px] leading-loose">
-                                            U2FsdGVkX1+v8w5+...98s7df98s7df98s7df...<br />
-                                            <span className="text-gray-600">Encrypted Blob</span>
-                                        </p>
+                                <div className="space-y-4">
+                                    <div className="p-4 bg-gray-900/80 rounded-xl border border-gray-800 flex items-start gap-3.5">
+                                        <div className="w-8 h-8 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center font-bold text-xs shrink-0 font-mono">01</div>
+                                        <div>
+                                            <h5 className="text-sm font-bold text-white mb-1">Local Key Derivation</h5>
+                                            <p className="text-xs text-gray-400 leading-relaxed">Your device derives an AES-256 key from your private passphrase. The raw key never touches a network cable or server.</p>
+                                        </div>
                                     </div>
 
-                                    <div className="flex gap-2 text-green-400 mt-4"><span className="opacity-50">&gt;</span> <span>Transmission Secure. Keys discarded.</span></div>
+                                    <div className="p-4 bg-gray-900/80 rounded-xl border border-gray-800 flex items-start gap-3.5">
+                                        <div className="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-xs shrink-0 font-mono">02</div>
+                                        <div>
+                                            <h5 className="text-sm font-bold text-white mb-1">Pre-Upload Encryption</h5>
+                                            <p className="text-xs text-gray-400 leading-relaxed">Your reflections and peer chat payloads are encrypted into salted ciphertext (<code className="text-emerald-400 font-mono text-[11px]">U2FsdGVkX1...</code>) directly in your browser.</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="p-4 bg-gray-900/80 rounded-xl border border-gray-800 flex items-start gap-3.5">
+                                        <div className="w-8 h-8 rounded-lg bg-purple-500/20 text-purple-400 flex items-center justify-center font-bold text-xs shrink-0 font-mono">03</div>
+                                        <div>
+                                            <h5 className="text-sm font-bold text-white mb-1">Zero Server Legibility</h5>
+                                            <p className="text-xs text-gray-400 leading-relaxed">SafeHaven servers store only ciphertext blobs. Neither server administrators nor third parties can decrypt your thoughts.</p>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -240,7 +252,7 @@ export const HomePage = () => {
                             <div key={vol.id} className="group bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700 hover:border-primary-400 transition-all hover:shadow-lg flex flex-col justify-between">
                                 <div>
                                     <div className="flex items-center gap-4 mb-4">
-                                        <img src={vol.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(vol.name)}&background=10b981&color=fff`} alt={vol.name} className="w-14 h-14 rounded-full object-cover shadow-sm" />
+                                        <Avatar name={vol.name} photo={vol.photo} size="xl" />
                                         <div>
                                             <h4 className="font-bold text-lg dark:text-white">{vol.name}</h4>
                                             <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700 bg-emerald-50 dark:text-emerald-300 dark:bg-emerald-900/30 px-2.5 py-0.5 rounded-full mt-1">
@@ -296,7 +308,7 @@ export const HomePage = () => {
             <section className="py-20 bg-gray-50 dark:bg-gray-950 border-t border-gray-200 dark:border-gray-800">
                 <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
                     <SectionTitle title="Frequently Asked Questions" subtitle="Clarity is key to safety." />
-                    <div className="bg-white dark:bg-gray-900 rounded-[2rem] p-6 md:p-10 border border-gray-100 dark:border-gray-800 shadow-sm space-y-2">
+                    <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 md:p-10 border border-gray-100 dark:border-gray-800 shadow-sm space-y-2">
                         <FAQItem
                             question="Is SafeHaven really free?"
                             answer="Yes, 100%. SafeHaven is a non-profit initiative run by volunteers. There are no hidden fees, subscriptions, or ads."
@@ -318,8 +330,7 @@ export const HomePage = () => {
             </section>
 
             {/* --- CTA --- */}
-            <section className="py-24 relative overflow-hidden">
-                <div className="absolute inset-0 bg-primary-50 dark:bg-primary-900/10 -skew-y-3 transform origin-bottom-right scale-110"></div>
+            <section className="py-20 relative bg-primary-50/60 dark:bg-primary-950/30 border-t border-primary-100 dark:border-primary-900/40">
                 <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
                     <h2 className="text-3xl md:text-5xl font-bold text-gray-900 dark:text-white mb-8 font-serif leading-tight">
                         You don't have to carry it alone.

@@ -1,5 +1,6 @@
 import { prisma } from './db.js';
 import bcrypt from 'bcryptjs';
+import { QUOTES_200 } from './seed-quotes.js';
 
 async function seed() {
   console.log('🌱 Seeding SafeHaven database...\n');
@@ -136,6 +137,21 @@ async function seed() {
     await prisma.resource.create({ data: article });
   }
   console.log(`✅ ${articles.length} articles seeded`);
+
+  // --- Daily Wisdom Quotes (200 Approved Quotes) ---
+  const existingQuotesCount = await prisma.quoteSuggestion.count();
+  if (existingQuotesCount < 100) {
+    await prisma.quoteSuggestion.createMany({
+      data: QUOTES_200.map(q => ({
+        text: q.text,
+        author: q.author,
+        submittedById: admin.id,
+        status: 'APPROVED'
+      })),
+      skipDuplicates: true
+    });
+    console.log(`✅ ${QUOTES_200.length} inspirational quotes seeded`);
+  }
 
   // --- Group Chat ---
   const groupChat = await prisma.conversation.create({

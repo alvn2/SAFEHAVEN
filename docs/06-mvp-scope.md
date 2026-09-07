@@ -25,31 +25,35 @@ Everything in the MVP must pass this test:
 | 12-word recovery key system | P0 | ✅ Shipped |
 | JWT auth with 15-min auto-timeout | P0 | ✅ Shipped |
 | Quick exit button | P0 | ✅ Shipped |
-| Encrypted journal (text + mood tracking) | P0 | ✅ Shipped |
-| Audio journal entries | P1 | ✅ Shipped |
-| Safety plan builder | P0 | ✅ Shipped |
+| Encrypted journal (client-side AES-256 text + mood) | P0 | ✅ Shipped |
+| Sovereign offline vault (KeePassXC `.safevault` import/export) | P0 | ✅ Shipped |
+| Audio journal entries | P1 | ⚠️ Deprecated (ADR-003) |
+| Safety plan builder (client-side encrypted) | P0 | ✅ Shipped |
 | Peer support forum (anonymous posting) | P0 | ✅ Shipped |
 | Threaded forum replies | P1 | ✅ Shipped |
 | Hugs system (reactions) | P1 | ✅ Shipped |
 | Trigger content blurring | P0 | ✅ Shipped |
 | Content flagging | P1 | ✅ Shipped |
-| Real-time 1-on-1 chat (Socket.IO) | P0 | ✅ Shipped |
+| Real-time 1-on-1 chat (Socket.IO with client-side AES-256 E2E) | P0 | ✅ Shipped |
 | Volunteer directory with search/filter | P0 | ✅ Shipped |
-| Volunteer application flow | P0 | ✅ Shipped |
-| Admin dashboard (stats, users, moderation) | P0 | ✅ Shipped |
+| Volunteer application flow (licensed counselor & peer listener tracks) | P0 | ✅ Shipped |
+| Admin dashboard (volunteer & staff management, stats, moderation) | P0 | ✅ Shipped |
+| Zero-knowledge seeker de-tracking (seekers excluded from admin views) | P0 | ✅ Shipped |
 | Volunteer approval workflow | P0 | ✅ Shipped |
-| Community groups directory | P1 | ✅ Shipped |
+| Community groups directory with external link phone alerts | P1 | ✅ Shipped |
 | Events directory | P1 | ✅ Shipped |
 | Resource library (articles, books, videos) | P1 | ✅ Shipped |
-| UGC submissions with admin approval | P1 | ✅ Shipped |
+| African & Kenyan wisdom quotes (323 curated proverbs in DB) | P1 | ✅ Shipped |
+| Direct UGC quote submission (instant approval) | P1 | ✅ Shipped |
 | Privacy policy & terms of service pages | P0 | ✅ Shipped |
-| Security whitepaper page | P1 | ✅ Shipped |
+| Security whitepaper page (linked to open-source repo) | P1 | ✅ Shipped |
+| Task-switcher privacy mask (`document.visibilitychange`) | P1 | ✅ Shipped |
 | Dark mode toggle | P2 | ✅ Shipped |
 | Offline PWA support (journal + safety plan) | P1 | ✅ Shipped |
 | Responsive mobile design | P0 | ✅ Shipped |
-| Account nuke (data wipe) | P1 | ✅ Shipped |
-| Developer dashboard | P2 | ✅ Shipped |
-| Audit logging | P1 | ✅ Shipped |
+| Account nuke (atomic cascadeless database erasure) | P0 | ✅ Shipped |
+| Developer dashboard (inline article editing, system metrics) | P2 | ✅ Shipped |
+| Cryptographically anonymized audit logging (SHA-256) | P1 | ✅ Shipped |
 
 ### 🔲 Deferred to v2.0+
 

@@ -14,12 +14,46 @@ export const ResourcesPage = () => {
     const [quotes, setQuotes] = useState<Quote[]>([]);
 
     useEffect(() => {
-        communityApi.getResources().then(resources => {
-            setArticles(resources.filter((r: any) => r.type === 'article'));
-            setBooks(resources.filter((r: any) => r.type === 'book'));
-            setVideos(resources.filter((r: any) => r.type === 'video'));
+        communityApi.getResources().then((resources: any[]) => {
+            if (!Array.isArray(resources)) return;
+            const mappedArticles = resources
+                .filter((r: any) => r.type?.toUpperCase() === 'ARTICLE')
+                .map((r: any) => ({
+                    ...r,
+                    type: 'article',
+                    image: r.imageUrl || r.image || 'https://images.unsplash.com/photo-1544027993-37dbfe43562a?w=800',
+                    content: r.description || r.content || ''
+                }));
+            const mappedBooks = resources
+                .filter((r: any) => r.type?.toUpperCase() === 'BOOK')
+                .map((r: any) => ({
+                    ...r,
+                    type: 'book',
+                    cover: r.imageUrl || r.cover,
+                    link: r.url || r.link
+                }));
+            const mappedVideos = resources
+                .filter((r: any) => r.type?.toUpperCase() === 'VIDEO')
+                .map((r: any) => ({
+                    ...r,
+                    type: 'video',
+                    thumbnail: r.imageUrl || r.thumbnail,
+                    presenter: r.author || r.presenter
+                }));
+            setArticles(mappedArticles);
+            setBooks(mappedBooks);
+            setVideos(mappedVideos);
         }).catch(() => {});
-        communityApi.getQuotes().then(setQuotes).catch(() => setQuotes([]));
+
+        communityApi.getQuotes().then((qList: any[]) => {
+            if (!Array.isArray(qList)) return;
+            // Take the first 30 quotes so page remains responsive while showcasing wisdom
+            const mappedQuotes = qList.slice(0, 30).map((q: any) => ({
+                ...q,
+                type: 'quote'
+            }));
+            setQuotes(mappedQuotes);
+        }).catch(() => setQuotes([]));
     }, []);
 
     const allResources = [
@@ -34,10 +68,10 @@ export const ResourcesPage = () => {
         if (search) {
             const term = search.toLowerCase();
             // Check properties based on type
-            if ('title' in r && r.title?.toLowerCase().includes(term)) return true;
-            if ('text' in r && r.text?.toLowerCase().includes(term)) return true;
-            if ('author' in r && r.author?.toLowerCase().includes(term)) return true;
-            if ('presenter' in r && r.presenter?.toLowerCase().includes(term)) return true;
+            if ('title' in r && (r as any).title?.toLowerCase().includes(term)) return true;
+            if ('text' in r && (r as any).text?.toLowerCase().includes(term)) return true;
+            if ('author' in r && (r as any).author?.toLowerCase().includes(term)) return true;
+            if ('presenter' in r && (r as any).presenter?.toLowerCase().includes(term)) return true;
             return false;
         }
         return true;

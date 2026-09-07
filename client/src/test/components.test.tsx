@@ -79,4 +79,50 @@ describe('Complex Components', () => {
         expect(befriendersLink).toBeInTheDocument();
         expect(befriendersLink.getAttribute('href')).toBe('tel:+254722178177');
     });
+
+    it('ExternalLinkWarning shows de-anonymization warning for WhatsApp & Telegram links', async () => {
+        const { ExternalLinkWarning } = await import('../components/ExternalLinkWarning');
+        const handleClose = vi.fn();
+        render(
+            <ExternalLinkWarning 
+                isOpen={true} 
+                onClose={handleClose} 
+                url="https://wa.me/254712345678" 
+            />
+        );
+
+        expect(screen.getByText('External Messenger Privacy Alert')).toBeInTheDocument();
+        expect(screen.getByText(/De-Anonymization Alert: Phone & Profile Leakage/i)).toBeInTheDocument();
+        expect(screen.getByText(/Stay Anonymous \(Cancel\)/i)).toBeInTheDocument();
+
+        fireEvent.click(screen.getByText(/Stay Anonymous \(Cancel\)/i));
+        expect(handleClose).toHaveBeenCalledTimes(1);
+    });
+
+    it('ExternalLinkWarning shows standard external warning for general links', async () => {
+        const { ExternalLinkWarning } = await import('../components/ExternalLinkWarning');
+        const handleClose = vi.fn();
+        render(
+            <ExternalLinkWarning 
+                isOpen={true} 
+                onClose={handleClose} 
+                url="https://who.int/mental_health" 
+            />
+        );
+
+        expect(screen.getByText('Leaving SafeHaven')).toBeInTheDocument();
+        expect(screen.getByText(/External Resource/i)).toBeInTheDocument();
+        expect(screen.getByText(/Continue to Link/i)).toBeInTheDocument();
+    });
+
+    it('Avatar renders offline SVG initials avatar without calling ui-avatars.com', async () => {
+        const { Avatar } = await import('../components/Avatar');
+        const { container } = render(
+            <Avatar name="Dr. Jane Doe" photo="https://ui-avatars.com/api/?name=Jane" />
+        );
+
+        // ui-avatars.com photo should be ignored, rendering SVG/initials
+        expect(container.querySelector('img')).toBeNull();
+        expect(screen.getByText('JD')).toBeInTheDocument();
+    });
 });

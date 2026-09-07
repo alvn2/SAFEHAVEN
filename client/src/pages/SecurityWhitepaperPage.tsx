@@ -85,7 +85,12 @@ export const SecurityWhitepaperPage = () => {
 
       <div className="text-center pt-8 border-t border-gray-200 dark:border-gray-800">
         <p className="text-gray-500 mb-4">SafeHaven Codebase is Open Source.</p>
-        <a href="#" className="inline-flex items-center gap-2 text-primary-600 font-bold hover:underline">
+        <a 
+          href="https://github.com/alvn2/SAFEHAVEN" 
+          target="_blank" 
+          rel="noopener noreferrer" 
+          className="inline-flex items-center gap-2 text-primary-600 font-bold hover:underline"
+        >
           <Server size={18} /> View Source Code on GitHub
         </a>
       </div>

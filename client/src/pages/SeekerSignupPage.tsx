@@ -95,7 +95,7 @@ export const SeekerSignupPage = () => {
                             <label className="flex items-start gap-3 cursor-pointer">
                                 <input type="checkbox" className="mt-1 w-4 h-4 text-primary-600 rounded border-gray-300 focus:ring-primary-500" checked={agreedToTerms} onChange={e => setAgreedToTerms(e.target.checked)} required />
                                 <span className="text-sm text-gray-700 dark:text-gray-300">
-                                    I agree to the <a href="#" className="text-primary-600 hover:underline">Terms of Service</a> and <a href="#" className="text-primary-600 hover:underline">Privacy Policy</a>. I understand that SafeHaven does not collect my email.
+                                    I agree to the <Link to="/legal/terms" target="_blank" className="text-primary-600 hover:underline">Terms of Service</Link> and <Link to="/legal/privacy" target="_blank" className="text-primary-600 hover:underline">Privacy Policy</Link>. I understand that SafeHaven does not collect my email.
                                 </span>
                             </label>
                             

@@ -37,8 +37,12 @@ router.post('/organizations', authenticate, async (req: AuthRequest, res) => {
 router.post('/quotes', authenticate, async (req: AuthRequest, res) => {
   try {
     const { text, author } = req.body;
+    if (!text || !text.trim()) {
+      res.status(400).json({ error: 'Quote text is required' });
+      return;
+    }
     const quote = await prisma.quoteSuggestion.create({
-      data: { text, author, status: 'PENDING', submittedById: req.user!.id }
+      data: { text: text.trim(), author: (author || 'Anonymous').trim(), status: 'APPROVED', submittedById: req.user!.id }
     });
     res.json(quote);
   } catch (e) { res.status(500).json({ error: 'Failed to submit quote' }); }

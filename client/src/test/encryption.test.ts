@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { encrypt, decrypt } from '../lib/encryption';
+import { encrypt, decrypt, deriveChatKey, encryptChatMessage, decryptChatMessage } from '../lib/encryption';
 
 describe('Zero-Knowledge Client-Side Encryption', () => {
   it('returns plaintext if passphrase is empty', () => {
@@ -50,3 +50,41 @@ describe('Zero-Knowledge Client-Side Encryption', () => {
     expect(decrypt('', 'key')).toBe('');
   });
 });
+
+describe('Peer-to-Peer Chat Encryption', () => {
+  it('derives consistent deterministic keys scoped to conversationId', () => {
+    const key1 = deriveChatKey('conv-abc-123');
+    const key2 = deriveChatKey('conv-abc-123');
+    const keyDiff = deriveChatKey('conv-xyz-789');
+
+    expect(key1).toBe(key2);
+    expect(key1).not.toBe(keyDiff);
+  });
+
+  it('encrypts chat message into AES ciphertext starting with Salted__ prefix', () => {
+    const message = 'I am struggling today and need someone to talk to.';
+    const convId = 'conv-42';
+    const ciphertext = encryptChatMessage(message, convId);
+
+    expect(ciphertext).not.toBe(message);
+    expect(ciphertext.startsWith('U2FsdGVkX1')).toBe(true);
+  });
+
+  it('decrypts encrypted chat message with conversation scope', () => {
+    const message = 'Thank you for being here for me 💙';
+    const convId = 'conv-42';
+    const ciphertext = encryptChatMessage(message, convId);
+    const decrypted = decryptChatMessage(ciphertext, convId);
+
+    expect(decrypted).toBe(message);
+  });
+
+  it('preserves legacy unencrypted messages if received from database', () => {
+    const legacyMessage = 'Hello, this is an unencrypted legacy test message';
+    const convId = 'conv-42';
+    const result = decryptChatMessage(legacyMessage, convId);
+
+    expect(result).toBe(legacyMessage);
+  });
+});
+

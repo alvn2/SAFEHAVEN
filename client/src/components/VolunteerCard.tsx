@@ -1,7 +1,9 @@
 import React, { useContext, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { chatApi } from '../lib/api';
 import { Volunteer } from '../types';
 import { Card, Badge, Button } from './ui';
+import { Avatar } from './Avatar';
 import { CheckCircle, MessageCircle, MessageSquare, Send } from 'lucide-react';
 import { VOLUNTEER_ROLES } from '../utils/constants';
 import { AuthContext } from '../context/AuthContext';
@@ -15,13 +17,27 @@ export const VolunteerCard: React.FC<VolunteerCardProps> = ({ volunteer, onExter
   const navigate = useNavigate();
   const { user } = useContext(AuthContext);
 
-  const handleChat = () => {
+  const [isInitiating, setIsInitiating] = useState(false);
+
+  const handleChat = async () => {
     if (!user) {
         navigate('/auth');
         return;
     }
-    // Navigate to chat — backend handles conversation creation
-    navigate(`/chat?volunteer=${volunteer.userId}`);
+    try {
+        setIsInitiating(true);
+        const conv = await chatApi.createConversation(volunteer.userId);
+        if (conv?.id) {
+            navigate(`/chat?id=${conv.id}`);
+        } else {
+            navigate('/chat');
+        }
+    } catch (e) {
+        console.error('Failed to start chat:', e);
+        navigate('/chat');
+    } finally {
+        setIsInitiating(false);
+    }
   };
 
   return (
@@ -29,7 +45,7 @@ export const VolunteerCard: React.FC<VolunteerCardProps> = ({ volunteer, onExter
       <div className="p-6 flex-1">
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center gap-3">
-            <img src={volunteer.photo} alt={volunteer.name} className="w-12 h-12 rounded-full object-cover" />
+            <Avatar name={volunteer.name} photo={volunteer.photo} size="lg" />
             <div>
               <h3 className="font-bold text-lg leading-tight dark:text-white">{volunteer.name}</h3>
               <p className="text-xs text-gray-500">{volunteer.qualification}</p>
@@ -62,9 +78,9 @@ export const VolunteerCard: React.FC<VolunteerCardProps> = ({ volunteer, onExter
         </div>
       </div>
       <div className="p-4 border-t border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 space-y-2">
-        <Button onClick={handleChat} className="w-full flex items-center justify-center gap-2" variant={volunteer.isOnline ? 'primary' : 'outline'}>
+        <Button onClick={handleChat} disabled={isInitiating} className="w-full flex items-center justify-center gap-2" variant={volunteer.isOnline ? 'primary' : 'outline'}>
             <MessageSquare className="w-4 h-4" /> 
-            {volunteer.isOnline ? 'Chat Securely' : 'Leave Message'}
+            {isInitiating ? 'Connecting...' : (volunteer.isOnline ? 'Chat Securely' : 'Leave Message')}
         </Button>
         <div className="flex gap-2">
             <button 

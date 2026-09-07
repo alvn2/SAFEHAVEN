@@ -118,25 +118,33 @@ sequenceDiagram
     FE-->>U: Display journal entry
 ```
 
-### 3.3 Real-Time Chat Flow
+### 3.3 Real-Time Chat Flow (E2E Encrypted)
 
 ```mermaid
 sequenceDiagram
-    participant S as Seeker
-    participant FE1 as Seeker's Browser
+    participant S as Seeker (Browser)
+    participant CE1 as CryptoJS (Seeker)
     participant WS as Socket.IO Server
-    participant FE2 as Volunteer's Browser
-    participant V as Volunteer
+    participant CE2 as CryptoJS (Volunteer)
+    participant V as Volunteer (Browser)
 
-    S->>FE1: Type message
-    FE1->>WS: emit('send_message', {conversationId, message})
-    WS->>WS: io.to(conversationId).emit('receive_message')
-    WS-->>FE2: 'receive_message' event
-    FE2-->>V: Display new message
+    Note over S,CE1: 1. Derive Session Key from conversationId
+    S->>CE1: deriveChatKey(conversationId)
+    CE1-->>S: sessionKey = SHA-256("safehaven:chat:v1:" + conversationId)
 
-    Note over FE1,WS: Typing indicators
-    FE1->>WS: emit('typing', {conversationId, username})
-    WS-->>FE2: 'user_typing' event
+    S->>CE1: encryptChatMessage(plaintext, conversationId)
+    CE1-->>S: ciphertext = AES-256(plaintext, sessionKey)
+
+    S->>WS: emit('send_message', {conversationId, message: ciphertext})
+    Note over WS: 2. Enforce verified participant check (no admin bypass)
+    WS->>WS: Validate participant in DB (conversationParticipant)
+    WS->>WS: io.to(conversationId).emit('receive_message', {ciphertext})
+    WS-->>V: 'receive_message' event with ciphertext
+
+    Note over V,CE2: 3. Decrypt in recipient browser
+    V->>CE2: decryptChatMessage(ciphertext, conversationId)
+    CE2-->>V: plaintext message
+    V-->>V: Render decrypted message
 ```
 
 ---
@@ -372,3 +380,32 @@ graph LR
 | Variable | Description |
 |----------|------------|
 | `VITE_API_URL` | Backend API base URL (e.g., `https://safehaven-backend-hmes.onrender.com/api`) |
+
+---
+
+## 10. Security & Zero-Knowledge Architecture
+
+SafeHaven implements a zero-knowledge threat model where neither malicious third parties, compromised infrastructure, nor platform administrators can read private seeker data.
+
+### 10.1 Seeker De-Tracking & Administrative Isolation
+- **Endpoint**: `GET /api/admin/users` enforces `where: { role: { not: 'USER' } }`.
+- **UI Boundary**: The Admin Dashboard tab is restricted to **"Volunteers & Staff"**. Anonymous seekers are structurally unreachable via administrative APIs or UI rosters, eliminating internal surveillance vectors.
+
+### 10.2 End-to-End Encryption Specification
+- **Journal & Safety Plan**: Client-side AES-256 via CryptoJS with user's local passphrase. Ciphertext is stored at rest.
+- **Peer Chat**: Client-side AES-256 derived deterministically per conversation ID (`SHA-256("safehaven:chat:v1:" + conversationId)`).
+- **WebSocket Access Control**: Socket handlers verify confirmed participant status against `conversationParticipant`. The administrator room-join bypass has been eradicated.
+
+### 10.3 Atomic Emergency Account Deletion ("Nuke")
+- Executed via `DELETE /api/auth/nuke`.
+- Runs an atomic `prisma.$transaction` that systematically deletes messages, conversation participants, orphaned conversations, quote suggestions, moderator applications, community groups, events, journal entries, safety plans, and volunteer profiles before deleting the user.
+- Empties browser `localStorage` and `sessionStorage` upon completion.
+
+### 10.4 Cryptographic Audit Trail Anonymization
+- Target entity IDs and performing admin IDs are hashed with SHA-256 (`safehaven:audit:<id>`).
+- Audit log descriptions avoid plaintext usernames, replacing them with pseudonymous reference tokens (`user [ref: #<hash>]`).
+
+### 10.5 Local Device & Network Protection
+- **Task Switcher Shield**: `PrivacyMask` monitors `document.visibilitychange` and blanks the screen when backgrounded on mobile/desktop OSs.
+- **Third-Party Tracker Elimination**: Zero external web fonts (native system font stack), zero external avatar CDNs (offline SVG avatars), and strict `referrerPolicy: 'no-referrer'`.
+

@@ -24,7 +24,7 @@
 
 ```bash
 # Clone the repository
-git clone <your-repo-url> safehaven
+git clone https://github.com/alvn2/SAFEHAVEN.git safehaven
 cd safehaven
 
 # Install dependencies
@@ -272,8 +272,12 @@ Authorization: Bearer <jwt_token>
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | GET | `/stats` | Platform statistics |
-| GET | `/users` | All users |
-| GET | `/audit-logs` | Audit trail |
+| GET | `/users` | Staff and volunteer directory (`role: { not: 'USER' }`; seekers are strictly de-tracked) |
+| POST | `/users/:id/suspend` | Suspend volunteer/staff account |
+| POST | `/users/:id/reactivate` | Reactivate suspended volunteer/staff account |
+| POST | `/users/:id/role` | Change role (restricted to max `MODERATOR`; cannot promote to `ADMIN`) |
+| DELETE | `/users/:id` | Delete staff account (admins cannot be deleted) |
+| GET | `/audit-logs` | Anonymized audit trail with SHA-256 hashed target and actor IDs |
 | GET | `/applications` | Volunteer applications |
 | POST | `/applications/:id/approve` | Approve volunteer |
 | POST | `/applications/:id/reject` | Reject volunteer |
@@ -298,9 +302,11 @@ Authorization: Bearer <jwt_token>
 | File | Purpose |
 |------|---------|
 | `src/lib/api.ts` | Central API client — all backend calls go through `request<T>()` |
-| `src/lib/encryption.ts` | CryptoJS AES encrypt/decrypt functions |
+| `src/lib/encryption.ts` | CryptoJS AES encrypt/decrypt, chat key derivation, and KeePassXC vault export |
 | `src/context/AuthContext.tsx` | Auth state, login/logout/register, session timeout |
 | `src/components/ui.tsx` | Reusable UI primitives (Button, Badge, Modal) |
+| `src/components/Avatar.tsx` | Offline deterministic SVG initials avatar (zero external network tracking) |
+| `src/components/ExternalLinkWarning.tsx` | External link security warnings with phone exposure alerts |
 | `src/types/index.ts` | All TypeScript interfaces |
 
 ### Adding a New Page
@@ -322,24 +328,24 @@ Authorization: Bearer <jwt_token>
 5. Session auto-locks after 15 minutes of no mouse/keyboard/scroll activity
 
 ### Roles
-- `USER` — Default seeker role
+- `USER` — Default anonymous seeker role (strictly isolated from admin rosters)
 - `VOLUNTEER_PENDING` — Applied but not yet approved
 - `VOLUNTEER_APPROVED` — Approved volunteer with profile
 - `MODERATOR` — Content moderation permissions
-- `ADMIN` — Full platform access
+- `ADMIN` — Platform administration and volunteer vetting
 
 ---
 
 ## 8. Real-Time Features
 
-### Socket.IO Events
+### Socket.IO Events & E2E Encryption
 
 | Event | Direction | Payload | Description |
 |-------|-----------|---------|-------------|
-| `join_room` | Client → Server | `roomId: string` | Join chat room |
+| `join_room` | Client → Server | `roomId: string` | Join chat room (strictly verifies participant in DB; no admin bypass) |
 | `leave_room` | Client → Server | `roomId: string` | Leave chat room |
-| `send_message` | Client → Server | `{conversationId, message}` | Send chat message |
-| `receive_message` | Server → Client | `message` | Receive chat message |
+| `send_message` | Client → Server | `{conversationId, message: ciphertext}` | Send AES-256 encrypted chat message |
+| `receive_message` | Server → Client | `message: ciphertext` | Receive encrypted chat message |
 | `typing` | Client → Server | `{conversationId, username}` | Typing indicator |
 | `user_typing` | Server → Client | `username` | Show typing indicator |
 
@@ -347,21 +353,30 @@ Authorization: Bearer <jwt_token>
 
 ## 9. Testing
 
+Both server and client have dedicated, zero-mock test suites:
+
 ```bash
+# Server Test Suite (22 invariant, security, and middleware tests)
+cd server
+npm test
+
+# Client Test Suite (45 unit, component, encryption, and vault tests)
 cd client
-npm test        # Run all tests
-npm test -- --reporter=verbose  # Verbose output
+npx vitest run
 ```
 
 ### Test Files
-- `src/test/components.test.tsx` — UI primitives (Button, Badge, Modal, VolunteerCard)
-- `src/test/features.test.tsx` — Encryption, auth logic, recovery flow
-- `src/test/pages.test.tsx` — SeekerDashboard, VolunteerNetwork page rendering
 
-### Test Stack
-- **Vitest** — Test runner
-- **@testing-library/react** — React component testing
-- **jsdom** — Browser environment simulation
+**Backend (`server/src/test/`):**
+- `security.test.ts` — 22 tests validating structured error envelopes, idempotency replay, sliding window rate limiting, in-memory SWR caching, JWT cryptographic rigor, auth/RBAC middleware, and recovery key hashing.
+
+**Frontend (`client/src/test/`):**
+- `encryption.test.ts` — ZK encryption, AES salting, conversation key derivation, chat encryption/decryption
+- `vault.test.ts` — KeePassXC `.safevault` import/export
+- `installPrompt.test.tsx` — PWA install banner
+- `features.test.tsx` — Auth, navigation, role-based routing
+- `pages.test.tsx` — SeekerDashboard, safety plan, vault controls
+- `components.test.tsx` — Buttons, badges, modals, hotline bar, ExternalLinkWarning, offline Avatar
 
 ---
 
@@ -380,27 +395,21 @@ npm test -- --reporter=verbose  # Verbose output
 4. Set environment variables: `DATABASE_URL`, `JWT_SECRET`, `PORT`, `CLIENT_URL`
 
 ### Database (Neon)
-- Managed PostgreSQL — no deployment needed
-- Schema changes: `npx prisma db push` from local machine
+- Managed PostgreSQL serverless — no manual deployment needed
+- Schema updates: `npx prisma db push`
 
 ---
 
-## 11. Code Standards
+## 11. Code Standards & Cryptographic Invariants
 
 ### TypeScript
 - Strict mode enabled
 - All API responses typed
-- No `any` in production code (legacy exceptions documented)
+- No `any` in production code
 
-### Naming Conventions
-- **Files:** PascalCase for components (`HomePage.tsx`), camelCase for utilities (`api.ts`)
-- **Variables:** camelCase
-- **Types/Interfaces:** PascalCase
-- **Constants:** SCREAMING_SNAKE_CASE
-
-### Security Rules
-- Never store plaintext sensitive data
-- Always encrypt journal/safety plan content client-side before sending
-- Never log user content on the server
-- Use parameterized queries (Prisma handles this)
-- Validate all input with Zod schemas
+### Cryptographic & Privacy Invariants
+1. **Never store plaintext sensitive data**: Journal entries, safety plans, and chat messages must be encrypted client-side using AES-256 before network transmission.
+2. **Seeker De-Tracking**: Never query or list `USER` role accounts in administrative rosters (`GET /admin/users` must enforce `role: { not: 'USER' }`).
+3. **No Administrative Eavesdropping**: WebSocket room joins must strictly require proven participant status in `conversationParticipant`.
+4. **Audit Anonymization**: All IDs written to audit logs must be one-way hashed with SHA-256.
+5. **No External CDNs / Trackers**: All assets, fonts, and avatars must be self-contained and offline-safe.

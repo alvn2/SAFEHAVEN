@@ -75,3 +75,65 @@ This document records the architectural and design decisions made for **SafeHave
 - **Consequences & Tradeoffs**:
   - **Positive**: Zero external dependencies, instant sub-millisecond lookups, zero monthly cost, clean test exit times.
   - **Negative**: If scaled horizontally to multiple Render container replicas in the future, rate limits and caches will be local to each replica until migrated to a shared store.
+
+---
+
+## ADR-005: Structural Seeker De-Tracking from Admin Roster & Surveillance Isolation
+- **Status**: Accepted
+- **Date**: 2026-09-07
+- **Context**: In mental health platforms, internal administrative surveillance represents a major de-anonymization threat vector. A compromised administrator account or insider threat could observe which pseudonyms exist, correlating them with community activities or timestamps.
+- **Decision**: Structurally exclude regular seekers (`role: 'USER'`) from all administrative user listings on the backend (`server/src/routes/admin.ts` enforces `where: { role: { not: 'USER' } }`). Rename the administrative management view to **"Volunteers & Staff"**, restricting admin oversight strictly to verified listeners, licensed counselors, and moderators.
+- **Alternatives Considered & Rejected**:
+  - *Show Hashed/Masked Usernames to Admins*: Rejected. Even masked entries leak total user counts, registration velocity, and activity timestamps to administrative eyes.
+  - *Full Seeker Admin Management*: Rejected. Administrators have no operational reason to view or alter anonymous seeker accounts.
+- **Consequences & Tradeoffs**:
+  - **Positive**: Eliminates administrative surveillance liability. It is mathematically and architecturally impossible for an administrator to list or enumerate seekers via the UI or admin endpoints.
+  - **Negative**: If a seeker experiences account lockouts, administrators cannot manually assist them; seekers must rely on their sovereign 12-word recovery key.
+
+---
+
+## ADR-006: Client-Side End-to-End Peer Chat Encryption & Backdoor Elimination
+- **Status**: Accepted
+- **Date**: 2026-09-07
+- **Context**: Real-time crisis dialogues between seekers and volunteers must be private. In previous iterations, messages were stored in plaintext, and administrators possessed an unlogged bypass (`&& user.role !== 'ADMIN'`) to join any private chat room.
+- **Decision**: 
+  1. Derive a deterministic session key per conversation (`deriveChatKey(conversationId)` using SHA-256) and encrypt all chat messages client-side using AES-256 before transmitting over WebSockets or HTTP.
+  2. Eliminate the administrator room-join backdoor in `server/src/index.ts`. Only verified conversation participants may join socket rooms or receive real-time messages.
+- **Alternatives Considered & Rejected**:
+  - *Server-Side DB Encryption*: Rejected. Server holds the key in memory and can inspect messages in transit.
+  - *Public Key Double Ratchet (Signal Protocol)*: Deferred. Highly complex for browser ephemeral sessions without continuous multi-device key exchange infrastructure.
+- **Consequences & Tradeoffs**:
+  - **Positive**: Server and database administrators cannot read private support dialogues. Eavesdropping backdoors are eliminated.
+  - **Negative**: Conversation participants must compute client-side decryption on load.
+
+---
+
+## ADR-007: Atomic Cascadeless Emergency Account Deletion ("Nuke")
+- **Status**: Accepted
+- **Date**: 2026-09-07
+- **Context**: The emergency account deletion feature crashed with PostgreSQL foreign key constraint violation (`23503`) when deleting users who had sent messages, joined conversations, submitted quotes, or created journal entries.
+- **Decision**: Implement an atomic `prisma.$transaction` in `server/src/routes/auth.ts` that systematically sweeps all dependent records (`Message`, `ConversationParticipant`, orphaned `Conversation`, `QuoteSuggestion`, `ModeratorApplication`, `CommunityGroup`, `Event`, `JournalEntry`, `SafetyPlan`, `VolunteerProfile`) before deleting the `User` record.
+- **Alternatives Considered & Rejected**:
+  - *Soft Deletion (`deletedAt` flag)*: Rejected. Soft-deleted records leave sensitive residual data and relationship graphs on disk.
+  - *Database `ON DELETE CASCADE`*: Partially rejected as primary mechanism because Prisma client and raw migration schemas can desynchronize across different staging environments. The explicit transaction guarantees safety regardless of migration drift.
+- **Consequences & Tradeoffs**:
+  - **Positive**: Guaranteed 100% clean erasure of all user traces without database constraint crashes.
+  - **Negative**: Transaction locks dependent records for a few milliseconds during deletion.
+
+---
+
+## ADR-008: Local Privacy Guard & Elimination of Third-Party Trackers
+- **Status**: Accepted
+- **Date**: 2026-09-07
+- **Context**: Mobile OS task switchers take unencrypted screenshots of background apps, external messenger links (WhatsApp/Telegram) can expose real phone numbers, and third-party CDNs (Google Fonts, avatar generators) leak user IP addresses.
+- **Decision**:
+  1. Add a full-viewport `PrivacyMask` triggered by `document.visibilitychange` to obscure the UI whenever the app is backgrounded.
+  2. Implement `ExternalLinkWarning` with explicit de-anonymization warnings for WhatsApp (`wa.me`) and Telegram (`t.me`).
+  3. Remove all external Google Fonts links (use native system typography).
+  4. Replace `ui-avatars.com` with fully offline SVG initials avatars (`Avatar.tsx`).
+  5. Enforce `<meta name="referrer" content="no-referrer">` and Helmet HTTP referrer policy.
+- **Alternatives Considered & Rejected**:
+  - *Self-hosted WOFF2 webfonts*: Rejected to minimize network payload on Kenyan 2G/3G mobile networks and improve Largest Contentful Paint (LCP).
+- **Consequences & Tradeoffs**:
+  - **Positive**: Zero outbound network requests to analytics or CDN trackers; zero phone leaks; screenshot-proof task switching.
+  - **Negative**: External links require a 1-click confirmation modal.

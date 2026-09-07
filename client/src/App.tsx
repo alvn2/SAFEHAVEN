@@ -3,11 +3,42 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { RootLayout } from './components/Layout';
 import { AuthContext, AuthProvider } from './context/AuthContext';
 import { ThemeProvider, ThemeContext } from './context/ThemeContext';
-import { WifiOff } from 'lucide-react';
+import { WifiOff, Shield } from 'lucide-react';
 
 import { HomePage } from './pages/HomePage';
 import { AuthPage } from './pages/AuthPage';
 import { InstallPrompt } from './components/InstallPrompt';
+
+const PrivacyMask = () => {
+    const [isHidden, setIsHidden] = React.useState(false);
+
+    React.useEffect(() => {
+        const handleVisibilityChange = () => {
+            setIsHidden(document.visibilityState === 'hidden');
+        };
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+        return () => {
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+        };
+    }, []);
+
+    if (!isHidden) return null;
+
+    return (
+        <div
+            aria-hidden="true"
+            className="fixed inset-0 z-[99999] bg-gray-950 flex flex-col items-center justify-center text-center p-6 select-none pointer-events-none"
+        >
+            <div className="w-16 h-16 rounded-2xl bg-primary-600/20 flex items-center justify-center border border-primary-500/30 mb-4 shadow-xl">
+                <Shield className="w-8 h-8 text-primary-400" />
+            </div>
+            <h2 className="text-xl font-bold text-white mb-2 tracking-tight">SafeHaven Privacy Guard Active</h2>
+            <p className="text-sm text-gray-400 max-w-xs leading-relaxed">
+                App content is masked while SafeHaven is in the background to prevent app-switcher snooping and screenshot leakage.
+            </p>
+        </div>
+    );
+};
 
 // Lazy-loaded routes for code splitting & bundle reduction
 const SeekerSignupPage = lazy(() => import('./pages/SeekerSignupPage').then(m => ({ default: m.SeekerSignupPage })));
@@ -60,11 +91,22 @@ const OfflineBanner = () => {
 };
 
 const AppRoutes = () => {
-  const { user } = useContext(AuthContext);
+  const { user, isLoading } = useContext(AuthContext);
   const { isDark, toggleTheme } = useContext(ThemeContext);
+
+  // Until AuthContext resolves the session, show a spinner instead of
+  // incorrectly redirecting to /auth on protected routes.
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <PageFallback />
+      </div>
+    );
+  }
 
   return (
     <Router>
+        <PrivacyMask />
         <OfflineBanner />
         <InstallPrompt />
         <RootLayout toggleTheme={toggleTheme} isDark={isDark}>

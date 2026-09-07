@@ -100,7 +100,8 @@ export const StorageService = {
       return entries.map((e: any) => ({
         ...e,
         date: e.date || e.createdAt,
-        entry: decrypt(e.entry, pass)
+        entry: decrypt(e.entry, pass),
+        audioData: (e.audioData && pass) ? (decrypt(e.audioData, pass) || e.audioData) : e.audioData
       })).filter((e: any) => e.entry !== '');
     } catch { return []; }
   },

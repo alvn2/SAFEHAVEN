@@ -26,7 +26,7 @@ SafeHaven ("the Platform") is a privacy-first mental health support platform. We
 | **Journal Entries** | Self-help tool | Server | AES-256 E2E encrypted — **we cannot read them** |
 | **Safety Plan** | Crisis management | Server | AES-256 E2E encrypted — **we cannot read them** |
 | **Forum Posts** | Peer support | Server | Plaintext (publicly visible, anonymous) |
-| **Chat Messages** | 1-on-1 volunteer support | Server | Encrypted at rest |
+| **Chat Messages** | 1-on-1 volunteer support | Server | **Client-side AES-256 E2E encrypted** via conversation keys — **we cannot read them** |
 | **Mood/Energy/Sleep Scores** | Wellness tracking | Server | Associated with pseudonym only |
 
 ### 2.2 Information We DO NOT Collect
@@ -38,9 +38,10 @@ We **never** collect, request, or store:
 - ❌ Physical address
 - ❌ Government ID or national ID number
 - ❌ Location / GPS data
-- ❌ IP address logs (beyond standard server request logs)
+- ❌ IP address logs (beyond transient reverse-proxy connection sockets)
 - ❌ Device fingerprints
-- ❌ Third-party cookies or tracking pixels
+- ❌ Third-party fonts or tracking pixels (all fonts and avatars are native/offline)
+- ❌ Third-party cookies or analytics SDKs
 - ❌ Payment information (the platform is free)
 
 ### 2.3 Volunteer Application Data
@@ -84,17 +85,19 @@ This data is used **only** for volunteer vetting and is accessible **only** to S
 | **Transport Encryption** | HTTPS (TLS 1.3) for all communications |
 | **Password Storage** | bcrypt with 12 salt rounds (irreversible hash) |
 | **Journal/Safety Plan Encryption** | AES-256 client-side encryption (E2E — server cannot decrypt) |
+| **Peer Chat Encryption** | AES-256 client-side encryption derived per conversation ID |
+| **Admin Seeker Isolation** | `role: { not: 'USER' }` filter strictly prevents administrators from listing or enumerating seekers |
 | **Session Management** | JWT tokens with 24h expiry, 15-min inactivity timeout |
 | **Token Storage** | sessionStorage only (cleared when tab/browser closes) |
-| **Security Headers** | Helmet.js (CSP, HSTS, X-Frame-Options, etc.) |
+| **Security Headers** | Helmet.js (CSP, HSTS, X-Frame-Options, referrer-policy: no-referrer) |
 | **CORS** | Whitelist-only cross-origin requests |
 | **Database** | PostgreSQL with SSL/TLS connection required |
 
 ### Organizational Measures
-- Admin actions are logged in the audit trail
-- Volunteer verification requires credential checks
-- Content moderation follows community guidelines
-- Regular security reviews
+- Admin actions are logged in the anonymized audit trail (SHA-256 hashed IDs)
+- Volunteer verification requires credential checks through official government and NGO partner channels
+- Content moderation follows community guidelines without deanonymizing authors
+- Regular security and red-team audits
 
 ---
 
@@ -105,23 +108,25 @@ This data is used **only** for volunteer vetting and is accessible **only** to S
 | Account data | Until you delete your account |
 | Journal entries | Until you delete them or nuke your account |
 | Forum posts | Indefinitely (anonymous, no PII) |
-| Chat messages | Until conversation is deleted |
+| Chat messages | Ephemeral (auto-pruned after 7 days, or upon conversation deletion) |
 | Volunteer applications | 2 years after decision |
-| Audit logs | 3 years |
+| Audit logs | 3 years (cryptographically anonymized) |
 
 ### Account Deletion ("Right to Erasure")
 
 You can **permanently delete all your data** at any time:
 1. Go to **Security Center**
-2. Click **"Delete All My Data"**
+2. Click **"Delete All My Data (Nuke Account)"**
 3. Confirm deletion
 
-This is **irreversible** and removes:
+This executes an **atomic cascadeless database transaction** that completely removes:
 - Your account and credentials
 - All journal entries
 - Your safety plan
-- All chat messages
+- All chat messages, participants, and empty conversation shells
+- All community groups, events, and quote suggestions created by your pseudonym
 - Your volunteer profile (if applicable)
+- Clears all browser localStorage and sessionStorage immediately
 
 ---
 

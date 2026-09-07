@@ -25,7 +25,13 @@ export const CommunityPage = () => {
         communityApi.getGroups().then(setGroups).catch(() => setGroups([]));
         communityApi.getEvents().then(setEvents).catch(() => setEvents([]));
         communityApi.getOrganizations().then(setOrgs).catch(() => setOrgs([]));
-        communityApi.getQuotes().then(q => setDailyQuote(q[0])).catch(() => {});
+        communityApi.getQuotes().then(q => {
+            if (q && q.length > 0) {
+                // Select quote based on day of year so it stays consistent throughout the day
+                const dayIndex = Math.floor(Date.now() / 86400000) % q.length;
+                setDailyQuote(q[dayIndex]);
+            }
+        }).catch(() => {});
     }, []);
 
     const handleVote = (optionId: string) => {
@@ -125,8 +131,17 @@ export const CommunityPage = () => {
                         <Sun className="w-5 h-5" />
                         <h3 className="font-bold text-lg">Daily Wisdom</h3>
                     </div>
-                    <p className="italic font-serif text-lg text-gray-800 dark:text-gray-200 mb-2">"{dailyQuote?.text}"</p>
-                    <p className="text-xs font-bold uppercase tracking-widest text-gray-500">— {dailyQuote?.author}</p>
+                    {dailyQuote ? (
+                        <>
+                            <p className="italic font-serif text-lg text-gray-800 dark:text-gray-200 mb-2">"{dailyQuote.text}"</p>
+                            <p className="text-xs font-bold uppercase tracking-widest text-gray-500">— {dailyQuote.author || 'Anonymous'}</p>
+                        </>
+                    ) : (
+                        <>
+                            <p className="italic font-serif text-lg text-gray-800 dark:text-gray-200 mb-2">"Haba na haba, hujaza kibaba. (Little by little, the measure is filled. Healing takes time.)"</p>
+                            <p className="text-xs font-bold uppercase tracking-widest text-gray-500">— Swahili Proverb</p>
+                        </>
+                    )}
                 </Card>
             </div>
         </div>

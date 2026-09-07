@@ -4,6 +4,67 @@ import { authenticate, type AuthRequest } from '../middleware/auth.js';
 
 const router = express.Router();
 
+// Create or retrieve a conversation with a volunteer
+router.post('/conversations', authenticate, async (req: AuthRequest, res) => {
+    const { volunteerId } = req.body;
+    if (!volunteerId) {
+        res.status(400).json({ error: 'volunteerId is required' });
+        return;
+    }
+    try {
+        // Validate volunteer exists and is verified (support either profile ID or user ID)
+        const volunteerProfile = await prisma.volunteerProfile.findFirst({
+            where: {
+                OR: [
+                    { id: volunteerId },
+                    { userId: volunteerId }
+                ]
+            }
+        });
+        if (!volunteerProfile || !volunteerProfile.verified) {
+            res.status(404).json({ error: 'Volunteer not found or not verified' });
+            return;
+        }
+
+        // Check if a conversation already exists between these two users
+        const existing = await prisma.conversationParticipant.findFirst({
+            where: {
+                userId: req.user!.id,
+                conversation: {
+                    participants: {
+                        some: { userId: volunteerProfile.userId }
+                    }
+                }
+            },
+            include: { conversation: true }
+        });
+
+        if (existing) {
+            res.json(existing.conversation);
+            return;
+        }
+
+        // Create new conversation + participants
+        const conversation = await prisma.conversation.create({
+            data: {
+                type: 'dm',
+                lastMessage: '',
+                lastMessageAt: new Date(),
+                participants: {
+                    create: [
+                        { userId: req.user!.id, hasUnread: false },
+                        { userId: volunteerProfile.userId, hasUnread: true }
+                    ]
+                }
+            }
+        });
+
+        res.json(conversation);
+    } catch (e) {
+        res.status(500).json({ error: 'Failed to create conversation' });
+    }
+});
+
 // Get Conversations
 router.get('/conversations', authenticate, async (req: AuthRequest, res) => {
     try {

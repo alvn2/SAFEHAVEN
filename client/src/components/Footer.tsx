@@ -4,16 +4,16 @@ import { Logo } from './Logo';
 import { Phone, Heart } from 'lucide-react';
 
 export const Footer = () => (
-    <footer className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-t border-gray-200 dark:border-gray-800 mt-auto pt-12 pb-8 px-4 sm:px-6 lg:px-8">
+    <footer className="bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 mt-auto pt-12 pb-8 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
             <div className="grid md:grid-cols-4 gap-12 mb-12">
                 <div className="col-span-1 md:col-span-2 space-y-4">
                     <Logo />
-                    <p className="text-gray-600 dark:text-gray-400 leading-relaxed max-w-sm">
-                        A junction for healing. A collective for peace. SafeHaven is a non-profit initiative dedicated to providing free, private, and accessible mental health support to every Kenyan.
+                    <p className="text-gray-600 dark:text-gray-400 leading-relaxed max-w-sm text-sm">
+                        SafeHaven is an independent, volunteer-led initiative providing free, confidential peer support and mental health resources across Kenya. We are actively seeking philanthropic partners and grant funding to sustain and expand free access across East Africa.
                     </p>
                     <div className="flex gap-4">
-                        <Link to="/auth/volunteer/apply" className="text-sm font-bold text-primary-600 hover:underline">Volunteer with Us</Link>
+                        <Link to="/volunteer/apply" className="text-sm font-bold text-primary-600 hover:underline">Volunteer with Us</Link>
                     </div>
                 </div>
                 <div>
