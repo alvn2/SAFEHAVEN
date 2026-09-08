@@ -210,49 +210,47 @@ router.get('/me', authenticate, async (req: AuthRequest, res) => {
 router.delete('/nuke', authenticate, async (req: AuthRequest, res) => {
   const userId = req.user!.id;
   try {
-    await prisma.$transaction(async (tx) => {
-      // 1. Delete messages sent by user
-      await tx.message.deleteMany({ where: { senderId: userId } });
+    // 1. Delete messages sent by user
+    await prisma.message.deleteMany({ where: { senderId: userId } });
 
-      // 2. Find conversations user participated in
-      const participations = await tx.conversationParticipant.findMany({
-        where: { userId },
-        select: { conversationId: true }
-      });
-      const convIds = participations.map(p => p.conversationId);
-
-      // Remove user from conversation participants
-      await tx.conversationParticipant.deleteMany({ where: { userId } });
-
-      // Prune any conversations that now have no participants left
-      for (const convId of convIds) {
-        const remaining = await tx.conversationParticipant.count({ where: { conversationId: convId } });
-        if (remaining === 0) {
-          await tx.message.deleteMany({ where: { conversationId: convId } });
-          await tx.conversation.delete({ where: { id: convId } });
-        }
-      }
-
-      // 3. Delete quote suggestions submitted by user
-      await tx.quoteSuggestion.deleteMany({ where: { submittedById: userId } });
-
-      // 4. Delete moderator applications
-      await tx.moderatorApplication.deleteMany({ where: { userId } });
-
-      // 5. Delete community groups and events created by user
-      await tx.communityGroup.deleteMany({ where: { ownerId: userId } });
-      await tx.event.deleteMany({ where: { creatorId: userId } });
-
-      // 6. Delete journals and safety plan
-      await tx.journalEntry.deleteMany({ where: { userId } });
-      await tx.safetyPlan.deleteMany({ where: { userId } });
-
-      // 7. Delete volunteer profile if exists
-      await tx.volunteerProfile.deleteMany({ where: { userId } });
-
-      // 8. Finally delete the user account
-      await tx.user.delete({ where: { id: userId } });
+    // 2. Find conversations user participated in
+    const participations = await prisma.conversationParticipant.findMany({
+      where: { userId },
+      select: { conversationId: true }
     });
+    const convIds = participations.map(p => p.conversationId);
+
+    // Remove user from conversation participants
+    await prisma.conversationParticipant.deleteMany({ where: { userId } });
+
+    // Prune any conversations that now have no participants left
+    for (const convId of convIds) {
+      const remaining = await prisma.conversationParticipant.count({ where: { conversationId: convId } });
+      if (remaining === 0) {
+        await prisma.message.deleteMany({ where: { conversationId: convId } });
+        await prisma.conversation.delete({ where: { id: convId } });
+      }
+    }
+
+    // 3. Delete quote suggestions submitted by user
+    await prisma.quoteSuggestion.deleteMany({ where: { submittedById: userId } });
+
+    // 4. Delete moderator applications
+    await prisma.moderatorApplication.deleteMany({ where: { userId } });
+
+    // 5. Delete community groups and events created by user
+    await prisma.communityGroup.deleteMany({ where: { ownerId: userId } });
+    await prisma.event.deleteMany({ where: { creatorId: userId } });
+
+    // 6. Delete journals and safety plan
+    await prisma.journalEntry.deleteMany({ where: { userId } });
+    await prisma.safetyPlan.deleteMany({ where: { userId } });
+
+    // 7. Delete volunteer profile if exists
+    await prisma.volunteerProfile.deleteMany({ where: { userId } });
+
+    // 8. Finally delete the user account
+    await prisma.user.delete({ where: { id: userId } });
 
     res.json({ message: 'Account and all associated records permanently purged.' });
   } catch (error) {
