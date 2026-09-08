@@ -7,7 +7,7 @@ import { validate } from '../middleware/validate.js';
 const router = express.Router();
 
 const journalSchema = z.object({
-  id: z.string().optional(),
+  id: z.string().nullable().optional(),
   date: z.string(),
   mood: z.number().min(1).max(10),
   energy: z.number().min(1).max(10),

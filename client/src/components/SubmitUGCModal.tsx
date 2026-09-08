@@ -11,19 +11,24 @@ export const SubmitUGCModal: React.FC<Props> = ({ isOpen, onClose }) => {
   const [type, setType] = useState<'Group' | 'Event' | 'Organization' | 'Quote'>('Group');
   const [formData, setFormData] = useState<any>({ safetyRating: 'Community Moderated' });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [statusMsg, setStatusMsg] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setStatusMsg(null);
     try {
       if (type === 'Group') await communityApi.submitGroup(formData);
       if (type === 'Event') await communityApi.submitEvent(formData);
       if (type === 'Organization') await communityApi.submitOrg(formData);
       if (type === 'Quote') await communityApi.submitQuote(formData);
-      alert('Submitted successfully! Pending moderation approval.');
-      onClose();
+      setStatusMsg({ type: 'success', text: 'Submitted successfully! It will appear after quick review.' });
+      setTimeout(() => {
+        onClose();
+        setStatusMsg(null);
+      }, 1500);
     } catch {
-      alert('Failed to submit. Please ensure you are logged in.');
+      setStatusMsg({ type: 'error', text: 'Failed to submit. Please ensure you are logged in.' });
     } finally {
       setIsSubmitting(false);
     }
@@ -32,6 +37,11 @@ export const SubmitUGCModal: React.FC<Props> = ({ isOpen, onClose }) => {
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Submit to Community">
       <form onSubmit={handleSubmit} className="space-y-4">
+        {statusMsg && (
+          <div className={`p-3 rounded-xl text-sm text-center border ${statusMsg.type === 'success' ? 'bg-green-50 dark:bg-green-950/40 text-green-700 dark:text-green-300 border-green-200 dark:border-green-800' : 'bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300 border-red-200 dark:border-red-800'}`}>
+            {statusMsg.text}
+          </div>
+        )}
         <div>
           <label className="block text-sm font-bold mb-1 dark:text-gray-300">Submission Type</label>
           <select 

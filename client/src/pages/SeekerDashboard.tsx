@@ -197,11 +197,17 @@ export const SeekerDashboard = () => {
             } else {
                 const encryptedText = encrypt(entryText, passphrase);
                 const encryptedAudio = newEntry.audioData ? encrypt(newEntry.audioData, passphrase) : undefined;
-                await journalApi.upsert({
+                const saved = await journalApi.upsert({
                     ...newEntry,
                     entry: encryptedText,
                     audioData: encryptedAudio
                 });
+                if (saved && saved.id && !currentEntryId) {
+                    setCurrentEntryId(saved.id);
+                    const syncedEntries = updatedEntries.map(e => e.id === currentEntryId || (!e.id && e.entry === newEntry.entry) ? { ...e, id: saved.id } : e);
+                    setEntries(syncedEntries);
+                    saveLocalVault(syncedEntries, safetyPlan, passphrase);
+                }
             }
         }
         

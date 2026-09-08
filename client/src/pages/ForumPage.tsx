@@ -175,10 +175,16 @@ export const ForumPage = () => {
                     <h1 className="text-3xl font-bold font-serif dark:text-white">Peer Support</h1>
                     <p className="text-gray-500">Share your story safely and anonymously.</p>
                 </div>
-                {!isCreating && user && (
-                    <Button onClick={() => setIsCreating(true)} className="gap-2">
-                        <Plus className="w-5 h-5" /> New Post
-                    </Button>
+                {!isCreating && (
+                    user ? (
+                        <Button onClick={() => setIsCreating(true)} className="gap-2">
+                            <Plus className="w-5 h-5" /> New Post
+                        </Button>
+                    ) : (
+                        <Button variant="outline" onClick={() => navigate('/auth')} className="text-sm">
+                            Log in to Post
+                        </Button>
+                    )
                 )}
             </div>
 
@@ -226,7 +232,12 @@ export const ForumPage = () => {
                             </div>
                             <Badge color="blue">{post.category}</Badge>
                         </div>
-                        <h3 className="font-bold text-xl mb-2 dark:text-white">{post.title}</h3>
+                        <h3 
+                            onClick={() => toggleComments(post.id)} 
+                            className="font-bold text-xl mb-2 dark:text-white cursor-pointer hover:text-primary-600 transition-colors"
+                        >
+                            {post.title}
+                        </h3>
                         <p className={`text-gray-700 dark:text-gray-300 mb-4 whitespace-pre-wrap ${post.isTriggering ? 'blur-sm hover:blur-none transition-all cursor-pointer select-none' : ''}`} title={post.isTriggering ? "Click to reveal content" : ""}>{post.body}</p>
                         {post.isTriggering && (
                             <p className="flex items-center gap-1.5 text-xs text-red-500 mb-4 italic font-medium -mt-2">
@@ -240,7 +251,8 @@ export const ForumPage = () => {
                                 <Heart className="w-4 h-4 group-hover:scale-110 transition-transform" /> {post.hugs} Hugs
                             </button>
                             <button onClick={() => toggleComments(post.id)} className="flex items-center gap-1.5 text-gray-500 hover:text-blue-500 transition-colors text-sm font-medium group">
-                                <MessageCircle className="w-4 h-4 group-hover:scale-110 transition-transform" /> Reply
+                                <MessageCircle className="w-4 h-4 group-hover:scale-110 transition-transform" /> 
+                                <span>{expandedPost === post.id ? 'Close Thread' : 'Discussion & Replies'}</span>
                             </button>
                             <button
                                 onClick={() => !post.isFlagged && handleReport(post.id)}

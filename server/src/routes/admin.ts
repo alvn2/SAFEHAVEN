@@ -336,9 +336,9 @@ router.post('/mod-applications/:id/:action', async (req: AuthRequest, res) => {
     if (action === 'approve') {
       const user = await prisma.user.update({ where: { id: app.userId }, data: { role: 'MODERATOR' },
         select: { username: true } });
-      await audit(req.user!.id, 'MOD_APP_APPROVED', `Approved moderator application for ${user.username}`, app.userId);
+      await audit(req.user!.id, 'MOD_APP_APPROVED', `Approved moderator application for user [ref: #${shortHash(app.userId)}]`, app.userId);
     } else {
-      await audit(req.user!.id, 'MOD_APP_REJECTED', `Rejected moderator application (userId: ${app.userId})`, app.userId);
+      await audit(req.user!.id, 'MOD_APP_REJECTED', `Rejected moderator application for user [ref: #${shortHash(app.userId)}]`, app.userId);
     }
     res.json({ success: true });
   } catch (e) {

@@ -14,6 +14,7 @@ export const SeekerSignupPage = () => {
     const [becomePeerListener, setBecomePeerListener] = useState(false);
     const [recoveryKey, setRecoveryKey] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [signupError, setSignupError] = useState<string | null>(null);
     const navigate = useNavigate();
 
     // Auto-generate Reddit-style username on load
@@ -30,8 +31,9 @@ export const SeekerSignupPage = () => {
 
     const handleSignup = async (e: React.FormEvent) => {
         e.preventDefault();
+        setSignupError(null);
         if (!agreedToTerms) {
-            alert("You must agree to the Terms and Conditions to proceed.");
+            setSignupError("You must agree to the Terms of Service and Privacy Policy to proceed.");
             return;
         }
         setIsLoading(true);
@@ -41,7 +43,7 @@ export const SeekerSignupPage = () => {
             setRecoveryKey(key);
             setStep(2);
         } catch (err: any) {
-            alert(err.message || 'Registration failed. Try a different username.');
+            setSignupError(err.message || 'Registration failed. Try a different username.');
         } finally {
             setIsLoading(false);
         }
@@ -86,6 +88,11 @@ export const SeekerSignupPage = () => {
 
                 {step === 1 && (
                     <form onSubmit={handleSignup} className="space-y-4">
+                        {signupError && (
+                            <div className="p-3 bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-xl text-sm text-center border border-red-200 dark:border-red-800">
+                                {signupError}
+                            </div>
+                        )}
                         <Input label="Anonymous Username" value={username} onChange={e => setUsername(e.target.value)} required placeholder="Choose a pseudonym" />
                         <p className="text-[10px] text-gray-500 -mt-3 ml-1">We've generated a random secure username for you, but you can change it.</p>
                         

@@ -42,8 +42,95 @@ export const ARTICLES: Article[] = [
   }
 ];
 
-export const BOOKS: Book[] = [];
-export const VIDEOS: Video[] = [];
+export const BOOKS: Book[] = [
+  {
+    id: 'b1',
+    title: 'The Body Keeps the Score',
+    author: 'Bessel van der Kolk, M.D.',
+    description: 'A transformative exploration of trauma, somatic memory, and pathways to neurological and emotional recovery.',
+    link: 'https://www.besselvanderkolk.com/resources/the-body-keeps-the-score',
+    cover: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=600',
+    category: 'Trauma & Healing',
+    type: 'book'
+  },
+  {
+    id: 'b2',
+    title: 'Maybe You Should Talk to Someone',
+    author: 'Lori Gottlieb',
+    description: 'A candid and compassionate look at psychotherapy from both sides of the couch.',
+    link: 'https://lorigottlieb.com/books/maybe-you-should-talk-to-someone/',
+    cover: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=600',
+    category: 'Therapy & Growth',
+    type: 'book'
+  },
+  {
+    id: 'b3',
+    title: 'Set Boundaries, Find Peace',
+    author: 'Nedra Glover Tawwab',
+    description: 'A guide to reclaiming yourself through healthy boundary-setting and emotional safety.',
+    link: 'https://www.nedratawwab.com/set-boundaries-find-peace',
+    cover: 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=600',
+    category: 'Boundaries & Relationships',
+    type: 'book'
+  }
+];
+
+export const VIDEOS: Video[] = [
+  {
+    id: 'v1',
+    title: 'Understanding the Window of Tolerance',
+    presenter: 'Trauma Informed Care Initiative',
+    description: 'Learn how nervous system regulation and grounding techniques restore emotional equilibrium during acute distress.',
+    duration: '11 min',
+    thumbnail: 'https://images.unsplash.com/photo-1516307365426-bea591f05011?w=800',
+    link: 'https://www.youtube.com/watch?v=Wcm-1FBrWuI',
+    category: 'Nervous System Regulation',
+    type: 'video'
+  },
+  {
+    id: 'v2',
+    title: 'Somatic Grounding & Box Breathing',
+    presenter: 'SafeHaven Listening Collective',
+    description: 'A quiet, guided somatic audio-visual exercise designed to de-escalate panic attacks and hyperarousal.',
+    duration: '5 min',
+    thumbnail: 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=800',
+    link: 'https://www.youtube.com/watch?v=tEmt1Znux58',
+    category: 'Grounding Exercises',
+    type: 'video'
+  }
+];
+
+export const ORGANIZATIONS = [
+  {
+    id: 'org-1',
+    name: 'Befrienders Kenya',
+    category: 'Crisis Intervention',
+    description: 'Non-profit providing free, confidential emotional support and suicide prevention services across Kenya via 24/7 hotline.',
+    link: 'https://befrienderskenya.org'
+  },
+  {
+    id: 'org-2',
+    name: 'FIDA Kenya',
+    category: 'Psychosocial & Legal Aid',
+    description: 'Premier women’s rights organization offering free trauma counselling and legal support to survivors of domestic violence.',
+    link: 'https://fidakenya.org'
+  },
+  {
+    id: 'org-3',
+    name: 'Basic Needs Basic Rights Kenya',
+    category: 'Community Mental Health',
+    description: 'Pioneering community-based mental health advocacy, clinic referrals, and peer reintegration across Kenya.',
+    link: 'https://basicneeds-kenya.org'
+  },
+  {
+    id: 'org-4',
+    name: 'Chiromo Hospital Group Crisis Unit',
+    category: 'Clinical Behavioral Health',
+    description: 'Leading psychiatric healthcare facility in Nairobi providing emergency mental healthcare and in-patient support.',
+    link: 'https://chiromohg.co.ke'
+  }
+];
+
 export const QUOTES: Quote[] = [{ id: 'q1', text: "Just take the first step.", author: "MLK Jr.", category: "Hope", type: "quote" }];
 
 export const INITIAL_FORUM_POSTS: ForumPost[] = [

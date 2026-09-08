@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { communityApi } from '../lib/api';
 import { Article, Book, Video, Quote } from '../types';
+import { ARTICLES, BOOKS, VIDEOS } from '../utils/constants';
 import { Card, Badge, Input } from '../components/ui';
 import { BookOpen, Video as VideoIcon, ArrowRight, Quote as QuoteIcon, Search, Book as BookIcon, PlayCircle } from 'lucide-react';
 
@@ -15,7 +16,12 @@ export const ResourcesPage = () => {
 
     useEffect(() => {
         communityApi.getResources().then((resources: any[]) => {
-            if (!Array.isArray(resources)) return;
+            if (!Array.isArray(resources)) {
+                setArticles(ARTICLES);
+                setBooks(BOOKS);
+                setVideos(VIDEOS);
+                return;
+            }
             const mappedArticles = resources
                 .filter((r: any) => r.type?.toUpperCase() === 'ARTICLE')
                 .map((r: any) => ({
@@ -40,10 +46,14 @@ export const ResourcesPage = () => {
                     thumbnail: r.imageUrl || r.thumbnail,
                     presenter: r.author || r.presenter
                 }));
-            setArticles(mappedArticles);
-            setBooks(mappedBooks);
-            setVideos(mappedVideos);
-        }).catch(() => {});
+            setArticles(mappedArticles.length > 0 ? mappedArticles : ARTICLES);
+            setBooks(mappedBooks.length > 0 ? mappedBooks : BOOKS);
+            setVideos(mappedVideos.length > 0 ? mappedVideos : VIDEOS);
+        }).catch(() => {
+            setArticles(ARTICLES);
+            setBooks(BOOKS);
+            setVideos(VIDEOS);
+        });
 
         communityApi.getQuotes().then((qList: any[]) => {
             if (!Array.isArray(qList)) return;

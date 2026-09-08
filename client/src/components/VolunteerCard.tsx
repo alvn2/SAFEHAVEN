@@ -82,22 +82,26 @@ export const VolunteerCard: React.FC<VolunteerCardProps> = ({ volunteer, onExter
             <MessageSquare className="w-4 h-4" /> 
             {isInitiating ? 'Connecting...' : (volunteer.isOnline ? 'Chat Securely' : 'Leave Message')}
         </Button>
-        <div className="flex gap-2">
-            <button 
-                onClick={() => onExternalLink(`https://wa.me/${volunteer.whatsapp}`)}
-                className="flex-1 flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white font-bold py-2 rounded-xl transition-colors text-sm"
-            >
-                <MessageCircle className="w-4 h-4" /> WhatsApp
-            </button>
-            {volunteer.telegram && (
+        {(volunteer.whatsapp && volunteer.whatsapp.trim().length > 6 || volunteer.telegram && volunteer.telegram.trim().length > 1) && (
+          <div className="flex gap-2">
+              {volunteer.whatsapp && volunteer.whatsapp.trim().length > 6 && (
                 <button 
-                    onClick={() => onExternalLink(`https://t.me/${volunteer.telegram}`)}
-                    className="flex-1 flex items-center justify-center gap-2 bg-sky-500 hover:bg-sky-600 text-white font-bold py-2 rounded-xl transition-colors text-sm"
+                    onClick={() => onExternalLink(`https://wa.me/${volunteer.whatsapp.replace(/[^0-9]/g, '')}`)}
+                    className="flex-1 flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white font-bold py-2 rounded-xl transition-colors text-sm"
                 >
-                    <Send className="w-4 h-4" /> Telegram
+                    <MessageCircle className="w-4 h-4" /> WhatsApp
                 </button>
-            )}
-        </div>
+              )}
+              {volunteer.telegram && volunteer.telegram.trim().length > 1 && (
+                  <button 
+                      onClick={() => onExternalLink(`https://t.me/${(volunteer.telegram || '').replace('@', '')}`)}
+                      className="flex-1 flex items-center justify-center gap-2 bg-sky-500 hover:bg-sky-600 text-white font-bold py-2 rounded-xl transition-colors text-sm"
+                  >
+                      <Send className="w-4 h-4" /> Telegram
+                  </button>
+              )}
+          </div>
+        )}
       </div>
     </Card>
   );
