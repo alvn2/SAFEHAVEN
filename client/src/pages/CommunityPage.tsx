@@ -66,16 +66,19 @@ export const CommunityPage = () => {
             <SubmitUGCModal isOpen={showSubmitModal} onClose={() => setShowSubmitModal(false)} />
 
             <div className="lg:col-span-2 space-y-8">
-                <div className="flex justify-between items-start">
-                    <div><h1 className="text-3xl font-bold font-serif mb-2 dark:text-white">Community Hub</h1><p className="text-gray-500">Anonymous peer support circles and local mental health organizations in Kenya.</p></div>
-                    <Button variant="outline" size="sm" onClick={handleOpenSubmit} className="flex items-center gap-1.5">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div>
+                        <h1 className="text-3xl font-bold font-serif mb-2 dark:text-white">Community Hub</h1>
+                        <p className="text-gray-500 text-sm sm:text-base">Anonymous peer support circles and local mental health organizations in Kenya.</p>
+                    </div>
+                    <Button variant="outline" size="sm" onClick={handleOpenSubmit} className="flex items-center justify-center gap-1.5 w-full sm:w-auto min-h-[44px]">
                         <PlusCircle className="w-4 h-4" /> Propose Content
                     </Button>
                 </div>
                 
-                <div className="flex gap-2 border-b border-gray-200 dark:border-gray-700 overflow-x-auto pb-1">
+                <div className="flex gap-2 border-b border-gray-200 dark:border-gray-700 overflow-x-auto pb-1 scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0">
                     {[{ id: 'groups', label: 'Support Circles', icon: Users }, { id: 'orgs', label: 'Organizations', icon: Briefcase }, { id: 'events', label: 'Workshops & Events', icon: Calendar }].map(tab => (
-                        <button key={tab.id} onClick={() => setActiveTab(tab.id as any)} className={`px-6 py-3 font-medium border-b-2 flex items-center gap-2 transition-colors whitespace-nowrap ${activeTab === tab.id ? 'border-primary-500 text-primary-600 dark:text-primary-400' : 'border-transparent text-gray-500'}`}>
+                        <button key={tab.id} onClick={() => setActiveTab(tab.id as any)} className={`px-4 sm:px-6 py-3 font-medium border-b-2 flex items-center gap-2 transition-colors whitespace-nowrap min-h-[44px] shrink-0 text-sm sm:text-base ${activeTab === tab.id ? 'border-primary-500 text-primary-600 dark:text-primary-400' : 'border-transparent text-gray-500'}`}>
                             <tab.icon className="w-4 h-4" /> {tab.label}
                         </button>
                     ))}
@@ -87,11 +90,11 @@ export const CommunityPage = () => {
                             <Users className="w-12 h-12 text-primary-500 mx-auto mb-3 opacity-80" />
                             <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">No Peer Circles Active Yet</h3>
                             <p className="text-gray-500 max-w-md mx-auto text-sm mb-6 leading-relaxed">SafeHaven peer circles are anonymous, community-moderated spaces for shared healing. You can propose a new topic circle.</p>
-                            <Button onClick={handleOpenSubmit} size="sm" variant="primary">Propose a Peer Circle</Button>
+                            <Button onClick={handleOpenSubmit} size="sm" variant="primary" className="min-h-[44px]">Propose a Peer Circle</Button>
                         </div>
                     ) : groups.map(g => (
                         <Card key={g.id} className="p-6 h-full flex flex-col hover:shadow-lg transition-shadow">
-                            <div className="flex justify-between items-start mb-4">
+                            <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
                                 <div className="flex gap-2 items-center flex-wrap">
                                     <Badge color="blue">{g.category}</Badge>
                                     <span className={`text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-wider ${g.platform === 'In-App' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300' : 'bg-purple-100 text-purple-800 dark:bg-purple-950/60 dark:text-purple-300'}`}>
@@ -107,11 +110,11 @@ export const CommunityPage = () => {
                             <p className="text-gray-600 dark:text-gray-300 text-sm mb-6 flex-1">{g.description}</p>
                             
                             {g.platform === 'In-App' ? (
-                                <button onClick={() => handleJoinGroup(g.chatGroupId || g.id)} className="block w-full text-center py-2.5 rounded-xl border-2 border-primary-500 text-primary-600 font-bold hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-colors flex items-center justify-center gap-2 text-sm">
+                                <button onClick={() => handleJoinGroup(g.chatGroupId || g.id)} className="block w-full text-center py-2.5 rounded-xl border-2 border-primary-500 text-primary-600 font-bold hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-colors flex items-center justify-center gap-2 text-sm min-h-[44px]">
                                     <MessageSquare className="w-4 h-4" /> Enter Chat Room
                                 </button>
                             ) : (
-                                <button onClick={() => handleExternalLink(g.link)} className="block w-full text-center py-2.5 rounded-xl border-2 border-primary-500 text-primary-600 font-bold hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-colors flex items-center justify-center gap-2 text-sm">
+                                <button onClick={() => handleExternalLink(g.link)} className="block w-full text-center py-2.5 rounded-xl border-2 border-primary-500 text-primary-600 font-bold hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-colors flex items-center justify-center gap-2 text-sm min-h-[44px]">
                                     <ExternalLink className="w-4 h-4" /> Join External Group
                                 </button>
                             )}
@@ -123,7 +126,7 @@ export const CommunityPage = () => {
                             <Calendar className="w-12 h-12 text-primary-500 mx-auto mb-3 opacity-80" />
                             <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">No Scheduled Events Currently</h3>
                             <p className="text-gray-500 max-w-md mx-auto text-sm mb-6 leading-relaxed">Upcoming workshops, wellness sessions, and community listening hours will appear here. Community organizers can submit event listings for review.</p>
-                            <Button onClick={handleOpenSubmit} size="sm" variant="primary">Submit an Event Proposal</Button>
+                            <Button onClick={handleOpenSubmit} size="sm" variant="primary" className="min-h-[44px]">Submit an Event Proposal</Button>
                         </div>
                     ) : events.map(e => (
                         <Card key={e.id} className="flex flex-col overflow-hidden h-full hover:shadow-lg transition-shadow">
@@ -137,7 +140,7 @@ export const CommunityPage = () => {
                                     <MapPin className="w-4 h-4" /> {e.location}
                                 </div>
                                 <p className="text-gray-600 dark:text-gray-300 text-sm mb-6 flex-1">{e.description}</p>
-                                <Button size="sm" variant="outline" className="w-full">Register Interest</Button>
+                                <Button size="sm" variant="outline" className="w-full min-h-[44px]">Register Interest</Button>
                             </div>
                         </Card>
                     )))}
@@ -147,7 +150,7 @@ export const CommunityPage = () => {
                             <Briefcase className="w-12 h-12 text-primary-500 mx-auto mb-3 opacity-80" />
                             <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">No Organizations Listed</h3>
                             <p className="text-gray-500 max-w-md mx-auto text-sm mb-6 leading-relaxed">Verified mental health NGOs and clinics across Kenya are vetted before listing.</p>
-                            <Button onClick={handleOpenSubmit} size="sm" variant="primary">Submit Organization</Button>
+                            <Button onClick={handleOpenSubmit} size="sm" variant="primary" className="min-h-[44px]">Submit Organization</Button>
                         </div>
                     ) : orgs.map((o: any) => (
                          <Card key={o.id} className="p-6 h-full flex flex-col hover:shadow-lg transition-shadow">
@@ -157,7 +160,7 @@ export const CommunityPage = () => {
                              </h3>
                              <Badge color="blue" className="self-start mb-4">{o.category}</Badge>
                              <p className="text-gray-600 dark:text-gray-300 text-sm mb-6 flex-1">{o.description}</p>
-                             <button onClick={() => handleExternalLink(o.link)} className="text-primary-600 font-bold hover:underline text-sm mt-auto text-left flex items-center gap-1.5">
+                             <button onClick={() => handleExternalLink(o.link)} className="text-primary-600 font-bold hover:underline text-sm mt-auto text-left flex items-center gap-1.5 min-h-[44px]">
                                  <span>Visit Official Website</span>
                                  <ExternalLink className="w-3.5 h-3.5 inline" />
                              </button>

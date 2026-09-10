@@ -53,7 +53,7 @@ export const HomePage = () => {
             <TriageModal isOpen={showTriage} onClose={() => setShowTriage(false)} onNavigate={navigate} />
 
             {/* --- HERO SECTION --- */}
-            <header className="relative hero-pattern pt-44 pb-20 lg:pt-52 lg:pb-32 -mt-32 overflow-hidden">
+            <header className="relative hero-pattern pt-28 pb-16 lg:pt-48 lg:pb-32 -mt-16 lg:-mt-24 overflow-hidden">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                     <div className="text-center max-w-4xl mx-auto">
                         <div className="inline-flex items-center gap-2 bg-white/90 dark:bg-gray-800/90 border border-primary-200 dark:border-primary-800 text-primary-800 dark:text-primary-300 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wide mb-6 shadow-sm animate-fade-in-up">
@@ -64,25 +64,25 @@ export const HomePage = () => {
                             100% Free, Private & Anonymous
                         </div>
 
-                        <h1 className="text-4xl md:text-6xl font-bold text-gray-900 dark:text-white mb-6 leading-tight tracking-tight font-serif animate-fade-in-up animation-delay-200">
+                        <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold text-gray-900 dark:text-white mb-6 leading-tight tracking-tight font-serif animate-fade-in-up animation-delay-200">
                             Free, Anonymous Mental Health <br />
                             <span className="text-primary-600 dark:text-primary-400">Support Across Kenya.</span>
                         </h1>
 
-                        <p className="text-lg md:text-xl text-gray-600 dark:text-gray-300 mb-10 max-w-2xl mx-auto leading-relaxed animate-fade-in-up animation-delay-400">
+                        <p className="text-base sm:text-lg md:text-xl text-gray-600 dark:text-gray-300 mb-8 sm:mb-10 max-w-2xl mx-auto leading-relaxed animate-fade-in-up animation-delay-400">
                             Built for complete privacy. Connect with verified volunteer counselors and peer listeners without providing your phone number, email, or real identity.
                         </p>
 
-                        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center animate-fade-in-up animation-delay-400">
-                            <Button size="lg" onClick={() => setShowTriage(true)} className="w-full sm:w-auto text-lg px-8 py-6 shadow-xl shadow-primary-900/20 hover:shadow-2xl hover:-translate-y-1">
+                        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center animate-fade-in-up animation-delay-400 w-full">
+                            <Button size="lg" onClick={() => setShowTriage(true)} className="w-full sm:w-auto text-base sm:text-lg px-8 py-4 sm:py-6 shadow-xl shadow-primary-900/20 hover:shadow-2xl hover:-translate-y-1 min-h-[48px]">
                                 I Need Help Now <ArrowRight size={20} className="ml-2" />
                             </Button>
-                            <Button variant="secondary" size="lg" onClick={() => navigate('/resources')} className="w-full sm:w-auto text-lg px-8 py-6 hover:-translate-y-1 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 shadow-sm">
+                            <Button variant="secondary" size="lg" onClick={() => navigate('/resources')} className="w-full sm:w-auto text-base sm:text-lg px-8 py-4 sm:py-6 hover:-translate-y-1 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 shadow-sm min-h-[48px]">
                                 <BookOpen size={20} className="mr-2" /> Self-Help Library
                             </Button>
                         </div>
 
-                        <div className="mt-16 pt-8 border-t border-gray-200/60 dark:border-gray-800/60 flex flex-wrap justify-center gap-x-8 gap-y-4 text-gray-500 dark:text-gray-400 text-xs md:text-sm font-bold uppercase tracking-wider">
+                        <div className="mt-12 sm:mt-16 pt-8 border-t border-gray-200/60 dark:border-gray-800/60 flex flex-wrap justify-center gap-x-6 sm:gap-x-8 gap-y-3 sm:gap-y-4 text-gray-500 dark:text-gray-400 text-xs md:text-sm font-bold uppercase tracking-wider">
                             <div className="flex items-center gap-2"><Shield size={18} className="text-primary-500" /><span>Zero Data Collected</span></div>
                             <div className="flex items-center gap-2"><Check size={18} className="text-blue-500" /><span>Verified Volunteers</span></div>
                             <div className="flex items-center gap-2"><Heart size={18} className="text-red-500" /><span>Always Free</span></div>
@@ -168,9 +168,9 @@ export const HomePage = () => {
             </section>
 
             {/* --- PRIVACY DIRECTIVE (Technical Core) --- */}
-            <section className="py-20 bg-gray-900 text-white overflow-hidden relative my-12 mx-2 sm:mx-8 rounded-2xl border border-gray-800 shadow-xl">
+            <section className="py-16 sm:py-20 bg-gray-900 text-white overflow-hidden relative my-8 sm:my-12 mx-0 sm:mx-4 lg:mx-8 rounded-2xl border border-gray-800 shadow-xl">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-                    <div className="grid lg:grid-cols-2 gap-16 items-center">
+                    <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
                         <div>
                             <span className="text-primary-400 font-bold uppercase tracking-wider text-xs mb-2 block">Zero-Knowledge Architecture</span>
                             <h2 className="text-3xl lg:text-5xl font-bold text-white mb-6 font-serif leading-tight">We can't read your data. <br />Even if we tried.</h2>
@@ -192,19 +192,19 @@ export const HomePage = () => {
                                 </li>
                             </ul>
                             <div className="mt-10">
-                                <Link to="/legal/whitepaper" className="inline-flex bg-white text-gray-900 px-6 py-3 rounded-xl font-bold hover:bg-gray-100 transition-colors items-center gap-3 shadow-xl shadow-white/10 text-sm">
+                                <Link to="/legal/whitepaper" className="inline-flex bg-white text-gray-900 px-6 py-3 rounded-xl font-bold hover:bg-gray-100 transition-colors items-center gap-3 shadow-xl shadow-white/10 text-sm min-h-[44px]">
                                     <Lock size={18} /> Read Security Whitepaper
                                 </Link>
                             </div>
                         </div>
 
                         <div className="relative">
-                            <div className="bg-gray-950 border border-gray-800 p-6 md:p-8 rounded-2xl shadow-xl space-y-6">
-                                <div className="flex items-center justify-between border-b border-gray-800 pb-4">
+                            <div className="bg-gray-950 border border-gray-800 p-5 sm:p-8 rounded-2xl shadow-xl space-y-6">
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-gray-800 pb-4">
                                     <span className="text-xs font-bold uppercase tracking-wider text-emerald-400 font-mono flex items-center gap-2">
-                                        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Cryptographic Zero-Knowledge Pipeline
+                                        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Cryptographic Pipeline
                                     </span>
-                                    <span className="text-[11px] text-gray-500 font-mono">CLIENT-SIDE AES-256</span>
+                                    <span className="text-[11px] text-gray-500 font-mono self-start sm:self-auto">CLIENT-SIDE AES-256</span>
                                 </div>
 
                                 <div className="space-y-4">
@@ -267,7 +267,7 @@ export const HomePage = () => {
                                         ))}
                                     </div>
                                 </div>
-                                <button onClick={() => navigate('/volunteers')} className="text-primary-600 dark:text-primary-400 font-semibold hover:underline flex items-center gap-1.5 text-xs pt-3 border-t border-gray-100 dark:border-gray-700">
+                                <button onClick={() => navigate('/volunteers')} className="text-primary-600 dark:text-primary-400 font-semibold hover:underline flex items-center gap-1.5 text-xs pt-3 border-t border-gray-100 dark:border-gray-700 min-h-[44px]">
                                     <span>Connect Confidentially</span> <ArrowRight size={14} />
                                 </button>
                             </div>
@@ -283,7 +283,7 @@ export const HomePage = () => {
                                     <h4 className="font-bold text-lg dark:text-white mb-2">Verified Listeners</h4>
                                     <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed mb-4">Browse our full directory of certified therapists, counselors, and trained peers across Kenya.</p>
                                 </div>
-                                <button onClick={() => navigate('/volunteers')} className="text-primary-600 dark:text-primary-400 font-semibold hover:underline flex items-center gap-1.5 text-xs pt-3 border-t border-gray-100 dark:border-gray-700">
+                                <button onClick={() => navigate('/volunteers')} className="text-primary-600 dark:text-primary-400 font-semibold hover:underline flex items-center gap-1.5 text-xs pt-3 border-t border-gray-100 dark:border-gray-700 min-h-[44px]">
                                     <span>Browse All Volunteers</span> <ArrowRight size={14} />
                                 </button>
                             </div>
@@ -296,7 +296,7 @@ export const HomePage = () => {
                             </div>
                             <h4 className="font-bold text-lg dark:text-white mb-2">Join the Network</h4>
                             <p className="text-gray-600 dark:text-gray-400 mb-6 text-sm">Are you a licensed psychologist or trained peer counselor in Kenya? We welcome you.</p>
-                            <button onClick={() => navigate('/volunteer/apply')} className="text-primary-600 dark:text-primary-400 font-bold hover:underline flex items-center gap-1.5 text-sm">
+                            <button onClick={() => navigate('/volunteer/apply')} className="text-primary-600 dark:text-primary-400 font-bold hover:underline flex items-center gap-1.5 text-sm min-h-[44px] py-2">
                                 <span>Apply to Volunteer</span> <ArrowRight size={16} />
                             </button>
                         </div>

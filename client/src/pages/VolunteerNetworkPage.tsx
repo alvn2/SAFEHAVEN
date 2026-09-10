@@ -102,8 +102,8 @@ export const VolunteerNetworkPage = () => {
                             <h2 className="text-2xl font-bold mb-2">Want to support seekers?</h2>
                             <p className="text-gray-300 mb-5 leading-relaxed text-sm">Join our network of trained Peer Listeners or apply as a Verified Mental Health Professional to provide confidential support.</p>
                             <div className="flex flex-wrap gap-3">
-                                <button onClick={handleApplyNow} className="bg-primary-600 hover:bg-primary-500 text-white px-5 py-2.5 rounded-xl font-semibold text-sm transition-colors shadow-sm">Apply as Professional</button>
-                                <button onClick={handleBecomePeerListener} className="bg-white/10 hover:bg-white/15 text-white border border-white/20 px-5 py-2.5 rounded-xl font-semibold text-sm transition-colors">Become a Peer Listener</button>
+                                <button onClick={handleApplyNow} className="w-full sm:w-auto min-h-[44px] flex items-center justify-center bg-primary-600 hover:bg-primary-500 text-white px-5 py-2.5 rounded-xl font-semibold text-sm transition-colors shadow-sm">Apply as Professional</button>
+                                <button onClick={handleBecomePeerListener} className="w-full sm:w-auto min-h-[44px] flex items-center justify-center bg-white/10 hover:bg-white/15 text-white border border-white/20 px-5 py-2.5 rounded-xl font-semibold text-sm transition-colors">Become a Peer Listener</button>
                             </div>
                         </div>
                         <div className="hidden md:flex w-24 h-24 bg-primary-950/60 rounded-2xl items-center justify-center border border-primary-800/40 shadow-inner shrink-0">
@@ -113,11 +113,11 @@ export const VolunteerNetworkPage = () => {
                 )}
 
                 <div className="bg-white dark:bg-gray-800 p-4 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm flex flex-col md:flex-row gap-4 mt-2">
-                    <div className="flex-1 relative"><Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" /><input type="text" placeholder="Search by name or bio..." className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-transparent dark:text-white" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} /></div>
-                    <div className="flex gap-2">
-                        <select className="pl-4 pr-8 py-2.5 rounded-xl border bg-transparent dark:text-white dark:border-gray-600" value={filterType} onChange={e => setFilterType(e.target.value)}><option value="">All Roles</option><option value="licensed">Licensed</option><option value="listener">Listener</option><option value="intern">Intern / Trainee</option></select>
-                        <select className="pl-4 pr-8 py-2.5 rounded-xl border bg-transparent dark:text-white dark:border-gray-600" value={filterTopic} onChange={e => setFilterTopic(e.target.value)}><option value="">All Topics</option>{TOPICS.map(t => <option key={t} value={t}>{t}</option>)}</select>
-                        <select className="pl-4 pr-8 py-2.5 rounded-xl border bg-transparent dark:text-white dark:border-gray-600" value={filterLang} onChange={e => setFilterLang(e.target.value)}><option value="">All Languages</option><option value="English">English</option><option value="Swahili">Swahili</option><option value="Kalenjin">Kalenjin</option></select>
+                    <div className="flex-1 relative"><Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" /><input type="text" placeholder="Search by name or bio..." className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-transparent dark:text-white text-base sm:text-sm min-h-[44px]" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} /></div>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 w-full md:w-auto">
+                        <select className="w-full min-h-[44px] text-base sm:text-sm pl-3 pr-8 py-2 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white" value={filterType} onChange={e => setFilterType(e.target.value)}><option value="">All Roles</option><option value="licensed">Licensed</option><option value="listener">Listener</option><option value="intern">Intern / Trainee</option></select>
+                        <select className="w-full min-h-[44px] text-base sm:text-sm pl-3 pr-8 py-2 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white" value={filterTopic} onChange={e => setFilterTopic(e.target.value)}><option value="">All Topics</option>{TOPICS.map(t => <option key={t} value={t}>{t}</option>)}</select>
+                        <select className="w-full min-h-[44px] text-base sm:text-sm pl-3 pr-8 py-2 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white" value={filterLang} onChange={e => setFilterLang(e.target.value)}><option value="">All Languages</option><option value="English">English</option><option value="Swahili">Swahili</option><option value="Kalenjin">Kalenjin</option></select>
                     </div>
                 </div>
             </div>

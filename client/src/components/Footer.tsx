@@ -17,20 +17,20 @@ export const Footer = () => (
                     </div>
                 </div>
                 <div>
-                    <h4 className="font-serif font-bold text-gray-900 dark:text-white mb-6">Platform</h4>
-                    <ul className="space-y-4 text-gray-500 dark:text-gray-400 text-sm">
-                        <li><Link to="/volunteers" className="hover:text-primary-600 transition-colors">Volunteer Directory</Link></li>
-                        <li><Link to="/community" className="hover:text-primary-600 transition-colors">Community Hub</Link></li>
-                        <li><Link to="/resources" className="hover:text-primary-600 transition-colors">Self-Help Library</Link></li>
-                        <li><Link to="/seeker/dashboard" className="hover:text-primary-600 transition-colors">Safety Plan</Link></li>
+                    <h4 className="font-serif font-bold text-gray-900 dark:text-white mb-4 sm:mb-6">Platform</h4>
+                    <ul className="space-y-1 sm:space-y-2 text-gray-500 dark:text-gray-400 text-sm">
+                        <li><Link to="/volunteers" className="hover:text-primary-600 transition-colors py-1.5 inline-flex items-center min-h-[36px]">Volunteer Directory</Link></li>
+                        <li><Link to="/community" className="hover:text-primary-600 transition-colors py-1.5 inline-flex items-center min-h-[36px]">Community Hub</Link></li>
+                        <li><Link to="/resources" className="hover:text-primary-600 transition-colors py-1.5 inline-flex items-center min-h-[36px]">Self-Help Library</Link></li>
+                        <li><Link to="/seeker/dashboard" className="hover:text-primary-600 transition-colors py-1.5 inline-flex items-center min-h-[36px]">Safety Plan</Link></li>
                     </ul>
                 </div>
                 <div>
-                    <h4 className="font-serif font-bold text-gray-900 dark:text-white mb-6">Legal & Privacy</h4>
-                    <ul className="space-y-4 text-gray-500 dark:text-gray-400 text-sm">
-                        <li><Link to="/legal/privacy" className="hover:text-primary-600 transition-colors">Privacy Policy</Link></li>
-                        <li><Link to="/legal/terms" className="hover:text-primary-600 transition-colors">Terms of Service</Link></li>
-                        <li><Link to="/legal/whitepaper" className="hover:text-primary-600 transition-colors">Security Whitepaper</Link></li>
+                    <h4 className="font-serif font-bold text-gray-900 dark:text-white mb-4 sm:mb-6">Legal & Privacy</h4>
+                    <ul className="space-y-1 sm:space-y-2 text-gray-500 dark:text-gray-400 text-sm">
+                        <li><Link to="/legal/privacy" className="hover:text-primary-600 transition-colors py-1.5 inline-flex items-center min-h-[36px]">Privacy Policy</Link></li>
+                        <li><Link to="/legal/terms" className="hover:text-primary-600 transition-colors py-1.5 inline-flex items-center min-h-[36px]">Terms of Service</Link></li>
+                        <li><Link to="/legal/whitepaper" className="hover:text-primary-600 transition-colors py-1.5 inline-flex items-center min-h-[36px]">Security Whitepaper</Link></li>
                     </ul>
                 </div>
             </div>
@@ -44,12 +44,15 @@ export const Footer = () => (
                     </p>
                     <p className="mt-1 text-xs">Developed by <a href="https://devlinktechnologies.co.ke" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:underline">Devlink Technologies</a></p>
                 </div>
-                <div className="flex gap-4 items-center">
-                    <Phone size={16} /> <span>Crisis Hotline: 0722 178 177</span>
+                <div className="flex gap-2 items-center">
+                    <Phone size={16} className="text-primary-500 shrink-0" />
+                    <a href="tel:+254722178177" className="font-bold text-gray-700 dark:text-gray-200 hover:text-primary-600 dark:hover:text-primary-400 min-h-[44px] inline-flex items-center">
+                        Crisis Hotline: 0722 178 177
+                    </a>
                 </div>
             </div>
 
-            <div className="mt-8 bg-gray-100 dark:bg-gray-800/50 p-4 rounded-xl text-xs text-gray-500 dark:text-gray-400 leading-relaxed text-justify border border-gray-200 dark:border-gray-800">
+            <div className="mt-8 bg-gray-100 dark:bg-gray-800/50 p-4 rounded-xl text-xs text-gray-500 dark:text-gray-400 leading-relaxed text-left border border-gray-200 dark:border-gray-800">
                 <strong>Disclaimer:</strong> SafeHaven is a peer support and resource platform. We are not a medical facility. If you are in immediate danger of hurting yourself or others, please call the emergency numbers listed or visit the nearest hospital immediately. Volunteers are verified for identity but peer listeners are not medical professionals.
             </div>
         </div>

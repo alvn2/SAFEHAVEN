@@ -78,16 +78,16 @@ export const VolunteerCard: React.FC<VolunteerCardProps> = ({ volunteer, onExter
         </div>
       </div>
       <div className="p-4 border-t border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 space-y-2">
-        <Button onClick={handleChat} disabled={isInitiating} className="w-full flex items-center justify-center gap-2" variant={volunteer.isOnline ? 'primary' : 'outline'}>
+        <Button onClick={handleChat} disabled={isInitiating} className="w-full flex items-center justify-center gap-2 min-h-[44px]" variant={volunteer.isOnline ? 'primary' : 'outline'}>
             <MessageSquare className="w-4 h-4" /> 
             {isInitiating ? 'Connecting...' : (volunteer.isOnline ? 'Chat Securely' : 'Leave Message')}
         </Button>
         {(volunteer.whatsapp && volunteer.whatsapp.trim().length > 6 || volunteer.telegram && volunteer.telegram.trim().length > 1) && (
-          <div className="flex gap-2">
+          <div className="flex flex-wrap sm:flex-nowrap gap-2">
               {volunteer.whatsapp && volunteer.whatsapp.trim().length > 6 && (
                 <button 
                     onClick={() => onExternalLink(`https://wa.me/${volunteer.whatsapp.replace(/[^0-9]/g, '')}`)}
-                    className="flex-1 flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white font-bold py-2 rounded-xl transition-colors text-sm"
+                    className="flex-1 min-w-[120px] min-h-[44px] flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white font-bold py-2.5 px-3 rounded-xl transition-colors text-sm"
                 >
                     <MessageCircle className="w-4 h-4" /> WhatsApp
                 </button>
@@ -95,7 +95,7 @@ export const VolunteerCard: React.FC<VolunteerCardProps> = ({ volunteer, onExter
               {volunteer.telegram && volunteer.telegram.trim().length > 1 && (
                   <button 
                       onClick={() => onExternalLink(`https://t.me/${(volunteer.telegram || '').replace('@', '')}`)}
-                      className="flex-1 flex items-center justify-center gap-2 bg-sky-500 hover:bg-sky-600 text-white font-bold py-2 rounded-xl transition-colors text-sm"
+                      className="flex-1 min-w-[120px] min-h-[44px] flex items-center justify-center gap-2 bg-sky-500 hover:bg-sky-600 text-white font-bold py-2.5 px-3 rounded-xl transition-colors text-sm"
                   >
                       <Send className="w-4 h-4" /> Telegram
                   </button>

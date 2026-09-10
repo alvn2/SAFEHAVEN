@@ -6,7 +6,7 @@ import { Conversation, Message } from '../types';
 import { CRISIS_KEYWORDS } from '../utils/constants';
 import { encryptChatMessage, decryptChatMessage } from '../lib/encryption';
 import { Card, Button, Modal } from '../components/ui';
-import { Send, Hash, MessageSquare, AlertTriangle, Search, Lock, MoreVertical, Shield, Pin, Check, CheckCheck, Clock } from 'lucide-react';
+import { Send, Hash, MessageSquare, AlertTriangle, Search, Lock, MoreVertical, Shield, Pin, Check, CheckCheck, Clock, ChevronLeft } from 'lucide-react';
 import { io } from 'socket.io-client';
 
 const socket = io(import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000', {
@@ -157,7 +157,7 @@ export const ChatPage = () => {
     const filteredConversations = conversations.filter(c => filter === 'all' || c.type === filter);
 
     return (
-        <div className="h-[calc(100vh-140px)] flex flex-col md:flex-row gap-4">
+        <div className="h-[calc(100dvh-12rem)] md:h-[calc(100vh-140px)] min-h-[460px] flex flex-col md:flex-row gap-4">
              <Modal isOpen={showCrisisAlert} onClose={() => setShowCrisisAlert(false)} title="Safety Check">
                 <div className="space-y-4">
                     <div className="bg-orange-50 dark:bg-orange-900/20 p-4 rounded-xl flex gap-3 text-orange-800 dark:text-orange-300">
@@ -165,8 +165,8 @@ export const ChatPage = () => {
                         <div><h4 className="font-bold text-lg">Are you safe?</h4><p className="text-sm mt-2">Your message contains distressing words.</p></div>
                     </div>
                     <div className="flex flex-col gap-3">
-                        <Button className="w-full bg-red-600 hover:bg-red-700">Get Immediate Help</Button>
-                        <Button variant="secondary" onClick={async () => {
+                        <Button className="w-full bg-red-600 hover:bg-red-700 min-h-[44px]">Get Immediate Help</Button>
+                        <Button variant="secondary" className="min-h-[44px]" onClick={async () => {
                             setShowCrisisAlert(false);
                             try {
                                 const encryptedContent = encryptChatMessage(newMessage, selectedChatId!);
@@ -184,7 +184,7 @@ export const ChatPage = () => {
                     <div className="flex items-center justify-between mb-4"><h2 className="font-bold text-xl font-serif dark:text-white">Messages</h2><Shield className="w-4 h-4 text-green-500" /></div>
                     <div className="flex gap-2">
                         {['all', 'dm', 'group'].map(f => (
-                            <button key={f} onClick={() => setFilter(f as any)} className={`px-3 py-1 rounded-lg text-xs font-bold capitalize ${filter === f ? 'bg-primary-600 text-white' : 'bg-white dark:bg-gray-700 dark:text-gray-300'}`}>{f}</button>
+                            <button key={f} onClick={() => setFilter(f as any)} className={`px-3.5 py-1.5 min-h-[36px] rounded-lg text-xs font-bold capitalize transition-colors ${filter === f ? 'bg-primary-600 text-white' : 'bg-white dark:bg-gray-700 dark:text-gray-300'}`}>{f}</button>
                         ))}
                     </div>
                 </div>
@@ -205,25 +205,27 @@ export const ChatPage = () => {
             <Card className={`flex-col flex-1 h-full overflow-hidden relative ${!selectedChatId ? 'hidden md:flex' : 'flex'}`}>
                 {selectedChat ? (
                     <>
-                        <div className="p-4 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between bg-white dark:bg-gray-800 z-10 shadow-sm">
-                            <div className="flex items-center gap-3">
-                                <button onClick={() => setSelectedChatId(null)} className="md:hidden p-2 -ml-2 text-gray-500"><Search className="w-5 h-5"/></button>
-                                <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${selectedChat.type === 'group' ? 'bg-blue-100 text-blue-600' : 'bg-green-100 text-green-600'}`}>{selectedChat.avatar ? <img src={selectedChat.avatar} className="w-full h-full rounded-full object-cover"/> : <MessageSquare size={20}/>}</div>
-                                <div>
-                                    <h3 className="font-bold text-gray-900 dark:text-white flex items-center gap-2">{selectedChat.name}{selectedChat.type === 'dm' && <Lock className="w-3 h-3 text-green-500" />}</h3>
-                                    <span className="text-xs text-gray-500 flex items-center gap-1">{selectedChat.type === 'group' ? `${selectedChat.participants.length} participants • Encrypted` : 'Private End-to-End Encrypted'}</span>
+                        <div className="p-3.5 sm:p-4 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between bg-white dark:bg-gray-800 z-10 shadow-sm">
+                            <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+                                <button onClick={() => setSelectedChatId(null)} className="md:hidden p-2 -ml-1 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl min-w-[40px] min-h-[40px] flex items-center justify-center" aria-label="Back to conversations">
+                                    <ChevronLeft className="w-6 h-6"/>
+                                </button>
+                                <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center shrink-0 ${selectedChat.type === 'group' ? 'bg-blue-100 text-blue-600' : 'bg-green-100 text-green-600'}`}>{selectedChat.avatar ? <img src={selectedChat.avatar} className="w-full h-full rounded-full object-cover"/> : <MessageSquare size={20}/>}</div>
+                                <div className="min-w-0">
+                                    <h3 className="font-bold text-gray-900 dark:text-white flex items-center gap-1.5 text-sm sm:text-base truncate">{selectedChat.name}{selectedChat.type === 'dm' && <Lock className="w-3.5 h-3.5 text-green-500 shrink-0" />}</h3>
+                                    <span className="text-[11px] sm:text-xs text-gray-500 truncate block">{selectedChat.type === 'group' ? `${selectedChat.participants.length} participants • Encrypted` : 'Private End-to-End Encrypted'}</span>
                                 </div>
                             </div>
-                            <Button variant="ghost" size="sm"><MoreVertical className="w-5 h-5" /></Button>
+                            <Button variant="ghost" size="sm" className="min-w-[40px] min-h-[40px] px-2"><MoreVertical className="w-5 h-5" /></Button>
                         </div>
-                        {selectedChat.pinnedMessageId && <div className="bg-yellow-50 dark:bg-yellow-900/20 p-2 px-4 flex items-center gap-2 border-b border-yellow-100 dark:border-yellow-900/30 text-sm text-yellow-800 dark:text-yellow-200"><Pin className="w-3 h-3 fill-current" /><span className="font-bold">Pinned:</span><span>Welcome to the group!</span></div>}
-                        <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50/50 dark:bg-gray-900/50">
+                        {selectedChat.pinnedMessageId && <div className="bg-yellow-50 dark:bg-yellow-900/20 p-2 px-4 flex items-center gap-2 border-b border-yellow-100 dark:border-yellow-900/30 text-xs sm:text-sm text-yellow-800 dark:text-yellow-200"><Pin className="w-3 h-3 fill-current" /><span className="font-bold">Pinned:</span><span>Welcome to the group!</span></div>}
+                        <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3 sm:space-y-4 bg-gray-50/50 dark:bg-gray-900/50">
                             {messages.map(msg => {
                                 const isMe = msg.senderId === user?.id;
                                 return (
                                     <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
-                                        <div className={`max-w-[80%] rounded-2xl px-4 py-2.5 shadow-sm relative group ${isMe ? 'bg-primary-600 text-white rounded-br-none' : 'bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 rounded-bl-none border border-gray-100 dark:border-gray-700'}`}>
-                                            {!isMe && selectedChat.type === 'group' && <p className="text-[10px] font-bold opacity-70 mb-1">{msg.senderName}</p>}
+                                        <div className={`max-w-[85%] sm:max-w-[80%] rounded-2xl px-3.5 sm:px-4 py-2 sm:py-2.5 shadow-sm relative group ${isMe ? 'bg-primary-600 text-white rounded-br-none' : 'bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 rounded-bl-none border border-gray-100 dark:border-gray-700'}`}>
+                                            {!isMe && selectedChat.type === 'group' && <p className="text-[10px] font-bold opacity-70 mb-0.5">{msg.senderName}</p>}
                                             <p className="text-sm whitespace-pre-wrap leading-relaxed">{msg.content}</p>
                                             <div className={`flex items-center justify-end gap-1 text-[10px] mt-1 ${isMe ? 'text-primary-200' : 'text-gray-400'}`}><span>{new Date(msg.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>{isMe && (msg.isRead ? <CheckCheck className="w-3 h-3" /> : <Check className="w-3 h-3" />)}</div>
                                         </div>
@@ -233,12 +235,12 @@ export const ChatPage = () => {
                             {typingUser && <div className="flex justify-start"><div className="bg-gray-200 dark:bg-gray-700 text-gray-500 text-xs px-3 py-1.5 rounded-full animate-pulse">{typingUser}</div></div>}
                             <div ref={messagesEndRef} />
                         </div>
-                        <form onSubmit={handleSendMessage} className="p-4 bg-white dark:bg-gray-800 border-t border-gray-100 dark:border-gray-700 flex gap-2">
+                        <form onSubmit={handleSendMessage} className="p-3 sm:p-4 bg-white dark:bg-gray-800 border-t border-gray-100 dark:border-gray-700 flex gap-2">
                             <div className="relative flex-1">
-                                <input className="w-full bg-gray-100 dark:bg-gray-900 border-transparent focus:border-primary-500 focus:bg-white dark:focus:bg-gray-950 rounded-xl px-4 py-3 outline-none transition-all dark:text-white" placeholder={slowModeLeft > 0 ? `Wait ${slowModeLeft}s...` : "Type a secure message..."} value={newMessage} onChange={e => setNewMessage(e.target.value)} disabled={slowModeLeft > 0} />
+                                <input className="w-full bg-gray-100 dark:bg-gray-900 border-transparent focus:border-primary-500 focus:bg-white dark:focus:bg-gray-950 rounded-xl px-4 py-3 text-base sm:text-sm min-h-[48px] outline-none transition-all dark:text-white" placeholder={slowModeLeft > 0 ? `Wait ${slowModeLeft}s...` : "Type a secure message..."} value={newMessage} onChange={e => setNewMessage(e.target.value)} disabled={slowModeLeft > 0} />
                                 {slowModeLeft > 0 && <div className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 flex items-center gap-1 text-xs"><Clock className="w-3 h-3" /> {slowModeLeft}s</div>}
                             </div>
-                            <Button type="submit" className="w-12 h-12 rounded-xl flex items-center justify-center" disabled={slowModeLeft > 0}><Send className="w-5 h-5 ml-0.5" /></Button>
+                            <Button type="submit" className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 min-h-[48px]" disabled={slowModeLeft > 0} aria-label="Send message"><Send className="w-5 h-5 ml-0.5" /></Button>
                         </form>
                     </>
                 ) : <div className="flex flex-col items-center justify-center h-full text-gray-400 p-8 text-center"><Lock className="w-12 h-12 mb-4 opacity-50" /><h3 className="text-xl font-bold">Secure Messaging</h3><p>End-to-End Encrypted. Select a chat to begin.</p></div>}

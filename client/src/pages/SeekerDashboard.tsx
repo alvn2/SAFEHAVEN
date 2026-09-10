@@ -52,8 +52,13 @@ export const SeekerDashboard = () => {
 
     const loadData = async () => {
         if (!user) return;
+        // Resolve passphrase: use context value or fall back to sessionStorage.
+        // This prevents a race condition where the component mounts before
+        // AuthContext has finished calling setPassphrase() from the saved sh_key.
+        const effectivePassphrase = passphrase || sessionStorage.getItem('sh_key') || '';
+
         if (storageMode === 'local') {
-            const localData = loadLocalVault(passphrase);
+            const localData = loadLocalVault(effectivePassphrase);
             setEntries(localData.entries);
             if (localData.safetyPlan) {
                 setSafetyPlan({
@@ -70,13 +75,13 @@ export const SeekerDashboard = () => {
             const journalEntries = await journalApi.getAll();
             const decryptedEntries = journalEntries.map((e: JournalEntry) => ({
                 ...e,
-                entry: passphrase ? decrypt(e.entry, passphrase) : e.entry,
-                audioData: (e.audioData && passphrase) ? (decrypt(e.audioData, passphrase) || e.audioData) : e.audioData
+                entry: effectivePassphrase ? decrypt(e.entry, effectivePassphrase) : e.entry,
+                audioData: (e.audioData && effectivePassphrase) ? (decrypt(e.audioData, effectivePassphrase) || e.audioData) : e.audioData
             }));
             setEntries(decryptedEntries);
-            saveLocalVault(decryptedEntries, safetyPlan, passphrase);
+            saveLocalVault(decryptedEntries, safetyPlan, effectivePassphrase);
         } catch {
-            const localData = loadLocalVault(passphrase);
+            const localData = loadLocalVault(effectivePassphrase);
             setEntries(localData.entries);
         }
         try {
@@ -84,14 +89,14 @@ export const SeekerDashboard = () => {
             if (plan) {
                 const decryptedPlan = {
                     ...plan,
-                    warningSigns: passphrase ? decrypt(plan.warningSigns, passphrase) : plan.warningSigns,
-                    copingStrategies: passphrase ? decrypt(plan.copingStrategies, passphrase) : plan.copingStrategies,
-                    safeContacts: passphrase ? decrypt(plan.safeContacts, passphrase) : plan.safeContacts,
-                    professionalContacts: passphrase ? decrypt(plan.professionalContacts, passphrase) : plan.professionalContacts,
-                    environmentChanges: passphrase ? decrypt(plan.environmentChanges, passphrase) : plan.environmentChanges,
+                    warningSigns: effectivePassphrase ? decrypt(plan.warningSigns, effectivePassphrase) : plan.warningSigns,
+                    copingStrategies: effectivePassphrase ? decrypt(plan.copingStrategies, effectivePassphrase) : plan.copingStrategies,
+                    safeContacts: effectivePassphrase ? decrypt(plan.safeContacts, effectivePassphrase) : plan.safeContacts,
+                    professionalContacts: effectivePassphrase ? decrypt(plan.professionalContacts, effectivePassphrase) : plan.professionalContacts,
+                    environmentChanges: effectivePassphrase ? decrypt(plan.environmentChanges, effectivePassphrase) : plan.environmentChanges,
                 };
                 setSafetyPlan(decryptedPlan);
-                saveLocalVault(entries, decryptedPlan, passphrase);
+                saveLocalVault(entries, decryptedPlan, effectivePassphrase);
             }
         } catch { /* no plan yet */ }
     };
@@ -125,12 +130,13 @@ export const SeekerDashboard = () => {
                 const updatedEntries = existingIndex >= 0 
                     ? entries.map(e => e.id === currentEntryId ? newEntry : e)
                     : [newEntry, ...entries];
+                const effectivePassphrase = passphrase || sessionStorage.getItem('sh_key') || '';
                 setEntries(updatedEntries);
-                saveLocalVault(updatedEntries, safetyPlan, passphrase);
+                saveLocalVault(updatedEntries, safetyPlan, effectivePassphrase);
 
-                if (storageMode === 'cloud' && passphrase) {
-                    const encryptedText = encrypt(entryText, passphrase);
-                    const encryptedAudio = newEntry.audioData ? encrypt(newEntry.audioData, passphrase) : undefined;
+                if (storageMode === 'cloud' && effectivePassphrase) {
+                    const encryptedText = encrypt(entryText, effectivePassphrase);
+                    const encryptedAudio = newEntry.audioData ? encrypt(newEntry.audioData, effectivePassphrase) : undefined;
                     await journalApi.upsert({
                         ...newEntry,
                         entry: encryptedText,
@@ -145,7 +151,12 @@ export const SeekerDashboard = () => {
     }, [entryText, mood, passphrase, storageMode, entries, safetyPlan]);
 
     const handleOpenJournal = () => {
-        setCurrentEntryId(Date.now().toString());
+        // Use crypto.randomUUID() for a proper RFC-4122 UUID so it doesn't
+        // collide with Prisma CUIDs in the backend. Fallback for older browsers.
+        const newId = typeof crypto !== 'undefined' && crypto.randomUUID
+            ? crypto.randomUUID()
+            : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+        setCurrentEntryId(newId);
         setEntryText('');
         setMood(3);
         setShowJournalForm(true);
@@ -186,27 +197,36 @@ export const SeekerDashboard = () => {
         const updatedEntries = existingIndex >= 0
             ? entries.map(e => e.id === currentEntryId ? newEntry : e)
             : [newEntry, ...entries];
+        const effectiveSavePassphrase = passphrase || sessionStorage.getItem('sh_key') || '';
         setEntries(updatedEntries);
-        saveLocalVault(updatedEntries, safetyPlan, passphrase);
+        saveLocalVault(updatedEntries, safetyPlan, effectiveSavePassphrase);
 
         if (storageMode === 'cloud') {
-            if (!passphrase) {
+            const effectivePassphrase = passphrase || sessionStorage.getItem('sh_key') || '';
+            if (!effectivePassphrase) {
                 alert('Zero-Knowledge Security Notice: A vault passphrase is required to encrypt your reflections before cloud sync. To ensure your private thoughts are never transmitted in plaintext, this entry has been saved strictly in your offline Device Vault.');
                 setStorageMode('local');
                 setStorageModeState('local');
             } else {
-                const encryptedText = encrypt(entryText, passphrase);
-                const encryptedAudio = newEntry.audioData ? encrypt(newEntry.audioData, passphrase) : undefined;
-                const saved = await journalApi.upsert({
-                    ...newEntry,
-                    entry: encryptedText,
-                    audioData: encryptedAudio
-                });
-                if (saved && saved.id && !currentEntryId) {
-                    setCurrentEntryId(saved.id);
-                    const syncedEntries = updatedEntries.map(e => e.id === currentEntryId || (!e.id && e.entry === newEntry.entry) ? { ...e, id: saved.id } : e);
-                    setEntries(syncedEntries);
-                    saveLocalVault(syncedEntries, safetyPlan, passphrase);
+                try {
+                    const encryptedText = encrypt(entryText, effectivePassphrase);
+                    const encryptedAudio = newEntry.audioData ? encrypt(newEntry.audioData, effectivePassphrase) : undefined;
+                    const saved = await journalApi.upsert({
+                        ...newEntry,
+                        entry: encryptedText,
+                        audioData: encryptedAudio
+                    });
+                    // Sync back the server-assigned ID if it changed (e.g. server converted UUID to CUID)
+                    if (saved && saved.id && saved.id !== currentEntryId) {
+                        setCurrentEntryId(saved.id);
+                        const syncedEntries = updatedEntries.map(e =>
+                            e.id === currentEntryId ? { ...e, id: saved.id } : e
+                        );
+                        setEntries(syncedEntries);
+                        saveLocalVault(syncedEntries, safetyPlan, effectivePassphrase);
+                    }
+                } catch (err) {
+                    console.error('Cloud sync failed, entry saved locally:', err);
                 }
             }
         }
@@ -374,14 +394,13 @@ export const SeekerDashboard = () => {
                     <h1 className="text-3xl font-bold font-serif dark:text-white">Hello, {user?.username}</h1>
                     <p className="text-gray-500 text-sm">Your private sanctuary.</p>
                 </div>
-                
-                <div className="flex flex-wrap items-center gap-2">
+                             <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2.5 w-full md:w-auto">
                     {/* KeePassXC Hybrid Storage Mode Toggle */}
-                    <div className="flex items-center bg-gray-100 dark:bg-gray-800 p-1 rounded-xl border border-gray-200 dark:border-gray-700">
+                    <div className="flex items-center justify-center bg-gray-100 dark:bg-gray-800 p-1 rounded-xl border border-gray-200 dark:border-gray-700">
                         <button
                             type="button"
                             onClick={() => handleToggleStorageMode('local')}
-                            className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold transition-all ${storageMode === 'local' ? 'bg-white dark:bg-gray-700 text-emerald-600 dark:text-emerald-400 shadow-sm' : 'text-gray-500 hover:text-gray-800 dark:hover:text-gray-200'}`}
+                            className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-2 sm:py-1.5 rounded-lg text-xs font-semibold transition-all min-h-[38px] ${storageMode === 'local' ? 'bg-white dark:bg-gray-700 text-emerald-600 dark:text-emerald-400 shadow-sm' : 'text-gray-500 hover:text-gray-800 dark:hover:text-gray-200'}`}
                             title="KeePassXC style: Data stays 100% on your device, 0 bytes sent to server"
                         >
                             <HardDrive className="w-3.5 h-3.5" />
@@ -390,7 +409,7 @@ export const SeekerDashboard = () => {
                         <button
                             type="button"
                             onClick={() => handleToggleStorageMode('cloud')}
-                            className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold transition-all ${storageMode === 'cloud' ? 'bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-sm' : 'text-gray-500 hover:text-gray-800 dark:hover:text-gray-200'}`}
+                            className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-2 sm:py-1.5 rounded-lg text-xs font-semibold transition-all min-h-[38px] ${storageMode === 'cloud' ? 'bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-sm' : 'text-gray-500 hover:text-gray-800 dark:hover:text-gray-200'}`}
                             title="Encrypted text sync with zero-knowledge server"
                         >
                             <Cloud className="w-3.5 h-3.5" />
@@ -399,24 +418,26 @@ export const SeekerDashboard = () => {
                     </div>
 
                     {/* Vault Backup & Restore Buttons */}
-                    <Button variant="outline" size="sm" onClick={handleExportVault} className="gap-1.5 text-xs">
-                        <Download className="w-3.5 h-3.5" /> Export Vault
-                    </Button>
+                    <div className="flex items-center gap-2">
+                        <Button variant="outline" size="sm" onClick={handleExportVault} className="flex-1 sm:flex-initial gap-1.5 text-xs min-h-[40px] sm:min-h-[36px]">
+                            <Download className="w-3.5 h-3.5" /> Export
+                        </Button>
 
-                    <input
-                        type="file"
-                        ref={vaultFileInputRef}
-                        accept=".safevault,.json"
-                        onChange={handleImportVault}
-                        className="hidden"
-                    />
-                    <Button variant="outline" size="sm" onClick={() => vaultFileInputRef.current?.click()} className="gap-1.5 text-xs">
-                        <Upload className="w-3.5 h-3.5" /> Import Vault
-                    </Button>
+                        <input
+                            type="file"
+                            ref={vaultFileInputRef}
+                            accept=".safevault,.json"
+                            onChange={handleImportVault}
+                            className="hidden"
+                        />
+                        <Button variant="outline" size="sm" onClick={() => vaultFileInputRef.current?.click()} className="flex-1 sm:flex-initial gap-1.5 text-xs min-h-[40px] sm:min-h-[36px]">
+                            <Upload className="w-3.5 h-3.5" /> Import
+                        </Button>
 
-                    <Button variant="danger" size="sm" onClick={handleOpenNukeModal} className="gap-1.5 text-xs">
-                        <Trash2 className="w-3.5 h-3.5" /> Nuke
-                    </Button>
+                        <Button variant="danger" size="sm" onClick={handleOpenNukeModal} className="flex-1 sm:flex-initial gap-1.5 text-xs min-h-[40px] sm:min-h-[36px]">
+                            <Trash2 className="w-3.5 h-3.5" /> Nuke
+                        </Button>
+                    </div>
                 </div>
             </div>
 
@@ -426,11 +447,11 @@ export const SeekerDashboard = () => {
                         <KeyRound className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0" />
                         <p className="text-sm">Enter your passphrase to unlock and decrypt your private journal entries.</p>
                     </div>
-                    <div className="flex items-center gap-2 w-full sm:w-auto">
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
                         <input
                             type="password"
                             placeholder="Account passphrase"
-                            className="px-3 py-1.5 text-sm rounded-lg border border-amber-300 dark:border-amber-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 flex-1 sm:w-48"
+                            className="px-3 py-2 text-base sm:text-sm rounded-xl border border-amber-300 dark:border-amber-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 flex-1 sm:w-48 min-h-[44px] sm:min-h-[38px]"
                             id="unlock-passphrase-input"
                             onKeyDown={(e) => {
                                 if (e.key === 'Enter') {
@@ -442,7 +463,7 @@ export const SeekerDashboard = () => {
                                 }
                             }}
                         />
-                        <Button size="sm" onClick={() => {
+                        <Button size="sm" className="min-h-[44px] sm:min-h-[38px]" onClick={() => {
                             const el = document.getElementById('unlock-passphrase-input') as HTMLInputElement;
                             if (el?.value) {
                                 setPassphrase(el.value);
@@ -459,6 +480,9 @@ export const SeekerDashboard = () => {
                         <AlertTriangle className="w-6 h-6 shrink-0" />
                         <div><p className="font-bold">Irreversible Action</p><p>This deletes your account, journal, and messages forever. Data cannot be recovered.</p></div>
                     </div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                        To confirm this permanent action, you must verify your identity.
+                    </p>
                     <div className="space-y-4">
                         {challengeWord && (
                             <div>
@@ -479,8 +503,8 @@ export const SeekerDashboard = () => {
             </Modal>
 
             <div className="flex gap-2 border-b border-gray-200 dark:border-gray-700 mb-6">
-                <button className={`px-4 py-2 font-medium border-b-2 transition-colors ${activeTab === 'journal' ? 'border-primary-500 text-primary-600 dark:text-primary-400' : 'border-transparent text-gray-500'}`} onClick={() => setActiveTab('journal')}>Journal</button>
-                <button className={`px-4 py-2 font-medium border-b-2 transition-colors ${activeTab === 'safety' ? 'border-primary-500 text-primary-600 dark:text-primary-400' : 'border-transparent text-gray-500'}`} onClick={() => setActiveTab('safety')}>Safety Plan</button>
+                <button className={`px-4 py-2 font-medium border-b-2 transition-colors min-h-[44px] ${activeTab === 'journal' ? 'border-primary-500 text-primary-600 dark:text-primary-400' : 'border-transparent text-gray-500'}`} onClick={() => setActiveTab('journal')}>Journal</button>
+                <button className={`px-4 py-2 font-medium border-b-2 transition-colors min-h-[44px] ${activeTab === 'safety' ? 'border-primary-500 text-primary-600 dark:text-primary-400' : 'border-transparent text-gray-500'}`} onClick={() => setActiveTab('safety')}>Safety Plan</button>
             </div>
 
             {activeTab === 'journal' && (
@@ -500,17 +524,17 @@ export const SeekerDashboard = () => {
                                     {saveStatus === 'saving' && <span className="text-xs text-gray-400 font-normal flex items-center gap-1"><Cloud className="w-3 h-3 animate-pulse" /> Saving...</span>}
                                     {saveStatus === 'saved' && entryText.trim() && <span className="text-xs text-green-500 font-normal flex items-center gap-1"><Check className="w-3 h-3" /> Saved</span>}
                                 </h3>
-                                <button onClick={() => { setShowJournalForm(false); if (autosaveTimerRef.current) clearTimeout(autosaveTimerRef.current); }}><X className="w-5 h-5 text-gray-400" /></button>
+                                <button onClick={() => { setShowJournalForm(false); if (autosaveTimerRef.current) clearTimeout(autosaveTimerRef.current); }} className="p-2 -mr-2 text-gray-400 hover:text-gray-600 min-h-[44px] min-w-[44px] flex items-center justify-center"><X className="w-5 h-5" /></button>
                             </div>
                             <div className="flex justify-between mb-6 bg-gray-50 dark:bg-gray-900/50 p-4 rounded-xl">
                                 {[1, 2, 3, 4, 5].map(m => (
-                                    <button key={m} onClick={() => setMood(m)} className={`text-3xl transition-all transform hover:scale-125 ${mood === m ? 'scale-125' : 'grayscale opacity-70 hover:grayscale-0 hover:opacity-100'}`}>{['😢', '😟', '😐', '🙂', '😊'][m-1]}</button>
+                                    <button key={m} onClick={() => setMood(m)} className={`text-3xl transition-all transform hover:scale-125 min-h-[44px] min-w-[44px] flex items-center justify-center ${mood === m ? 'scale-125' : 'grayscale opacity-70 hover:grayscale-0 hover:opacity-100'}`}>{['😢', '😟', '😐', '🙂', '😊'][m-1]}</button>
                                 ))}
                             </div>
-                            <textarea className="w-full h-32 p-4 rounded-xl border border-gray-300 dark:border-gray-600 bg-transparent mb-4 focus:ring-2 focus:ring-primary-500 outline-none dark:text-white resize-none" placeholder="Write your thoughts here..." value={entryText} onChange={(e) => setEntryText(e.target.value)} />
+                            <textarea className="w-full h-32 p-4 rounded-xl border border-gray-300 dark:border-gray-600 bg-transparent mb-4 focus:ring-2 focus:ring-primary-500 outline-none dark:text-white resize-none text-base sm:text-sm" placeholder="Write your thoughts here..." value={entryText} onChange={(e) => setEntryText(e.target.value)} />
                             
                             {/* Privacy & Zero-Knowledge Vault Indicator */}
-                            <div className="flex items-center justify-between gap-3 mb-4 bg-gray-50 dark:bg-gray-900/50 p-3 rounded-xl border border-gray-100 dark:border-gray-800 text-xs text-gray-600 dark:text-gray-400">
+                            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4 bg-gray-50 dark:bg-gray-900/50 p-3 rounded-xl border border-gray-100 dark:border-gray-800 text-xs text-gray-600 dark:text-gray-400">
                                 <div className="flex items-center gap-2">
                                     <Shield className="w-4 h-4 text-emerald-500 shrink-0" />
                                     <span>
@@ -519,16 +543,16 @@ export const SeekerDashboard = () => {
                                             : 'Cloud Sync Active: Reflections are encrypted with AES-256 before transit.'}
                                     </span>
                                 </div>
-                                <span className="text-[10px] font-mono uppercase bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 px-2 py-0.5 rounded font-bold whitespace-nowrap">
+                                <span className="text-[10px] font-mono uppercase bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 px-2 py-0.5 rounded font-bold whitespace-nowrap self-start sm:self-auto">
                                     {storageMode === 'local' ? 'OFFLINE SECURE' : 'AES-256 SYNC'}
                                 </span>
                             </div>
 
-                             <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2 text-xs text-green-600 dark:text-green-400"><Lock className="w-3 h-3" /><span>End-to-End Encrypted</span></div>
-                                <div className="flex gap-2">
-                                    <Button variant="secondary" onClick={() => handleSaveEntry(true)}>Save Draft</Button>
-                                    <Button onClick={() => handleSaveEntry(false)}>Post Entry</Button>
+                             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                                <div className="flex items-center gap-2 text-xs text-green-600 dark:text-green-400"><Lock className="w-3.5 h-3.5 shrink-0" /><span>End-to-End Encrypted</span></div>
+                                <div className="flex gap-2 w-full sm:w-auto">
+                                    <Button variant="secondary" className="flex-1 sm:flex-initial" onClick={() => handleSaveEntry(true)}>Save Draft</Button>
+                                    <Button className="flex-1 sm:flex-initial" onClick={() => handleSaveEntry(false)}>Post Entry</Button>
                                 </div>
                             </div>
                         </Card>
@@ -550,11 +574,11 @@ export const SeekerDashboard = () => {
                                 )}
                                 {/* Edit + Delete buttons — always visible, not just on hover */}
                                 <div className="flex gap-2 mt-3 pt-3 border-t border-gray-100 dark:border-gray-800">
-                                    <button onClick={() => handleEditEntry(entry)} className="flex items-center gap-1 px-3 py-1.5 text-sm bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-800 transition-colors">
-                                        <Edit2 className="w-3 h-3"/> Edit
+                                    <button onClick={() => handleEditEntry(entry)} className="min-h-[40px] flex items-center gap-1.5 px-3.5 py-2 text-sm font-medium bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-800 transition-colors">
+                                        <Edit2 className="w-3.5 h-3.5"/> Edit
                                     </button>
-                                    <button onClick={(e) => handleDeleteEntry(entry.id, e)} className="flex items-center gap-1 px-3 py-1.5 text-sm bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded-lg hover:bg-red-100 dark:hover:bg-red-800 transition-colors">
-                                        <Trash2 className="w-3 h-3"/> Delete
+                                    <button onClick={(e) => handleDeleteEntry(entry.id, e)} className="min-h-[40px] flex items-center gap-1.5 px-3.5 py-2 text-sm font-medium bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded-lg hover:bg-red-100 dark:hover:bg-red-800 transition-colors">
+                                        <Trash2 className="w-3.5 h-3.5"/> Delete
                                     </button>
                                 </div>
                             </Card>

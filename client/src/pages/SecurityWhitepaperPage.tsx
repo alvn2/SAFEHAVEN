@@ -38,35 +38,35 @@ export const SecurityWhitepaperPage = () => {
       <div className="space-y-8">
         <h2 className="text-3xl font-bold font-serif text-gray-900 dark:text-white">Data Lifecycle</h2>
         
-        <div className="relative border-l-4 border-gray-200 dark:border-gray-800 ml-4 pl-8 space-y-12">
+        <div className="relative border-l-4 border-gray-200 dark:border-gray-800 ml-8 sm:ml-10 pl-6 sm:pl-8 space-y-10">
           <div className="relative">
-            <span className="absolute -left-[42px] bg-gray-900 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm">1</span>
+            <span className="absolute -left-[40px] sm:-left-[48px] bg-gray-900 dark:bg-gray-700 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm">1</span>
             <h4 className="text-xl font-bold mb-2 dark:text-white">Input</h4>
             <p className="text-gray-600 dark:text-gray-400">You type a journal entry: <em>"I am feeling anxious today."</em></p>
           </div>
           
           <div className="relative">
-            <span className="absolute -left-[42px] bg-gray-900 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm">2</span>
+            <span className="absolute -left-[40px] sm:-left-[48px] bg-gray-900 dark:bg-gray-700 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm">2</span>
             <h4 className="text-xl font-bold mb-2 dark:text-white">Encryption (Local)</h4>
-            <p className="text-gray-600 dark:text-gray-400">Your device encrypts this using your password. Result: <code>U2FsdGVkX1+v8w5+...</code></p>
+            <p className="text-gray-600 dark:text-gray-400">Your device encrypts this using your password. Result: <code className="break-all bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded text-xs">U2FsdGVkX1+v8w5+...</code></p>
           </div>
           
           <div className="relative">
-            <span className="absolute -left-[42px] bg-gray-900 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm">3</span>
+            <span className="absolute -left-[40px] sm:-left-[48px] bg-gray-900 dark:bg-gray-700 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm">3</span>
             <h4 className="text-xl font-bold mb-2 dark:text-white">Transmission</h4>
             <p className="text-gray-600 dark:text-gray-400">The encrypted text is sent over HTTPS (TLS 1.3) to our database.</p>
           </div>
 
           <div className="relative">
-             <span className="absolute -left-[42px] bg-gray-900 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm">4</span>
+             <span className="absolute -left-[40px] sm:-left-[48px] bg-gray-900 dark:bg-gray-700 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm">4</span>
              <h4 className="text-xl font-bold mb-2 dark:text-white">Storage</h4>
              <p className="text-gray-600 dark:text-gray-400">We store the encrypted string. If a hacker breaches our database, they see only gibberish.</p>
           </div>
         </div>
       </div>
 
-      <Card className="p-8 bg-red-50 dark:bg-red-900/10 border-red-100 dark:border-red-900/30">
-        <h3 className="text-2xl font-bold text-red-700 dark:text-red-400 mb-4 flex items-center gap-3">
+      <Card className="p-6 sm:p-8 bg-red-50 dark:bg-red-900/10 border-red-100 dark:border-red-900/30">
+        <h3 className="text-xl sm:text-2xl font-bold text-red-700 dark:text-red-400 mb-4 flex items-center gap-3">
           <Trash2 /> The "Kill Switch" Mechanism
         </h3>
         <p className="text-gray-800 dark:text-gray-200 mb-4">
@@ -89,7 +89,7 @@ export const SecurityWhitepaperPage = () => {
           href="https://github.com/alvn2/SAFEHAVEN" 
           target="_blank" 
           rel="noopener noreferrer" 
-          className="inline-flex items-center gap-2 text-primary-600 font-bold hover:underline"
+          className="inline-flex items-center justify-center min-h-[44px] px-4 py-2 rounded-xl gap-2 text-primary-600 font-bold hover:underline"
         >
           <Server size={18} /> View Source Code on GitHub
         </a>

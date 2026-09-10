@@ -43,9 +43,9 @@ export const SubmitUGCModal: React.FC<Props> = ({ isOpen, onClose }) => {
           </div>
         )}
         <div>
-          <label className="block text-sm font-bold mb-1 dark:text-gray-300">Submission Type</label>
+          <label className="block text-sm font-bold mb-1.5 dark:text-gray-300">Submission Type</label>
           <select 
-            className="w-full p-3 border rounded-xl dark:bg-gray-800 dark:border-gray-700 dark:text-white outline-none focus:ring-2 focus:ring-primary-500"
+            className="w-full p-3 min-h-[44px] text-base sm:text-sm border rounded-xl dark:bg-gray-800 dark:border-gray-700 dark:text-white outline-none focus:ring-2 focus:ring-primary-500"
             value={type} onChange={e => setType(e.target.value as any)}
           >
             <option value="Group">Support Group</option>
@@ -63,9 +63,9 @@ export const SubmitUGCModal: React.FC<Props> = ({ isOpen, onClose }) => {
              <Input placeholder="Platform (e.g., WhatsApp, Discord)" required onChange={e => setFormData({...formData, platform: e.target.value})} />
              <Input placeholder="Category (e.g., Addiction, Grief)" required onChange={e => setFormData({...formData, category: e.target.value})} />
              <div>
-               <label className="block text-sm font-bold mb-1 dark:text-gray-300">Privacy</label>
+               <label className="block text-sm font-bold mb-1.5 dark:text-gray-300">Privacy</label>
                <select
-                 className="w-full p-3 border rounded-xl dark:bg-gray-800 dark:border-gray-700 dark:text-white outline-none focus:ring-2 focus:ring-primary-500"
+                 className="w-full p-3 min-h-[44px] text-base sm:text-sm border rounded-xl dark:bg-gray-800 dark:border-gray-700 dark:text-white outline-none focus:ring-2 focus:ring-primary-500"
                  value={formData.privacy || 'PUBLIC'}
                  onChange={e => setFormData({...formData, privacy: e.target.value})}
                >
@@ -79,7 +79,7 @@ export const SubmitUGCModal: React.FC<Props> = ({ isOpen, onClose }) => {
            <>
              <Input placeholder="Event Title" required onChange={e => setFormData({...formData, title: e.target.value})} />
              <Input placeholder="Description" required onChange={e => setFormData({...formData, description: e.target.value})} />
-             <Input type="datetime-local" required className="dark:text-white" onChange={e => setFormData({...formData, date: e.target.value})} />
+             <Input type="datetime-local" required className="dark:text-white min-h-[44px]" onChange={e => setFormData({...formData, date: e.target.value})} />
              <Input placeholder="Location (or Zoom link)" required onChange={e => setFormData({...formData, location: e.target.value})} />
              <Input placeholder="Organizer Name" required onChange={e => setFormData({...formData, organizer: e.target.value})} />
            </>
@@ -99,7 +99,7 @@ export const SubmitUGCModal: React.FC<Props> = ({ isOpen, onClose }) => {
            </>
         )}
 
-        <Button type="submit" isLoading={isSubmitting} className="w-full mt-4">Submit for Review</Button>
+        <Button type="submit" isLoading={isSubmitting} className="w-full mt-4 min-h-[44px]">Submit for Review</Button>
       </form>
     </Modal>
   );

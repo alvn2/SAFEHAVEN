@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Shield, LogOut } from 'lucide-react';
 
 export const QuickExitButton = () => (
-  <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 flex flex-col gap-3 items-end pointer-events-none">
+  <div className="fixed bottom-20 right-3 sm:bottom-6 sm:right-6 z-40 flex flex-col gap-2.5 sm:gap-3 items-end pointer-events-none">
     <Link 
       to="/seeker/dashboard"
       className="pointer-events-auto bg-white/90 dark:bg-gray-800/90 backdrop-blur text-gray-700 dark:text-gray-200 p-3 rounded-full shadow-lg border border-gray-300 dark:border-gray-700 hover:scale-105 transition-transform hover:bg-white dark:hover:bg-gray-700"

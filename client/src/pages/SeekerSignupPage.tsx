@@ -24,6 +24,8 @@ export const SeekerSignupPage = () => {
         setUsername(`${adjs[Math.floor(Math.random()*adjs.length)]}${nouns[Math.floor(Math.random()*nouns.length)]}${Math.floor(Math.random()*1000)}`);
     }, []);
 
+    const [copied, setCopied] = useState(false);
+
     // Verification Challenge State
     const [challengeIndices, setChallengeIndices] = useState<number[]>([]);
     const [challengeWords, setChallengeWords] = useState<string[]>(['', '']);
@@ -70,8 +72,8 @@ export const SeekerSignupPage = () => {
     };
 
     return (
-        <div className="max-w-md mx-auto py-12">
-            <Card className="p-8">
+        <div className="max-w-md mx-auto py-8 sm:py-12">
+            <Card className="p-5 sm:p-8">
                 <div className="text-center mb-8">
                     <Logo />
                     <h2 className="text-2xl font-bold mt-4 dark:text-white">
@@ -94,7 +96,7 @@ export const SeekerSignupPage = () => {
                             </div>
                         )}
                         <Input label="Anonymous Username" value={username} onChange={e => setUsername(e.target.value)} required placeholder="Choose a pseudonym" />
-                        <p className="text-[10px] text-gray-500 -mt-3 ml-1">We've generated a random secure username for you, but you can change it.</p>
+                        <p className="text-xs text-gray-500 -mt-2 ml-1">We've generated a random secure username for you, but you can change it.</p>
                         
                         <Input label="Password" type="password" value={password} onChange={e => setPassword(e.target.value)} required minLength={6} placeholder="Create a strong password" />
                         
@@ -117,29 +119,38 @@ export const SeekerSignupPage = () => {
 
                         <Button type="submit" className="w-full mt-6" isLoading={isLoading}>Create Account</Button>
                         <div className="text-center mt-4">
-                             <Link to="/auth" className="text-sm text-primary-600 hover:underline">Already have an account? Log In</Link>
+                             <Link to="/auth" className="text-sm text-primary-600 hover:underline inline-flex items-center min-h-[36px]">Already have an account? Log In</Link>
                         </div>
                     </form>
                 )}
 
                 {step === 2 && (
                     <div className="space-y-6">
-                        <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700 relative group">
-                            <div className="grid grid-cols-3 gap-2">
+                        <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700 space-y-3">
+                            <div className="flex items-center justify-between pb-2 border-b border-gray-200 dark:border-gray-700">
+                                <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Secret Recovery Phrase</span>
+                                <button 
+                                    type="button"
+                                    onClick={() => {
+                                        navigator.clipboard.writeText(recoveryKey);
+                                        setCopied(true);
+                                        setTimeout(() => setCopied(false), 2000);
+                                    }}
+                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white transition-colors bg-white dark:bg-gray-700 rounded-lg shadow-sm min-h-[36px]"
+                                    title="Copy to clipboard"
+                                >
+                                    <Copy className="w-3.5 h-3.5" />
+                                    <span>{copied ? 'Copied!' : 'Copy'}</span>
+                                </button>
+                            </div>
+                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-2.5">
                                 {recoveryKey.split(' ').map((word, i) => (
-                                    <div key={i} className="flex items-center gap-1 text-xs">
-                                        <span className="text-gray-400 select-none">{i+1}.</span>
-                                        <span className="font-mono font-bold text-gray-800 dark:text-gray-200">{word}</span>
+                                    <div key={i} className="flex items-center gap-1.5 text-xs sm:text-sm bg-white dark:bg-gray-900/60 px-2.5 py-1.5 rounded-lg border border-gray-200 dark:border-gray-700">
+                                        <span className="text-gray-400 select-none w-5 text-right font-mono">{i+1}.</span>
+                                        <span className="font-mono font-bold text-gray-800 dark:text-gray-200 truncate">{word}</span>
                                     </div>
                                 ))}
                             </div>
-                            <button 
-                                onClick={() => navigator.clipboard.writeText(recoveryKey)}
-                                className="absolute top-2 right-2 p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors bg-white dark:bg-gray-700 rounded-lg shadow-sm"
-                                title="Copy to clipboard"
-                            >
-                                <Copy className="w-4 h-4" />
-                            </button>
                         </div>
 
                         <div className="flex gap-2 items-start p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-sm text-blue-800 dark:text-blue-300">

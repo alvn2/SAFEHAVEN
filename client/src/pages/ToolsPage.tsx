@@ -11,9 +11,9 @@ const BreathingTool = () => {
         if(!isActive) return;
         let step = 0;
         const cycle = () => {
-            if(step % 3 === 0) { setText('Inhale (4s)'); setScale(1.5); }
-            if(step % 3 === 1) { setText('Hold (7s)'); setScale(1.5); }
-            if(step % 3 === 2) { setText('Exhale (8s)'); setScale(1); }
+            if(step % 3 === 0) { setText('Inhale (4s)'); setScale(1.3); }
+            if(step % 3 === 1) { setText('Hold (7s)'); setScale(1.3); }
+            if(step % 3 === 2) { setText('Exhale (8s)'); setScale(0.9); }
             step++;
         }
         cycle();
@@ -22,11 +22,16 @@ const BreathingTool = () => {
     }, [isActive]);
 
     return (
-        <Card className="p-8 text-center flex flex-col items-center">
-            <div className={`w-40 h-40 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center transition-all duration-[4000ms] ease-in-out mb-6`} style={{ transform: `scale(${scale})` }}>
-                <span className="font-bold text-blue-600 dark:text-blue-300 text-lg">{text}</span>
+        <Card className="p-6 sm:p-8 text-center flex flex-col items-center overflow-hidden">
+            <div className="h-48 w-full flex items-center justify-center mb-4">
+                <div 
+                    className="w-32 h-32 sm:w-36 sm:h-36 rounded-full bg-blue-100 dark:bg-blue-900/60 border-2 border-blue-200 dark:border-blue-700/50 flex items-center justify-center transition-all duration-[4000ms] ease-in-out shadow-sm" 
+                    style={{ transform: `scale(${scale})` }}
+                >
+                    <span className="font-bold text-blue-600 dark:text-blue-300 text-base sm:text-lg">{text}</span>
+                </div>
             </div>
-            <Button onClick={() => setIsActive(!isActive)} variant={isActive ? 'danger' : 'primary'}>
+            <Button onClick={() => setIsActive(!isActive)} variant={isActive ? 'danger' : 'primary'} className="min-h-[44px]">
                 {isActive ? <><StopCircle className="mr-2"/> Stop</> : <><PlayCircle className="mr-2"/> Start Breathing</>}
             </Button>
         </Card>

@@ -220,7 +220,7 @@ export const AdminDashboard = () => {
             <h1 className="text-3xl font-bold font-serif dark:text-white">Admin Dashboard</h1>
 
             {/* Tab navigation */}
-            <div className="flex gap-2 border-b border-gray-200 dark:border-gray-700 overflow-x-auto">
+            <div className="flex gap-2 border-b border-gray-200 dark:border-gray-700 overflow-x-auto scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0">
                 {[
                     { id: 'volunteers', label: `Vetting Queue (${pendingApps.length})`, icon: <ShieldCheck className="w-4 h-4" /> },
                     { id: 'moderation', label: `Flagged Forum (${flaggedPosts.length})`, icon: <Flag className="w-4 h-4" /> },
@@ -230,7 +230,7 @@ export const AdminDashboard = () => {
                 ].map(tab => (
                     <button
                         key={tab.id}
-                        className={`px-4 py-2 font-medium border-b-2 transition-colors flex items-center gap-2 whitespace-nowrap ${activeTab === tab.id ? 'border-primary-500 text-primary-600 dark:text-primary-400' : 'border-transparent text-gray-500 dark:text-gray-400'}`}
+                        className={`px-4 py-2.5 font-medium border-b-2 transition-colors flex items-center gap-2 whitespace-nowrap min-h-[44px] shrink-0 text-sm ${activeTab === tab.id ? 'border-primary-500 text-primary-600 dark:text-primary-400 font-bold' : 'border-transparent text-gray-500 dark:text-gray-400'}`}
                         onClick={() => setActiveTab(tab.id as any)}
                     >
                         {tab.icon} {tab.label}
@@ -246,8 +246,8 @@ export const AdminDashboard = () => {
                     ) : (
                         <div className="divide-y divide-gray-200 dark:divide-gray-700">
                             {pendingApps.map(app => (
-                                <div key={app.id} className="p-6 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
-                                    <div className="flex justify-between items-start mb-4">
+                                <div key={app.id} className="p-5 sm:p-6 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+                                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
                                         <div>
                                             <h3 className="font-bold text-lg dark:text-white">{app.name}</h3>
                                             <div className="flex gap-2 mt-1">
@@ -255,9 +255,9 @@ export const AdminDashboard = () => {
                                                 <span className="text-sm text-gray-500">{app.email}</span>
                                             </div>
                                         </div>
-                                        <div className="flex gap-2">
-                                            <Button size="sm" variant="danger" onClick={() => handleReject(app.id, app.name)}>Reject</Button>
-                                            <Button size="sm" onClick={() => handleApprove(app.id)} isLoading={approvingId === app.id} disabled={approvingId !== null}>
+                                        <div className="flex gap-2 w-full sm:w-auto">
+                                            <Button size="sm" variant="danger" onClick={() => handleReject(app.id, app.name)} className="flex-1 sm:flex-initial min-h-[40px]">Reject</Button>
+                                            <Button size="sm" onClick={() => handleApprove(app.id)} isLoading={approvingId === app.id} disabled={approvingId !== null} className="flex-1 sm:flex-initial min-h-[40px]">
                                                 Approve & Verify
                                             </Button>
                                         </div>
@@ -305,10 +305,10 @@ export const AdminDashboard = () => {
                             ) : (
                                 <div className="divide-y divide-gray-200 dark:divide-gray-700">
                                     {flaggedPosts.map(post => (
-                                        <div key={post.id} className="p-6 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
-                                            <div className="flex justify-between items-start mb-4">
+                                        <div key={post.id} className="p-5 sm:p-6 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+                                            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
                                                 <div className="flex items-center gap-2">
-                                                    <Flag className="w-5 h-5 text-red-500" />
+                                                    <Flag className="w-5 h-5 text-red-500 shrink-0" />
                                                     <div>
                                                         <h3 className="font-bold text-lg text-red-600 dark:text-red-400">Flagged Post</h3>
                                                         <div className="flex gap-2 text-sm text-gray-500">
@@ -317,11 +317,11 @@ export const AdminDashboard = () => {
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <div className="flex gap-2">
-                                                    <Button size="sm" variant="ghost" onClick={() => handleDismissFlag(post.id)}>
+                                                <div className="flex gap-2 w-full sm:w-auto">
+                                                    <Button size="sm" variant="ghost" onClick={() => handleDismissFlag(post.id)} className="flex-1 sm:flex-initial min-h-[40px]">
                                                         <Check className="w-4 h-4 mr-1" /> Dismiss
                                                     </Button>
-                                                    <Button size="sm" variant="danger" onClick={() => handleDeletePost(post.id)}>
+                                                    <Button size="sm" variant="danger" onClick={() => handleDeletePost(post.id)} className="flex-1 sm:flex-initial min-h-[40px]">
                                                         <Trash2 className="w-4 h-4 mr-1" /> Delete
                                                     </Button>
                                                 </div>
@@ -387,11 +387,11 @@ export const AdminDashboard = () => {
                             ) : (
                                 <div className="divide-y divide-gray-200 dark:divide-gray-700">
                                     {section.items.map((item: any) => (
-                                        <div key={item.id} className="p-6 flex justify-between items-start dark:text-gray-300 gap-4">
+                                        <div key={item.id} className="p-5 sm:p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center dark:text-gray-300 gap-4">
                                             <div className="flex-1 min-w-0">{section.renderItem(item)}</div>
-                                            <div className="flex gap-2 shrink-0">
-                                                <Button size="sm" variant="danger" onClick={() => handleModerateUGC(section.type, item.id, 'reject')}>Reject</Button>
-                                                <Button size="sm" onClick={() => handleModerateUGC(section.type, item.id, 'approve')}>Approve</Button>
+                                            <div className="flex gap-2 w-full sm:w-auto shrink-0">
+                                                <Button size="sm" variant="danger" onClick={() => handleModerateUGC(section.type, item.id, 'reject')} className="flex-1 sm:flex-initial min-h-[40px]">Reject</Button>
+                                                <Button size="sm" onClick={() => handleModerateUGC(section.type, item.id, 'approve')} className="flex-1 sm:flex-initial min-h-[40px]">Approve</Button>
                                             </div>
                                         </div>
                                     ))}
@@ -411,7 +411,7 @@ export const AdminDashboard = () => {
                                 <h3 className="font-bold text-lg dark:text-white">Moderator Applications</h3>
                                 <p className="text-sm text-gray-500 mt-1">Control whether users can submit moderator applications.</p>
                             </div>
-                            <button onClick={toggleModApplications} className="flex items-center gap-2 text-sm font-bold">
+                            <button onClick={toggleModApplications} className="flex items-center gap-2 text-sm font-bold min-h-[44px]">
                                 {modAppsOpen ? <><ToggleRight className="w-8 h-8 text-green-500" /><span className="text-green-600">Open</span></> : <><ToggleLeft className="w-8 h-8 text-gray-400" /><span className="text-gray-500">Closed</span></>}
                             </button>
                         </div>
@@ -425,8 +425,8 @@ export const AdminDashboard = () => {
                         ) : (
                             <div className="divide-y divide-gray-200 dark:divide-gray-700">
                                 {modApps.map((app: any) => (
-                                    <div key={app.id} className="p-6 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
-                                        <div className="flex justify-between items-start mb-3">
+                                    <div key={app.id} className="p-5 sm:p-6 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+                                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-3">
                                             <div>
                                                 <h3 className="font-bold text-lg dark:text-white">{app.user?.username || 'Unknown'}</h3>
                                                 <div className="flex gap-2 mt-1">
@@ -434,9 +434,9 @@ export const AdminDashboard = () => {
                                                     <span className="text-sm text-gray-500">Joined {app.user?.createdAt ? new Date(app.user.createdAt).toLocaleDateString() : 'N/A'}</span>
                                                 </div>
                                             </div>
-                                            <div className="flex gap-2">
-                                                <Button size="sm" variant="danger" onClick={() => handleModerateModApp(app.id, 'reject')}>Reject</Button>
-                                                <Button size="sm" onClick={() => handleModerateModApp(app.id, 'approve')}>Approve</Button>
+                                            <div className="flex gap-2 w-full sm:w-auto">
+                                                <Button size="sm" variant="danger" onClick={() => handleModerateModApp(app.id, 'reject')} className="flex-1 sm:flex-initial min-h-[40px]">Reject</Button>
+                                                <Button size="sm" onClick={() => handleModerateModApp(app.id, 'approve')} className="flex-1 sm:flex-initial min-h-[40px]">Approve</Button>
                                             </div>
                                         </div>
                                         <div className="bg-gray-100 dark:bg-gray-900 p-4 rounded-xl">
@@ -468,21 +468,21 @@ export const AdminDashboard = () => {
                             </div>
                         </div>
                         {/* Search + Filter */}
-                        <div className="flex gap-2 mt-4 flex-wrap">
-                            <div className="relative flex-1 min-w-[180px]">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+                        <div className="flex flex-col sm:flex-row gap-2 mt-4">
+                            <div className="relative flex-1">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4 pointer-events-none" />
                                 <input
                                     type="text"
                                     placeholder="Search volunteers & staff..."
                                     value={userSearch}
                                     onChange={e => setUserSearch(e.target.value)}
-                                    className="w-full pl-9 pr-3 py-2 text-sm border rounded-xl bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                    className="w-full pl-9 pr-3 py-2 text-base sm:text-sm border rounded-xl bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500 min-h-[44px]"
                                 />
                             </div>
                             <select
                                 value={roleFilter}
                                 onChange={e => setRoleFilter(e.target.value)}
-                                className="px-3 py-2 text-sm border rounded-xl bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none"
+                                className="px-3 py-2 text-base sm:text-sm border rounded-xl bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none min-h-[44px]"
                             >
                                 <option value="ALL">All Staff Roles</option>
                                 <option value="VOLUNTEER_APPROVED">VOLUNTEER_APPROVED</option>

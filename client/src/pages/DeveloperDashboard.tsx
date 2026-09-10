@@ -102,21 +102,21 @@ export const DeveloperDashboard = () => {
                 <Badge color="blue">System Admin Mode</Badge>
             </div>
 
-            <div className="flex gap-2 border-b border-gray-200 dark:border-gray-700 overflow-x-auto">
+            <div className="flex gap-2 border-b border-gray-200 dark:border-gray-700 overflow-x-auto scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0">
                 {['content', 'users', 'system', 'audit'].map(t => (
-                    <button key={t} onClick={() => setTab(t as any)} className={`px-6 py-3 font-medium border-b-2 capitalize transition-colors ${tab === t ? 'border-primary-500 text-primary-600 dark:text-primary-400' : 'border-transparent text-gray-500 dark:text-gray-400'}`}>{t}</button>
+                    <button key={t} onClick={() => setTab(t as any)} className={`px-5 py-2.5 font-medium border-b-2 capitalize transition-colors min-h-[44px] shrink-0 text-sm ${tab === t ? 'border-primary-500 text-primary-600 dark:text-primary-400 font-bold' : 'border-transparent text-gray-500 dark:text-gray-400'}`}>{t}</button>
                 ))}
             </div>
 
             {/* ===== CONTENT TAB ===== */}
             {tab === 'content' && (
-                <div className="grid md:grid-cols-3 gap-8">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     {/* Left: Add / Edit form */}
-                    <Card className="p-6 md:col-span-1 h-fit">
+                    <Card className="p-6 lg:col-span-1 h-fit">
                         <div className="flex items-center justify-between mb-4">
                             <h3 className="font-bold dark:text-white">{editingId ? 'Edit Resource' : 'Add Resource'}</h3>
                             {editingId && (
-                                <button onClick={handleCancelEdit} className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+                                <button onClick={handleCancelEdit} className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 min-h-[40px] min-w-[40px] flex items-center justify-center">
                                     <X className="w-4 h-4" />
                                 </button>
                             )}
@@ -131,7 +131,7 @@ export const DeveloperDashboard = () => {
                             <div>
                                 <label className="block text-sm font-semibold mb-1.5 dark:text-gray-200">Category</label>
                                 <select
-                                    className="w-full px-4 py-2.5 border rounded-xl bg-white dark:bg-gray-800 dark:text-white dark:border-gray-600 focus:ring-2 focus:ring-primary-500 outline-none"
+                                    className="w-full px-4 py-2.5 border rounded-xl bg-white dark:bg-gray-800 dark:text-white dark:border-gray-600 focus:ring-2 focus:ring-primary-500 outline-none min-h-[44px] text-base sm:text-sm"
                                     value={newArticle.category}
                                     onChange={e => setNewArticle({ ...newArticle, category: e.target.value })}
                                 >
@@ -141,20 +141,20 @@ export const DeveloperDashboard = () => {
                             <div>
                                 <label className="block text-sm font-semibold mb-1.5 dark:text-gray-200">Content</label>
                                 <textarea
-                                    className="w-full p-3 border rounded-xl dark:bg-gray-800 dark:text-white dark:border-gray-600 h-40 focus:ring-2 focus:ring-primary-500 outline-none resize-y"
+                                    className="w-full p-3 border rounded-xl dark:bg-gray-800 dark:text-white dark:border-gray-600 h-40 focus:ring-2 focus:ring-primary-500 outline-none resize-y text-base sm:text-sm"
                                     placeholder="Write the resource content..."
                                     value={newArticle.content}
                                     onChange={e => setNewArticle({ ...newArticle, content: e.target.value })}
                                 />
                             </div>
-                            <Button onClick={handlePublish} className="w-full" isLoading={isPublishing} disabled={!newArticle.title.trim() || !newArticle.content.trim()}>
+                            <Button onClick={handlePublish} className="w-full min-h-[44px]" isLoading={isPublishing} disabled={!newArticle.title.trim() || !newArticle.content.trim()}>
                                 {editingId ? <><Edit2 className="w-4 h-4 mr-2" />Update Resource</> : <><Plus className="w-4 h-4 mr-2" />Publish Resource</>}
                             </Button>
                         </div>
                     </Card>
 
                     {/* Right: Resource list */}
-                    <div className="md:col-span-2 space-y-3">
+                    <div className="lg:col-span-2 space-y-3">
                         {articles.length === 0 ? (
                             <div className="text-center py-12 text-gray-500">No resources published yet.</div>
                         ) : (

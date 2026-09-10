@@ -87,10 +87,10 @@ export const SecurityCenterPage = () => {
 
             <Card className="p-6">
                 <h3 className="text-xl font-bold mb-4 dark:text-white flex items-center gap-2"><Key className="w-5 h-5"/> Recovery Credentials</h3>
-                <p className="text-gray-600 dark:text-gray-400 mb-4">Your 12-word recovery phrase is the only way to restore your account if you forget your password.</p>
-                <div className="flex gap-4">
-                    <Button variant="outline">View Recovery Phrase</Button>
-                    <Button variant="outline">Change Password</Button>
+                <p className="text-gray-600 dark:text-gray-400 mb-4 text-sm sm:text-base">Your 12-word recovery phrase is the only way to restore your account if you forget your password.</p>
+                <div className="flex flex-col sm:flex-row gap-3">
+                    <Button variant="outline" className="w-full sm:w-auto min-h-[44px]">View Recovery Phrase</Button>
+                    <Button variant="outline" className="w-full sm:w-auto min-h-[44px]">Change Password</Button>
                 </div>
             </Card>
 
@@ -101,14 +101,14 @@ export const SecurityCenterPage = () => {
                         <div><p className="font-bold dark:text-white">Current Device</p><p className="text-xs text-gray-500">Last active: Just now</p></div>
                         <Badge color="green">Active</Badge>
                     </div>
-                    <Button variant="secondary" onClick={logout}>Log Out All Devices</Button>
+                    <Button variant="secondary" onClick={logout} className="w-full sm:w-auto min-h-[44px]">Log Out All Devices</Button>
                 </div>
             </Card>
 
             {/* Moderator Application */}
             <Card className="p-6 border-blue-200 dark:border-blue-900">
                 <h3 className="text-xl font-bold mb-4 dark:text-white flex items-center gap-2"><UserCheck className="w-5 h-5 text-blue-500"/> Apply to be a Moderator</h3>
-                <p className="text-gray-600 dark:text-gray-400 mb-4">Help keep SafeHaven safe. Community Moderators review flagged content, guide discussions, and support the community.</p>
+                <p className="text-gray-600 dark:text-gray-400 mb-4 text-sm sm:text-base">Help keep SafeHaven safe. Community Moderators review flagged content, guide discussions, and support the community.</p>
                 {modStatus === 'success' ? (
                     <div className="flex items-center gap-2.5 bg-emerald-50 dark:bg-emerald-900/20 p-4 rounded-xl border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-200 text-sm font-medium">
                         <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" aria-hidden="true" />
@@ -117,7 +117,7 @@ export const SecurityCenterPage = () => {
                 ) : (
                     <form onSubmit={handleModApply} className="space-y-4">
                         <textarea
-                            className="w-full p-3 border rounded-xl dark:bg-gray-800 dark:border-gray-700 dark:text-white outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                            className="w-full p-3 border rounded-xl dark:bg-gray-800 dark:border-gray-700 dark:text-white outline-none focus:ring-2 focus:ring-blue-500 resize-none text-base sm:text-sm"
                             rows={4}
                             placeholder="Why would you like to be a moderator? (minimum 10 characters)"
                             value={modReason}
@@ -128,15 +128,15 @@ export const SecurityCenterPage = () => {
                         {modStatus && modStatus !== 'success' && (
                             <p className="text-red-500 text-sm">{modStatus}</p>
                         )}
-                        <Button type="submit" isLoading={modSubmitting}>Submit Application</Button>
+                        <Button type="submit" isLoading={modSubmitting} className="w-full sm:w-auto min-h-[44px]">Submit Application</Button>
                     </form>
                 )}
             </Card>
 
             <Card className="p-6 border-red-200 dark:border-red-900">
                 <h3 className="text-xl font-bold mb-4 text-red-600 flex items-center gap-2"><Trash2 className="w-5 h-5"/> Danger Zone</h3>
-                <p className="text-gray-600 dark:text-gray-400 mb-4">Permanently delete your account and all encrypted data. This action is irreversible.</p>
-                <Button variant="danger" onClick={handleNuke}>Nuke Account (Kill Switch)</Button>
+                <p className="text-gray-600 dark:text-gray-400 mb-4 text-sm sm:text-base">Permanently delete your account and all encrypted data. This action is irreversible.</p>
+                <Button variant="danger" onClick={handleNuke} className="w-full sm:w-auto min-h-[44px]">Nuke Account (Kill Switch)</Button>
             </Card>
         </div>
     );

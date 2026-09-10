@@ -89,24 +89,24 @@ export const ResourcesPage = () => {
 
     return (
         <div className="space-y-8">
-            <div className="flex flex-col md:flex-row justify-between items-end gap-6">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 md:gap-6">
                 <div>
                     <h1 className="text-3xl font-bold font-serif mb-2 dark:text-white">Self-Help Library</h1>
-                    <p className="text-gray-500">Verified guides, emergency hotlines, and grounding exercises across Kenya.</p>
+                    <p className="text-gray-500 text-sm sm:text-base">Verified guides, emergency hotlines, and grounding exercises across Kenya.</p>
                 </div>
                 <div className="w-full md:w-auto relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 pointer-events-none" />
                     <input 
                         type="text" 
                         placeholder="Search topics..." 
-                        className="w-full md:w-64 pl-10 pr-4 py-2.5 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-primary-500 outline-none dark:text-white"
+                        className="w-full md:w-64 pl-10 pr-4 py-2.5 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-primary-500 outline-none dark:text-white text-base sm:text-sm min-h-[44px]"
                         value={search}
                         onChange={e => setSearch(e.target.value)}
                     />
                 </div>
             </div>
 
-            <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+            <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0">
                 {[
                     { id: 'all', label: 'All Resources' },
                     { id: 'article', label: 'Articles' },
@@ -117,7 +117,7 @@ export const ResourcesPage = () => {
                     <button
                         key={f.id}
                         onClick={() => setFilter(f.id as any)}
-                        className={`px-4 py-2 rounded-full font-medium text-sm whitespace-nowrap transition-colors ${filter === f.id ? 'bg-gray-900 text-white dark:bg-white dark:text-gray-900' : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'}`}
+                        className={`px-4 py-2 rounded-full font-medium text-sm whitespace-nowrap transition-colors min-h-[44px] flex items-center shrink-0 ${filter === f.id ? 'bg-gray-900 text-white dark:bg-white dark:text-gray-900 shadow-sm' : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'}`}
                     >
                         {f.label}
                     </button>
